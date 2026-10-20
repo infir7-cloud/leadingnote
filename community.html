@@ -1,0 +1,857 @@
+<!doctype html><html lang="ko"><head><meta name="robots" content="noindex"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>[hidden]{display:none!important}</style></head><body><title>커뮤니티</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&amp;family=IBM+Plex+Sans+KR:wght@400;500;600;700&amp;display=swap">
+<style>
+/* Layout: 휴대폰 한 손 앱 — 매주 하나의 양자택일 아젠다(배너 → 본문), 매일 예측, 뽑힌 의견. 두 선택지는 늘 연두(가)·파랑(나) 한 쌍으로 표시 */
+:root{
+  --bg:#0B0F14; --surface:#11171E; --raise:#161D25; --line:#222B35; --ink:#EEF2F5; --ink2:#8D99A6;
+  --accent:#C6F25E; --on-accent:#0B0F14; --live:#FF5A5F;
+  --sa:#78A02A; --sb:#5B85EB; --sa-soft:rgba(120,160,42,.16); --sb-soft:rgba(91,133,235,.16);
+  --f-ui:'IBM Plex Sans KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif;
+  --f-mono:'IBM Plex Mono','IBM Plex Sans KR',ui-monospace,Menlo,monospace;
+  --nav-h:4.25rem;
+  color-scheme:dark;
+}
+@media (prefers-color-scheme: light){:root:not([data-theme="dark"]){
+  --bg:#F3F5F7; --surface:#FFFFFF; --raise:#F8F9FA; --line:#D9DFE5; --ink:#0D1117; --ink2:#56616D;
+  --accent:#3F6F00; --on-accent:#FFFFFF; --live:#D42A26;
+  --sa:#4C7A00; --sb:#2F5FCC; --sa-soft:rgba(76,122,0,.1); --sb-soft:rgba(47,95,204,.1); color-scheme:light}}
+:root[data-theme="light"]{
+  --bg:#F3F5F7; --surface:#FFFFFF; --raise:#F8F9FA; --line:#D9DFE5; --ink:#0D1117; --ink2:#56616D;
+  --accent:#3F6F00; --on-accent:#FFFFFF; --live:#D42A26;
+  --sa:#4C7A00; --sb:#2F5FCC; --sa-soft:rgba(76,122,0,.1); --sb-soft:rgba(47,95,204,.1); color-scheme:light}
+
+*{box-sizing:border-box}
+html{font-size:16px}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f-ui);font-size:1rem;line-height:1.6;-webkit-text-size-adjust:100%}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:40;background:var(--bg)}
+h1,h2,h3,p,ul,ol,figure{margin:0}
+ul,ol{padding:0;list-style:none}
+button,input,textarea{font:inherit;color:inherit}
+button{cursor:pointer;-webkit-tap-highlight-color:transparent}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+.vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums;word-spacing:-.3em}
+.gx{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+
+.app{max-width:480px;margin:0 auto;min-height:100vh;padding-bottom:calc(var(--nav-h) + env(safe-area-inset-bottom,0px) + 2rem)}
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:30;background:var(--bg)}
+.top-in{min-height:4rem;display:flex;align-items:center;gap:.5rem}
+.mark{display:flex;flex-direction:column;gap:.25rem}
+.mark b{font-size:1.375rem;font-weight:700;letter-spacing:-.04em;line-height:1}
+.mark b i{font-style:normal;font-weight:400;color:var(--ink2)}
+.mark small{font-family:var(--f-mono);font-size:.6875rem;letter-spacing:.14em;color:var(--ink2);line-height:1}
+.back{width:2.75rem;height:2.75rem;margin-left:-.6rem;border:0;background:transparent;display:flex;align-items:center;justify-content:center;color:var(--ink)}
+.back svg{width:1.5rem;height:1.5rem}
+.top-title{font-size:1.125rem;font-weight:700;letter-spacing:-.02em;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+.nav{position:fixed;left:50%;transform:translateX(-50%);bottom:0;width:100%;max-width:480px;z-index:30;background:var(--bg);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px)}
+.nav-in{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));height:var(--nav-h);padding-left:max(6px,env(safe-area-inset-left,0px));padding-right:max(6px,env(safe-area-inset-right,0px))}
+.nav button{border:0;background:transparent;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.15rem;font-size:.8125rem;font-weight:500;color:var(--ink2)}
+.nav button svg{width:1.5rem;height:1.5rem}
+.nav button[aria-current="page"]{color:var(--accent);font-weight:600}
+
+main{display:flex;flex-direction:column;gap:2rem;padding-top:.5rem}
+.sec{display:flex;flex-direction:column;gap:.85rem}
+.sech{display:flex;align-items:baseline;gap:.5rem;font-size:1.25rem;font-weight:700;letter-spacing:-.03em;line-height:1.35}
+.sech .meta{margin-left:auto;font-family:var(--f-mono);font-size:.75rem;font-weight:500;color:var(--ink2);letter-spacing:.04em;white-space:nowrap}
+.lbl{font-family:var(--f-mono);font-size:.75rem;font-weight:500;letter-spacing:.06em;color:var(--ink2);text-transform:uppercase;word-spacing:-.3em}
+.lbl.acc{color:var(--accent)}
+.small{font-size:.875rem;color:var(--ink2);line-height:1.55}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:.75rem}
+.btn{min-height:3.25rem;display:inline-flex;align-items:center;justify-content:center;gap:.4rem;padding:0 1rem;border-radius:.5rem;border:0;font-size:1rem;font-weight:700}
+.btn-primary{background:var(--accent);color:var(--on-accent)}
+.btn-line{background:transparent;border:1px solid var(--line);color:var(--ink)}
+.btn-block{width:100%}
+.btn[disabled]{opacity:.4;cursor:default}
+.link{border:0;background:transparent;padding:0;font-family:var(--f-mono);font-size:.8125rem;color:var(--accent);word-spacing:-.3em;min-height:2.25rem}
+.dot{display:inline-block;width:.6rem;height:.6rem;border-radius:2px;flex-shrink:0}
+.dot.a{background:var(--sa)} .dot.b{background:var(--sb)}
+.chip{display:inline-flex;align-items:center;gap:.35rem;padding:.05rem .5rem;border:1px solid var(--line);border-radius:.3rem;font-size:.8125rem;font-weight:500;color:var(--ink2);white-space:nowrap}
+
+/* 아젠다 배너 */
+.banner{display:flex;flex-direction:column;gap:1rem;width:100%;padding:1.1rem 1.1rem 1rem;text-align:left;border-radius:.75rem;border:1px solid var(--line);background:var(--surface);color:var(--ink)}
+.banner h2{font-size:1.5rem;font-weight:700;line-height:1.35;letter-spacing:-.04em;text-wrap:balance}
+.brow{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap}
+.brow .lbl:last-child{margin-left:auto}
+.vs{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:stretch;gap:.4rem}
+.vs>span{display:flex;flex-direction:column;gap:.1rem;padding:.7rem .8rem;border-radius:.5rem;min-width:0}
+.vs .va{background:var(--sa-soft);border-left:3px solid var(--sa)}
+.vs .vb{background:var(--sb-soft);border-right:3px solid var(--sb);text-align:right}
+.vs b{font-size:1.1875rem;letter-spacing:-.03em}
+.vs small{font-size:.8125rem;color:var(--ink2)}
+.vs i{align-self:center;font-style:normal;font-family:var(--f-mono);font-size:.8125rem;color:var(--ink2)}
+.bfoot{display:flex;align-items:center;gap:.6rem;font-size:.875rem;color:var(--ink2)}
+.bfoot .go{margin-left:auto;font-family:var(--f-mono);font-size:.8125rem;color:var(--accent);white-space:nowrap;word-spacing:-.3em}
+
+/* 나뉜 막대 */
+.split{display:flex;gap:2px;height:.75rem;width:100%}
+.split span{display:block;height:100%}
+.split .a{background:var(--sa);border-radius:4px 0 0 4px}
+.split .b{background:var(--sb);border-radius:0 4px 4px 0}
+.split-lab{display:flex;justify-content:space-between;gap:.5rem;font-size:.875rem;font-weight:600}
+.split-lab span{display:flex;align-items:center;gap:.35rem}
+.locked{display:flex;align-items:center;gap:.5rem;padding:.75rem .9rem;border:1px dashed var(--line);border-radius:.5rem;font-size:.9375rem;color:var(--ink2)}
+.locked svg{width:1.1rem;height:1.1rem;flex-shrink:0}
+
+/* 오늘의 예측 */
+.pred{padding:1rem;display:flex;flex-direction:column;gap:.85rem}
+.pred h3{font-size:1.1875rem;font-weight:700;letter-spacing:-.03em;line-height:1.4}
+.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.5rem}
+.pick{min-height:3.5rem;border-radius:.5rem;border:1px solid var(--line);background:transparent;display:flex;align-items:center;justify-content:center;gap:.4rem;font-size:1.0625rem;font-weight:700}
+.pick.a{background:var(--sa-soft);border-color:var(--sa)}
+.pick.b{background:var(--sb-soft);border-color:var(--sb)}
+.pick[aria-pressed="true"]{outline:2px solid var(--ink);outline-offset:1px}
+.pick svg{width:1rem;height:1rem}
+.yrow{display:flex;align-items:flex-start;gap:.6rem;padding-top:.75rem;border-top:1px solid var(--line);font-size:.875rem;color:var(--ink2)}
+.yrow b{color:var(--ink)}
+.strip{display:flex;gap:4px}
+.strip span{width:1.4rem;height:1.4rem;border-radius:3px;display:flex;align-items:center;justify-content:center;font-family:var(--f-mono);font-size:.6875rem;color:var(--ink2)}
+.strip .h{background:var(--sa)} .strip .m{border:1px solid var(--ink2)} .strip .n{border:1px dashed var(--line)}
+.legend{display:flex;flex-wrap:wrap;gap:.35rem .9rem;font-size:.8125rem;color:var(--ink2)}
+.legend span{display:inline-flex;align-items:center;gap:.35rem}
+.lg-h{width:.7rem;height:.7rem;border-radius:2px;background:var(--sa)} .lg-m{width:.7rem;height:.7rem;border-radius:2px;border:1px solid var(--ink2)} .lg-n{width:.7rem;height:.7rem;border-radius:2px;border:1px dashed var(--ink2)}
+
+/* 뽑힌 의견 */
+.quotes{display:flex;gap:.6rem;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;padding-block:.1rem}
+.quotes::-webkit-scrollbar{display:none}
+.q{flex:0 0 82%;scroll-snap-align:start;display:flex;flex-direction:column;gap:.6rem;padding:1rem;border-radius:.75rem;border:1px solid var(--line);background:var(--surface);min-width:0}
+.q.mine{border-color:var(--accent)}
+.q-who{display:flex;align-items:center;gap:.4rem;flex-wrap:wrap;font-size:.875rem;color:var(--ink2)}
+.q-who b{color:var(--ink);font-size:.9375rem}
+.q-text{font-size:1.0625rem;line-height:1.65;letter-spacing:-.01em}
+.q-text::before{content:"“";color:var(--ink2);margin-right:.1em}
+.q-text::after{content:"”";color:var(--ink2);margin-left:.1em}
+.q-foot{display:flex;align-items:center;gap:.5rem;font-size:.8125rem;color:var(--ink2);margin-top:auto}
+.picked{display:inline-flex;align-items:center;gap:.25rem;padding:.05rem .45rem;border-radius:.3rem;background:var(--accent);color:var(--on-accent);font-size:.75rem;font-weight:700}
+.qstack{display:flex;flex-direction:column;gap:.6rem}
+.qstack .q{flex:none}
+
+.report{display:grid;grid-template-columns:auto minmax(0,1fr);gap:1rem;align-items:center;width:100%;padding:1rem;text-align:left;border-radius:.75rem;border:1px solid var(--line);background:var(--surface);color:var(--ink)}
+.report h3{font-size:1.0625rem;font-weight:700;line-height:1.45;letter-spacing:-.02em}
+.report .rt{display:flex;flex-direction:column;gap:.3rem;min-width:0}
+
+.cand{display:flex;flex-direction:column;gap:.35rem;width:100%;padding:.85rem 1rem;border:0;background:transparent;text-align:left;color:var(--ink)}
+.cand+.cand{border-top:1px solid var(--line)}
+.cand .ct{display:flex;align-items:center;gap:.5rem;font-size:1rem;font-weight:600}
+.cand .ct .mono{margin-left:auto;font-size:.875rem;color:var(--ink2);font-weight:500}
+.cand .cbar{height:.5rem;border-radius:0 4px 4px 0;background:var(--ink2);opacity:.45}
+.cand[aria-pressed="true"] .cbar{background:var(--accent);opacity:1}
+.cand[aria-pressed="true"] .ct::after{content:"내 선택";order:-1;font-family:var(--f-mono);font-size:.6875rem;padding:0 .35rem;border-radius:.25rem;background:var(--accent);color:var(--on-accent)}
+
+.cele{display:flex;flex-direction:column;gap:.6rem;padding:1rem;border-radius:.75rem;border:1px solid var(--accent);background:linear-gradient(0deg,var(--surface),var(--surface))}
+.cele b{font-size:1.0625rem}
+
+/* 본문 */
+.art{display:flex;flex-direction:column;gap:1.75rem}
+.art h1{font-size:1.625rem;font-weight:700;line-height:1.35;letter-spacing:-.045em;text-wrap:balance}
+.art h2{font-size:1.1875rem;font-weight:700;letter-spacing:-.03em;line-height:1.4}
+.art p{font-size:1.0625rem;line-height:1.75;color:var(--ink)}
+.art p.dim{color:var(--ink2)}
+.prose{display:flex;flex-direction:column;gap:.8rem;max-width:36rem}
+.metas{display:flex;flex-wrap:wrap;gap:.4rem}
+.fig{display:flex;flex-direction:column;gap:.75rem;padding:1rem;border-radius:.75rem;border:1px solid var(--line);background:var(--surface)}
+.fig figcaption{display:flex;flex-direction:column;gap:.15rem}
+.fig figcaption b{font-size:1.0625rem;letter-spacing:-.02em}
+.chart{width:100%;height:auto;display:block;overflow:visible}
+.chart text{font-family:var(--f-mono);font-size:11px;fill:var(--ink2)}
+.chart .end{font-family:var(--f-ui);font-size:12px;font-weight:600;fill:var(--ink)}
+.chart .grid{stroke:var(--line);stroke-width:1}
+.tip{position:absolute;pointer-events:none;padding:.45rem .6rem;border-radius:.4rem;background:var(--raise);border:1px solid var(--line);font-size:.8125rem;line-height:1.5;white-space:nowrap;box-shadow:0 6px 18px rgba(0,0,0,.25)}
+.tip[hidden]{display:none}
+.cwrap{position:relative}
+.tiles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.5rem}
+.tile{display:flex;flex-direction:column;gap:.2rem;padding:.75rem .8rem;border-radius:.5rem;background:var(--raise);border:1px solid var(--line);min-width:0}
+.tile .tk{font-size:.8125rem;color:var(--ink2);display:flex;align-items:center;gap:.35rem}
+.tile b{font-family:var(--f-mono);font-size:1.25rem;font-weight:500;letter-spacing:-.02em;word-spacing:-.3em}
+.tile span.s{font-size:.75rem;color:var(--ink2)}
+details.tbl{font-size:.875rem}
+details.tbl summary{cursor:pointer;color:var(--ink2);font-family:var(--f-mono);font-size:.75rem;word-spacing:-.3em;min-height:2rem;display:flex;align-items:center}
+.tw{overflow-x:auto}
+.tw table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+.tw th,.tw td{padding:.4rem .5rem;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+.tw th:first-child,.tw td:first-child{text-align:left}
+.tw th{color:var(--ink2);font-weight:500}
+.sides{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.5rem}
+.side{display:flex;flex-direction:column;gap:.6rem;padding:.9rem;border-radius:.5rem;min-width:0}
+.side.a{background:var(--sa-soft);border-top:3px solid var(--sa)}
+.side.b{background:var(--sb-soft);border-top:3px solid var(--sb)}
+.side b{font-size:1rem}
+.side li{font-size:.9375rem;line-height:1.6;padding-left:.9rem;position:relative}
+.side li::before{content:"";position:absolute;left:0;top:.65em;width:.35rem;height:1px;background:var(--ink2)}
+@media (max-width:360px){.sides{grid-template-columns:1fr}}
+.votebox{display:flex;flex-direction:column;gap:.75rem;padding:1rem;border-radius:.75rem;border:1px solid var(--accent);background:var(--surface)}
+.votebox h2{font-size:1.1875rem}
+.field{width:100%;min-height:5rem;padding:.75rem .9rem;border-radius:.5rem;border:1px solid var(--line);background:var(--bg);font-size:1rem;line-height:1.55;resize:vertical}
+.field:focus{outline:none;border-color:var(--accent)}
+.cnt{align-self:flex-end;font-family:var(--f-mono);font-size:.75rem;color:var(--ink2)}
+.done{display:flex;flex-direction:column;gap:.35rem;padding:.8rem .9rem;border-radius:.5rem;background:var(--raise);font-size:.9375rem}
+.done b{font-size:1rem}
+.ages{display:flex;flex-direction:column;gap:.85rem}
+.age{display:flex;flex-direction:column;gap:.3rem}
+.age-t{display:flex;align-items:baseline;gap:.5rem;font-size:.875rem}
+.age-t b{font-size:.9375rem}
+.age-t .mono{margin-left:auto;color:var(--ink2);font-size:.8125rem}
+.age.me .age-t b::after{content:" · 내 나이대";color:var(--accent);font-weight:500;font-size:.8125rem}
+.kw{display:flex;flex-wrap:wrap;gap:.45rem;align-items:baseline}
+.kw span{display:inline-flex;align-items:baseline;gap:.3rem;padding:.2rem .6rem;border-radius:.4rem;border:1px solid var(--line);font-weight:600;line-height:1.4}
+.kw span small{font-family:var(--f-mono);font-size:.6875rem;font-weight:500;color:var(--ink2)}
+.kw span i{display:inline-block;width:.5rem;height:.5rem;border-radius:2px;align-self:center}
+.ops-ctl{display:flex;gap:.4rem;flex-wrap:wrap}
+.tab{min-height:2.5rem;padding:0 .8rem;border-radius:.4rem;border:1px solid var(--line);background:transparent;font-size:.875rem;font-weight:500;color:var(--ink2)}
+.tab[aria-pressed="true"]{border-color:var(--accent);color:var(--accent);font-weight:600}
+.op{display:flex;flex-direction:column;gap:.45rem;padding:.9rem 0;border-bottom:1px solid var(--line)}
+.op.mine .op-text{color:var(--ink)}
+.op-who{display:flex;align-items:center;gap:.4rem;flex-wrap:wrap;font-size:.8125rem;color:var(--ink2)}
+.op-who b{color:var(--ink);font-size:.875rem}
+.op-text{font-size:1rem;line-height:1.65}
+.like{align-self:flex-start;display:inline-flex;align-items:center;gap:.3rem;min-height:2.25rem;padding:0 .7rem;border-radius:.4rem;border:1px solid var(--line);background:transparent;font-family:var(--f-mono);font-size:.8125rem;color:var(--ink2)}
+.like svg{width:.95rem;height:.95rem}
+.like[aria-pressed="true"]{border-color:var(--accent);color:var(--accent)}
+.note{padding:.75rem .9rem;border-radius:.5rem;background:var(--raise);font-size:.8125rem;color:var(--ink2);line-height:1.6}
+
+/* 목록·일정 */
+.alist{display:flex;flex-direction:column}
+.arow{display:flex;flex-direction:column;gap:.5rem;width:100%;padding:1rem 0;border:0;border-bottom:1px solid var(--line);background:transparent;text-align:left;color:var(--ink)}
+.arow h3{font-size:1.0625rem;font-weight:700;letter-spacing:-.02em;line-height:1.45}
+.arow .brow{font-size:.8125rem;color:var(--ink2)}
+.plan{display:flex;flex-direction:column}
+.prow{display:grid;grid-template-columns:5.5rem minmax(0,1fr);gap:.75rem;padding:.8rem 0;border-bottom:1px solid var(--line)}
+.prow .when{font-family:var(--f-mono);font-size:.8125rem;color:var(--ink2);line-height:1.5;word-spacing:-.3em}
+.prow .what{display:flex;flex-direction:column;gap:.25rem;min-width:0}
+.prow .what b{font-size:.9375rem;line-height:1.5}
+.prow.now .when{color:var(--accent)}
+.week{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:.35rem}
+.week div{display:flex;flex-direction:column;gap:.2rem;padding:.55rem .4rem;border-radius:.4rem;background:var(--raise);border:1px solid var(--line);min-width:0;text-align:center}
+.week .d{font-family:var(--f-mono);font-size:.75rem;color:var(--ink2)}
+.week b{font-size:.8125rem;line-height:1.35;word-break:keep-all}
+.week .today{border-color:var(--accent)}
+.stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.5rem}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--nav-h) + env(safe-area-inset-bottom,0px) + .75rem);width:calc(100% - 2rem);max-width:440px;z-index:50;padding:.85rem 1rem;border-radius:.5rem;background:var(--ink);color:var(--bg);font-size:.9375rem;font-weight:600;line-height:1.5}
+.toast[hidden]{display:none}
+.nav[hidden]{display:none}
+.app.in-chat{padding-bottom:calc(10.5rem + env(safe-area-inset-bottom,0px))}
+.app.in-chat .toast{bottom:calc(10rem + env(safe-area-inset-bottom,0px))}
+/* 실시간 토론 */
+.live{display:inline-block;width:.55rem;height:.55rem;border-radius:50%;background:var(--live);flex-shrink:0;align-self:center;animation:pulse 1.6s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.livebox{display:flex;flex-direction:column;gap:0;width:100%;padding:0;text-align:left;border-radius:.75rem;border:1px solid var(--line);background:var(--surface);color:var(--ink);overflow:hidden}
+.lp{display:flex;flex-direction:column;gap:.15rem;padding:.7rem 1rem;border-bottom:1px solid var(--line);min-width:0}
+.lp-who{display:flex;align-items:center;gap:.35rem;font-size:.8125rem;color:var(--ink2)}
+.lp-who b{color:var(--ink);font-size:.875rem}
+.lp-text{font-size:.9375rem;line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.lp.sys .lp-text{color:var(--ink2)}
+.lp.new{animation:flash 1.2s ease}
+@keyframes flash{from{background:var(--raise)}to{background:transparent}}
+.fake-in{display:flex;align-items:center;gap:.6rem;padding:.75rem 1rem;font-size:.9375rem;color:var(--ink2)}
+.fake-in span:first-child{flex:1;min-height:2.6rem;display:flex;align-items:center;padding:0 .8rem;border-radius:.5rem;border:1px solid var(--line);background:var(--bg)}
+.fake-in .go{font-family:var(--f-mono);font-size:.8125rem;color:var(--accent);word-spacing:-.3em;white-space:nowrap}
+.pin{position:sticky;top:calc(4rem + env(safe-area-inset-top,0px));z-index:20;display:flex;flex-direction:column;gap:.5rem;padding:.75rem 0 .8rem;background:var(--bg);border-bottom:1px solid var(--line)}
+.pin-t{display:flex;align-items:center;gap:.6rem}
+.pin-t b{flex:1;min-width:0;font-size:.9375rem;line-height:1.4;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pin-t .link{flex-shrink:0}
+.meter{display:flex;flex-direction:column;gap:.25rem}
+.meter .split{height:.4rem}
+.meter-l{display:flex;justify-content:space-between;font-size:.75rem;color:var(--ink2)}
+.meter-l span{display:inline-flex;align-items:center;gap:.3rem}
+.chat{display:flex;flex-direction:column;gap:.9rem;padding-top:.5rem}
+.cm{display:flex;flex-direction:column;gap:.25rem;align-items:flex-start;max-width:86%}
+.cm.mine{align-self:flex-end;align-items:flex-end}
+.cm-who{display:flex;align-items:center;gap:.35rem;flex-wrap:wrap;font-size:.8125rem;color:var(--ink2)}
+.cm-who b{color:var(--ink);font-size:.875rem}
+.bub{padding:.6rem .85rem;border-radius:.25rem .75rem .75rem .75rem;background:var(--surface);border:1px solid var(--line);font-size:1rem;line-height:1.55;overflow-wrap:anywhere}
+.cm.a .bub{border-left:3px solid var(--sa)}
+.cm.b .bub{border-left:3px solid var(--sb)}
+.cm.mine .bub{border-radius:.75rem .25rem .75rem .75rem;background:var(--raise);border-color:var(--accent);border-left-width:1px}
+.mention{color:var(--accent);font-weight:600}
+.cm-act{display:flex;gap:.35rem;align-items:center}
+.cm-act button{min-height:2rem;padding:0 .55rem;border-radius:.35rem;border:1px solid var(--line);background:transparent;font-family:var(--f-mono);font-size:.75rem;color:var(--ink2);word-spacing:-.3em;display:inline-flex;align-items:center;gap:.25rem}
+.cm-act button svg{width:.8rem;height:.8rem}
+.cm-act button[aria-pressed="true"]{border-color:var(--accent);color:var(--accent)}
+.cand-tag{font-family:var(--f-mono);font-size:.6875rem;padding:0 .35rem;border-radius:.25rem;background:var(--accent);color:var(--on-accent);word-spacing:-.3em}
+.sys{align-self:stretch;max-width:none}
+.sys .bub{background:transparent;border:1px dashed var(--line);color:var(--ink2);font-size:.875rem;border-radius:.5rem}
+.sys .cm-who b{color:var(--accent)}
+.typing{font-size:.8125rem;color:var(--ink2);min-height:1.2rem}
+.composer{position:fixed;left:50%;transform:translateX(-50%);bottom:0;width:100%;max-width:480px;z-index:30;background:var(--bg);border-top:1px solid var(--line);display:flex;flex-direction:column;gap:.5rem;padding-top:.6rem;padding-bottom:calc(.7rem + env(safe-area-inset-bottom,0px))}
+.qchips{display:flex;gap:.35rem;overflow-x:auto;scrollbar-width:none}
+.qchips::-webkit-scrollbar{display:none}
+.qchips button{flex-shrink:0;min-height:2.25rem;padding:0 .7rem;border-radius:999px;border:1px solid var(--line);background:var(--surface);font-size:.8125rem;color:var(--ink)}
+.crow{display:flex;gap:.45rem;align-items:center}
+.crow input{flex:1;min-width:0;min-height:3rem;padding:0 .9rem;border-radius:.5rem;border:1px solid var(--line);background:var(--surface);font-size:1rem}
+.crow input:focus{outline:none;border-color:var(--accent)}
+.send{width:3rem;height:3rem;flex-shrink:0;border:0;border-radius:.5rem;background:var(--accent);color:var(--on-accent);display:flex;align-items:center;justify-content:center}
+.send svg{width:1.3rem;height:1.3rem}
+.cside{font-size:.75rem;color:var(--ink2);display:flex;align-items:center;gap:.35rem;flex-wrap:wrap}
+.cside .link{min-height:auto}
+.newpill{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(10.2rem + env(safe-area-inset-bottom,0px));z-index:31;padding:.45rem .9rem;border-radius:999px;border:0;background:var(--accent);color:var(--on-accent);font-size:.8125rem;font-weight:700;box-shadow:0 6px 16px rgba(0,0,0,.3)}
+.newpill[hidden]{display:none}
+
+.foot{font-size:.75rem;color:var(--ink2);line-height:1.6;padding-top:.5rem}
+@media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+<div class="app">
+  <header class="top"><div class="top-in gx" id="top"></div></header>
+  <main class="gx" id="main"></main>
+</div>
+<nav class="nav" aria-label="주요 메뉴"><div class="nav-in" id="nav"></div></nav>
+<div class="toast" id="toast" role="status" hidden></div>
+
+<script>window.siteHid=function(id){try{var h=(JSON.parse(localStorage.getItem("site.v1"))||{}).hiddenChat||{};return !!h[id]}catch(e){return false}};</script>
+<script>
+/* ===== 예시 데이터 (실서비스에서는 운영자가 매주 올리는 아젠다 + 회원 투표·의견) ===== */
+var TODAY='2026-10-19';
+var AG={id:'w43',week:'10월 19일 ~ 23일',due:'금요일 오후 6시 마감',dday:4,
+  title:'노후 자금, 배당주와 성장주 중 어디에 더 담으시겠어요?',
+  a:{name:'배당주',sub:'꾸준히 받는 돈'},b:{name:'성장주',sub:'크게 불어나는 돈'},
+  ages:[['40대',41,212],['50대',55,604],['60대',66,731],['70대 이상',72,295]],   // [나이대, 배당주 %, 참여 수]
+  why:['은퇴를 앞두거나 은퇴하신 분들께 가장 많이 받는 질문이 있어요. "모아 둔 돈을 매달 꺼내 쓸 수 있게 둘까, 조금 더 키울까?"',
+       '배당주는 회사가 번 돈 일부를 해마다 나눠 주는 종목이고, 성장주는 배당 대신 번 돈을 다시 사업에 넣어 회사를 키우는 종목이에요. 정답은 없어요. 내 나이, 다른 소득, 마음 편한 정도에 따라 답이 달라져요.'],
+  aSide:['매달·분기마다 들어오는 돈이 생활비가 돼요','주가가 출렁여도 배당은 대체로 꾸준해서 마음이 편해요','받은 배당을 다시 사면 복리처럼 불어나요'],
+  bSide:['길게 보면 자산이 더 크게 불어날 수 있어요','배당소득세가 없어 중간에 새는 돈이 적어요','아직 일하고 있다면 지금은 키울 때예요'],
+  kw:[['생활비',96,'a'],['마음 편함',64,'a'],['복리',71,'a'],['변동성',58,'b'],['길게 보기',52,'b'],['세금',41,'b'],['손주 용돈',33,'a'],['물가',29,'b'],['반반',27,'']]
+};
+var OPS=[
+  {id:'o1',name:'이*호',age:'70대 이상',side:'a',like:154,text:'성장주는 오를 때 좋지만 떨어지면 밤에 잠이 안 와요. 이 나이엔 마음 편한 게 수익이에요.'},
+  {id:'o2',name:'김*수',age:'60대',side:'a',like:128,text:'은퇴하고 나니 매달 들어오는 돈이 제일 든든해요. 주가는 신경 안 쓰고 배당 날만 기다립니다.'},
+  {id:'o3',name:'박*희',age:'50대',side:'b',like:97,text:'아직 10년은 더 일할 거라 지금은 키우는 게 먼저라고 봐요. 배당은 은퇴 직전에 바꿔도 늦지 않아요.'},
+  {id:'o4',name:'정*숙',age:'60대',side:'a',like:88,text:'배당을 다시 사는 데 쓰면 복리처럼 불어나요. 꼭 둘 중 하나일 필요는 없을 것 같아요.'},
+  {id:'o5',name:'최*영',age:'40대',side:'b',like:61,text:'배당 받아도 세금 떼고 나면 생각보다 적더라고요. 저는 길게 보고 키우는 쪽입니다.'},
+  {id:'o6',name:'한*수',age:'50대',side:'a',like:45,text:'반반이 정답 같아요. 저는 배당 6, 성장 4로 나눠 담고 있어요.'},
+  {id:'o7',name:'서*미',age:'60대',side:'b',like:33,text:'손주 대학 등록금 생각하면 조금은 키워야죠. 다 꺼내 쓰기엔 아직 시간이 길어요.'},
+  {id:'o8',name:'윤*진',age:'40대',side:'b',like:19,text:'물가가 오르는 만큼은 자산도 커져야 한다고 생각해요.'}
+];
+var LAST={id:'w42',week:'10월 12일 ~ 16일',title:'국민연금, 일찍 받기와 늦게 받기 중 어느 쪽이세요?',
+  a:{name:'일찍 받기'},b:{name:'늦게 받기'},
+  ages:[['40대',35,180],['50대',38,702],['60대',44,1021],['70대 이상',29,415]],   // [나이대, 일찍 받기 %, 참여 수]
+  picks:[
+    {name:'이*호',age:'70대 이상',side:'b',like:212,text:'65세에 받았으면 후회했을 거예요. 늦춘 덕에 매달 받는 돈이 꽤 늘었어요.'},
+    {name:'김*자',age:'60대',side:'a',like:187,text:'건강할 때 쓰는 돈이 진짜 돈이라고 생각해요. 여행도 다니고 손주도 보고요.'},
+    {name:'박*수',age:'60대',side:'b',like:164,text:'다른 소득이 있으면 늦추는 게 이득이고, 없으면 일찍 받는 게 맞는 것 같아요.'},
+    {name:'최*길',age:'70대 이상',side:'b',like:143,text:'오래 살 생각이면 늦게, 아니면 일찍. 결국 내 건강은 내가 제일 잘 알죠.'},
+    {name:'정*란',age:'50대',side:'a',like:98,text:'부모님을 보니 일찍 받아서 생활비 부담을 줄이시는 게 좋아 보였어요.'}]
+};
+var PAST=[
+  {week:'10월 5일 ~ 9일',title:'은퇴 후 집, 줄여서 이사할까요 그대로 살까요?',a:'줄여서 이사',b:'그대로 살기',pa:47,n:1976},
+  {week:'9월 28일 ~ 10월 2일',title:'손주 용돈, 현금으로 줄까요 주식으로 줄까요?',a:'현금',b:'주식',pa:37,n:1540}
+];
+var PRED={q:'오늘 코스피, 장 마감 때 지난 거래일보다 오를까요?',up:515,down:388,
+  y:{date:'10월 16일 (금)',pick:'오른다',pct:62,res:'올랐어요',hit:true},
+  crowd:[1,1,0,1,0,1,1,1,0,1]};
+var CANDS=[['자녀에게 증여, 미리 할까요 나중에 할까요?',412],['은퇴 후 부동산 비중, 줄일까요 유지할까요?',388],['손해 막는 가격, 꼭 지켜야 할까요?',297],['금 투자, 지금 할까요 기다릴까요?',205]];
+var PLAN=[
+  {when:'10/19 ~ 10/23',t:'노후 자금, 배당주 vs 성장주',s:'진행 중 · 금요일 결과 리포트와 뽑힌 의견 5개',now:true},
+  {when:'10/26 ~ 10/30',t:'은퇴 후 부동산 비중, 줄일까 유지할까',s:'11월 토론 주제 후보 투표도 이 주에 마감'},
+  {when:'11/2 ~ 11/6',t:'11월 후보 투표 1위 주제',s:'독자가 고른 주제로 진행'},
+  {when:'11/9 ~ 11/13',t:'손해 막는 가격, 꼭 지켜야 할까',s:'전문가 짧은 해설 + 독자 투표'}];
+var DAILY=[['월','코스피 방향'],['화','원·달러 환율'],['수','코스닥 방향'],['목','가장 많이 본 종목'],['금','다음 주 코스피']];
+
+/* ===== 저장 (이 브라우저에만) ===== */
+var KEY='agora.v1';
+function load(){try{var v=localStorage.getItem(KEY);return v?JSON.parse(v):null}catch(e){return null}}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(P))}catch(e){}}
+function defaults(){return {chat:[],clikes:{},vote:null,age:'60대',reason:'',myOp:null,likes:{},pred:null,cand:null,picked:false,
+  myPred:[1,0,1,1,null,1,0,1,1]}}   // 지난 9일 예시 기록 + 오늘
+var P=Object.assign(defaults(),load()||{});
+var S={view:'home',stack:[],sort:'like',side:'all'};
+
+/* ===== 실시간 토론 (시안: 미리 적어 둔 대화가 몇 초마다 올라와요. 실서비스는 실시간 서버) ===== */
+var CHAT_SEED=[
+  {id:'c0',sys:true,name:'운영자',text:'이번 주 토론방이 열렸어요. 생각이 달라도 서로 존중해 주세요. 인터넷 주소·전화번호는 올릴 수 없어요.',at:'10:30'},
+  {id:'c1',name:'김*수',age:'60대',side:'a',like:12,text:'저는 무조건 배당이요. 은퇴하고 나니 월급처럼 들어오는 게 최고예요',at:'10:41'},
+  {id:'c2',name:'최*영',age:'40대',side:'b',like:7,text:'40대는 아직 키울 때죠. 배당은 나중에 바꿔도 돼요',at:'10:43'},
+  {id:'c3',name:'이*호',age:'70대 이상',side:'a',like:15,text:'성장주 들고 있다가 반토막 나 본 적이 있어서… 이제는 못 하겠어요',at:'10:46'},
+  {id:'c4',name:'박*희',age:'50대',side:'b',like:9,text:'@이*호 반토막은 종목 탓 아닐까요? 지수로 길게 가면 괜찮던데요',at:'10:48'},
+  {id:'c5',name:'정*숙',age:'60대',side:'a',like:6,text:'배당 받은 걸로 다시 사면 그게 복리라서 저는 둘 다 잡는 느낌이에요',at:'10:51'},
+  {id:'c6',sys:true,name:'운영자',text:'세금 이야기가 많아서 알려드려요. 배당에는 배당소득세 15.4%가 붙어요.',at:'10:53'},
+  {id:'c7',name:'한*수',age:'50대',side:'a',like:4,text:'그래서 저는 반반 해요. 배당 6, 성장 4',at:'10:55'},
+  {id:'c8',name:'서*미',age:'60대',side:'b',like:3,text:'손주 등록금 생각하면 저는 아직 성장 쪽이요',at:'10:58'}];
+var LIVE_Q=[
+  {name:'윤*진',age:'40대',side:'b',text:'다들 연금계좌로 사세요? 세금 차이가 꽤 나던데요'},
+  {name:'김*수',age:'60대',side:'a',text:'@윤*진 저는 연금계좌에 배당주 담아요. 세금을 나중에 내서 좋아요'},
+  {name:'오*택',age:'70대 이상',side:'a',text:'나이 들수록 마음 편한 게 제일이에요'},
+  {name:'강*호',age:'50대',side:'b',text:'요즘 배당주도 많이 올라서 배당률이 예전만 못해요'},
+  {name:'박*희',age:'50대',side:'b',text:'맞아요. 지금 배당주를 사기엔 좀 비싸다는 생각도 들어요'},
+  {name:'이*호',age:'70대 이상',side:'a',text:'비쌀 땐 조금씩 나눠서 사면 되죠'},
+  {sys:true,name:'운영자',text:'중간 집계예요. 지금까지 60%가 배당주를 골랐어요. 아직 투표 안 하셨다면 위에서 참여해 주세요.'},
+  {name:'정*란',age:'50대',side:'a',text:'다들 몇 대 몇으로 나누세요?'},
+  {name:'한*수',age:'50대',side:'a',text:'@정*란 저는 6:4요'},
+  {name:'최*영',age:'40대',side:'b',text:'40대는 3:7 정도가 맞는 것 같아요'},
+  {name:'서*미',age:'60대',side:'b',text:'다들 말씀 들으니 저도 조금 섞어야겠네요'}];
+var QCHIPS=['배당이 마음 편해요','길게 보면 성장주예요','반반이 답 같아요','궁금한 게 있어요'];
+var REPLIES=[{name:'김*수',age:'60대',side:'a',t:'저도 비슷한 생각이에요'},{name:'박*희',age:'50대',side:'b',t:'좋은 말씀이네요. 저는 조금 다르게 보지만요'},{name:'이*호',age:'70대 이상',side:'a',t:'공감합니다'}];
+S.chat=CHAT_SEED.map(function(m){return Object.assign({},m)}).concat((P.chat||[]).map(function(m){return Object.assign({},m)}));
+S.online=37;S.lq=0;S.unseen=0;S.typing=null;
+function hhmm(){var d=new Date(),z=function(n){return (n<10?'0':'')+n};return z(d.getHours())+':'+z(d.getMinutes())}
+function blocked(t){return [/https?:\/\//i,/www\./i,/[a-z0-9-]+\.(com|net|kr|co|io|me|ly|link|site)\b/i,/0\d{1,2}[\s.-]?\d{3,4}[\s.-]?\d{4}/,/open\.kakao/i,/오픈\s*채팅|오픈톡|단톡방/].some(function(r){return r.test(t)})}
+function mention(t){return esc(t).replace(/^(@\S+)/,'<span class="mention">$1</span>')}
+function cLike(m){return (m.like||0)+(P.clikes&&P.clikes[m.id]?1:0)}
+function sideMeter(){
+  var a=0,b=0;S.chat.forEach(function(m){if(m.side==='a')a++;else if(m.side==='b')b++});var pa=a+b?Math.round(a/(a+b)*100):50;
+  return '<div class="meter" id="meter"><div class="meter-l"><span><i class="dot a"></i>배당주 쪽 말 '+pa+'%</span><span>'+(100-pa)+'% 성장주 쪽 말<i class="dot b"></i></span></div><div class="split" role="img" aria-label="대화 속 비율 배당주 '+pa+'%, 성장주 '+(100-pa)+'%"><span class="a" style="width:'+pa+'%"></span><span class="b" style="width:'+(100-pa)+'%"></span></div></div>';
+}
+function chatMsg(m){
+  if(!m.sys&&siteHid(m.id))return '';
+  if(m.sys)return '<div class="cm sys" id="cm-'+m.id+'"><div class="cm-who"><b>'+esc(m.name)+'</b><span class="mono">'+m.at+'</span></div><div class="bub">'+esc(m.text)+'</div></div>';
+  var lk=cLike(m),on=!!(P.clikes&&P.clikes[m.id]);
+  return '<div class="cm '+(m.side||'')+(m.mine?' mine':'')+'" id="cm-'+m.id+'"><div class="cm-who">'+(m.side?'<i class="dot '+m.side+'"></i>':'')+'<b>'+(m.mine?'나':esc(m.name))+'</b><span>'+esc(m.age||'')+'</span><span class="mono">'+m.at+'</span>'+(lk>=10?'<span class="cand-tag">의견 후보</span>':'')+'</div>'+
+    '<div class="bub">'+mention(m.text)+'</div>'+
+    '<div class="cm-act">'+(m.mine?'<span class="small mono">공감 '+lk+'</span>':'<button data-act="clike" data-v="'+m.id+'" aria-pressed="'+on+'">'+(on?I.heartOn:I.heart)+'공감 '+lk+'</button><button data-act="reply" data-v="'+esc(m.name)+'">답글</button>')+'</div></div>';
+}
+function livePrev(n){
+  return S.chat.filter(function(m){return m.sys||!siteHid(m.id)}).slice(-n).map(function(m,i,arr){return '<span class="lp'+(m.sys?' sys':'')+(m.fresh&&i===arr.length-1?' new':'')+'"><span class="lp-who">'+(m.side?'<i class="dot '+m.side+'"></i>':'')+'<b>'+(m.mine?'나':esc(m.name))+'</b>'+(m.age?'<span>'+esc(m.age)+'</span>':'')+'<span class="mono">'+m.at+'</span></span><span class="lp-text">'+mention(m.text)+'</span></span>'}).join('');
+}
+function liveSection(id,n){
+  return '<section class="sec" id="'+id+'"><h2 class="sech"><i class="live" aria-hidden="true"></i>실시간 토론<span class="meta" id="'+id+'-on">'+S.online+(window.__dbVoted?'명 접속 중':'명 대화 중')+'</span></h2>'+
+    '<button class="livebox" data-go="chat" aria-label="실시간 토론방 들어가기"><span id="'+id+'-list" style="display:flex;flex-direction:column">'+livePrev(n)+'</span>'+
+    '<span class="fake-in"><span>한마디 남기기…</span><span class="go">토론방 들어가기 ›</span></span></button></section>';
+}
+function viewChat(){
+  var t=liveTally(),h='<div class="pin"><div class="pin-t"><b>'+esc(AG.title)+'</b>'+(P.vote?'<span class="chip"><i class="dot '+P.vote+'"></i>'+esc(AG[P.vote].name)+'</span>':'<button class="link" data-act="tovote">투표하기 ›</button>')+'</div>'+sideMeter()+'</div>';
+  h+='<div class="chat" id="chat-list">'+S.chat.map(chatMsg).join('')+'</div><p class="typing" id="typing" aria-live="polite">'+(S.typing?esc(S.typing)+'님이 입력 중…':'')+'</p>';
+  return h;
+}
+function composerHTML(){
+  return '<div class="composer gx" id="composer"><div class="qchips" role="group" aria-label="빠른 문구">'+QCHIPS.map(function(c){return '<button data-act="chip" data-v="'+esc(c)+'">'+esc(c)+'</button>'}).join('')+'</div>'+
+    '<form class="crow" id="chat-form"><label class="vh" for="chat-in">한마디 입력</label><input id="chat-in" maxlength="120" autocomplete="off" placeholder="한마디 남기기 (120자)" value="'+esc(S.draft||'')+'"><button class="send" type="submit" aria-label="보내기"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12h15M13 6l6 6-6 6"/></svg></button></form>'+
+    '<div class="cside">'+(P.vote?'<i class="dot '+P.vote+'"></i>내 말에 "'+esc(AG[P.vote].name)+'" 표시가 붙어요 · 공감 10개가 넘으면 금요일 뽑힌 의견 후보가 돼요':'투표하면 내 말에 배당주·성장주 표시가 붙어요 <button class="link" data-act="tovote">투표하기 ›</button>')+'</div></div>'+
+    '<button class="newpill" id="newpill" data-act="newpill" hidden></button>';
+}
+function nearBottom(){return window.innerHeight+window.scrollY>=document.documentElement.scrollHeight-160}
+function toBottom(){window.scrollTo(0,document.documentElement.scrollHeight)}
+function pushMsg(m){
+  var wasNear=nearBottom();
+  S.chat.forEach(function(x){x.fresh=false});m.fresh=true;S.chat.push(m);
+  if(S.view==='chat'){
+    var l=document.getElementById('chat-list');if(l)l.insertAdjacentHTML('beforeend',chatMsg(m));
+    var mt=document.getElementById('meter');if(mt)mt.outerHTML=sideMeter();
+    if(m.mine||wasNear)toBottom();else{S.unseen++;var np=document.getElementById('newpill');if(np){np.textContent='새 메시지 '+S.unseen+'개 ↓';np.hidden=false}}
+  }else{
+    ['lv-home','lv-detail'].forEach(function(id){var el=document.getElementById(id+'-list');if(el)el.innerHTML=livePrev(id==='lv-home'?3:2)});
+  }
+}
+function setTyping(name){S.typing=name;var el=document.getElementById('typing');if(el)el.textContent=name?name+'님이 입력 중…':''}
+function setOnline(){S.online=Math.max(28,Math.min(52,S.online+Math.round(Math.random()*6-2)));['lv-home','lv-detail'].forEach(function(id){var el=document.getElementById(id+'-on');if(el)el.textContent=S.online+'명 대화 중'});var t=document.getElementById('chat-on');if(t)t.textContent=S.online+'명'}
+function tick(){
+  setOnline();
+  if(S.lq>=LIVE_Q.length)return;
+  var q=LIVE_Q[S.lq++];if(!q.sys)setTyping(q.name);
+  setTimeout(function(){setTyping(null);pushMsg(Object.assign({id:'l'+S.lq,at:hhmm(),like:0},q))},q.sys?0:1800);
+}
+setInterval(tick,7000);
+
+
+/* ===== 계산 ===== */
+function tally(ag){var a=0,n=0;ag.ages.forEach(function(r){a+=Math.round(r[2]*r[1]/100);n+=r[2]});return {a:a,b:n-a,n:n,pa:Math.round(a/n*100)}}
+function liveTally(){var t=tally(AG);if(P.vote&&!window.__dbVoted){t.n++;if(P.vote==='a')t.a++;else t.b++;t.pa=Math.round(t.a/t.n*100)}return t}
+function predTally(){var u=PRED.up+(P.pred==='up'&&!window.__dbVoted?1:0),d=PRED.down+(P.pred==='down'&&!window.__dbVoted?1:0);return {u:u,d:d,n:u+d,pu:Math.round(u/(u+d)*100)}}
+function num(n){return n.toLocaleString('ko-KR')}
+function esc(s){return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+var SERIES=(function(){var r=[],cum=0;for(var t=0;t<=10;t++){var v=Math.pow(1.02,t);r.push({t:t,a:v+cum,b:Math.pow(1.07,t),cash:cum});cum+=.04*v}return r})();
+
+/* ===== 아이콘 ===== */
+var I={
+  home:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 10.5 12 4l8 6.5V20h-5v-5.5H9V20H4z"/></svg>',
+  ag:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"/><path d="M12 8.5v4M9 10.5h6" /></svg>',
+  me:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="3.6"/><path d="M5 20c.8-3.6 3.6-5.5 7-5.5s6.2 1.9 7 5.5"/></svg>',
+  back:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>',
+  lock:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="1.5"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>',
+  heart:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg>',
+  heartOn:'<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg>',
+  up:'<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 5l8 12H4z"/></svg>',
+  down:'<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 19 4 7h16z"/></svg>'
+};
+
+/* ===== 부품 ===== */
+function splitBar(pa,la,lb){
+  return '<div class="split-lab"><span><i class="dot a"></i>'+la+' <span class="mono">'+pa+'%</span></span><span><span class="mono">'+(100-pa)+'%</span> '+lb+'<i class="dot b"></i></span></div>'+
+    '<div class="split" role="img" aria-label="'+la+' '+pa+'%, '+lb+' '+(100-pa)+'%"><span class="a" style="width:'+pa+'%"></span><span class="b" style="width:'+(100-pa)+'%"></span></div>';
+}
+function sideChip(ag,side){return '<span class="chip"><i class="dot '+side+'"></i>'+esc(ag[side].name)+'</span>'}
+function quoteCard(o,ag,opts){
+  opts=opts||{};
+  return '<article class="q'+(o.mine?' mine':'')+'"><div class="q-who">'+(opts.picked?'<span class="picked">뽑힌 의견</span>':'')+'<b>'+(o.mine?'회원님의 의견':esc(o.name)+'님의 의견')+'</b><span>'+esc(o.age)+'</span>'+sideChip(ag,o.side)+'</div>'+
+    '<p class="q-text">'+esc(o.text)+'</p><div class="q-foot"><span class="mono">공감 '+num(o.like)+'</span>'+(o.mine?'<span>· 내 의견</span>':'')+'</div></article>';
+}
+function donut(pa,size){
+  var r=42,c=2*Math.PI*r,gap=3,la=c*pa/100-gap,lb=c*(100-pa)/100-gap;
+  return '<svg width="'+size+'" height="'+size+'" viewBox="0 0 100 100" role="img" aria-label="'+pa+'% 대 '+(100-pa)+'%"><g transform="rotate(-90 50 50)" fill="none" stroke-width="12">'+
+    '<circle cx="50" cy="50" r="'+r+'" style="stroke:var(--sa)" stroke-dasharray="'+la+' '+(c-la)+'"/>'+
+    '<circle cx="50" cy="50" r="'+r+'" style="stroke:var(--sb)" stroke-dasharray="'+lb+' '+(c-lb)+'" stroke-dashoffset="'+(-(la+gap))+'"/></g>'+
+    '<text x="50" y="54" text-anchor="middle" style="font-family:var(--f-mono);font-size:17px;font-weight:600;fill:var(--ink)">'+(Math.max(pa,100-pa))+'%</text></svg>';
+}
+function ageBars(ag,mine){
+  return '<div class="ages">'+ag.ages.map(function(r){var pa=r[1];
+    return '<div class="age'+(mine&&mine===r[0]?' me':'')+'"><div class="age-t"><b>'+r[0]+'</b><span class="mono">'+num(r[2])+'명</span></div>'+
+      '<div class="split" role="img" aria-label="'+r[0]+' '+esc(ag.a.name)+' '+pa+'%, '+esc(ag.b.name)+' '+(100-pa)+'%"><span class="a" style="width:'+pa+'%" title="'+esc(ag.a.name)+' '+pa+'%"></span><span class="b" style="width:'+(100-pa)+'%" title="'+esc(ag.b.name)+' '+(100-pa)+'%"></span></div>'+
+      '<div class="split-lab" style="font-weight:500;font-size:.8125rem;color:var(--ink2)"><span class="mono">'+pa+'%</span><span class="mono">'+(100-pa)+'%</span></div></div>';
+  }).join('')+'</div>';
+}
+function ageTable(ag){
+  return '<details class="tbl"><summary>숫자로 보기</summary><div class="tw"><table><thead><tr><th>나이대</th><th>참여</th><th>'+esc(ag.a.name)+'</th><th>'+esc(ag.b.name)+'</th></tr></thead><tbody>'+
+    ag.ages.map(function(r){return '<tr><td>'+r[0]+'</td><td>'+num(r[2])+'명</td><td>'+r[1]+'%</td><td>'+(100-r[1])+'%</td></tr>'}).join('')+'</tbody></table></div></details>';
+}
+function lineChart(){
+  var W=320,H=196,L=34,R=84,T=18,B=26,pw=W-L-R,ph=H-T-B,y0=1,y1=2;
+  function X(t){return L+t/10*pw} function Y(v){return T+(y1-v)/(y1-y0)*ph}
+  var g='';[1,1.25,1.5,1.75,2].forEach(function(v){g+='<line class="grid" x1="'+L+'" x2="'+(L+pw)+'" y1="'+Y(v)+'" y2="'+Y(v)+'"/><text x="'+(L-6)+'" y="'+(Y(v)+4)+'" text-anchor="end">'+v.toFixed(v%1?2:0).replace(/0$/,'')+'</text>'});
+  g+='<text x="'+(L-6)+'" y="10" text-anchor="end">억 원</text>';[0,5,10].forEach(function(t){g+='<text x="'+X(t)+'" y="'+(H-6)+'" text-anchor="middle">'+(t?t+'년':'지금')+'</text>'});
+  function path(k){return SERIES.map(function(p,i){return (i?'L':'M')+X(p.t).toFixed(1)+','+Y(p[k]).toFixed(1)}).join('')}
+  var la=SERIES[10].a,lb=SERIES[10].b;
+  return '<div class="cwrap" id="lc"><svg class="chart" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="1억 원을 10년 둘 때 계산 예시. 성장주 '+lb.toFixed(2)+'억, 배당주(받은 배당 포함) '+la.toFixed(2)+'억">'+g+
+    '<path d="'+path('a')+'" fill="none" style="stroke:var(--sa)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>'+
+    '<path d="'+path('b')+'" fill="none" style="stroke:var(--sb)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>'+
+    '<circle cx="'+X(10)+'" cy="'+Y(la)+'" r="4" style="fill:var(--sa);stroke:var(--surface)" stroke-width="2"/><circle cx="'+X(10)+'" cy="'+Y(lb)+'" r="4" style="fill:var(--sb);stroke:var(--surface)" stroke-width="2"/>'+
+    '<text class="end" x="'+(X(10)+8)+'" y="'+(Y(lb)+4)+'">성장 '+lb.toFixed(2)+'억</text><text class="end" x="'+(X(10)+8)+'" y="'+(Y(la)+4)+'">배당 '+la.toFixed(2)+'억</text>'+
+    '<line id="lc-x" x1="0" x2="0" y1="'+T+'" y2="'+(T+ph)+'" style="stroke:var(--ink2)" stroke-width="1" visibility="hidden"/>'+
+    '<rect id="lc-hit" x="'+L+'" y="'+T+'" width="'+pw+'" height="'+ph+'" fill="transparent" style="cursor:crosshair"/></svg><div class="tip" id="lc-tip" hidden></div></div>';
+}
+function lineTable(){
+  return '<details class="tbl"><summary>숫자로 보기</summary><div class="tw"><table><thead><tr><th>시점</th><th>배당주 (자산+받은 배당)</th><th>성장주</th></tr></thead><tbody>'+
+    SERIES.filter(function(p){return p.t%2===0}).map(function(p){return '<tr><td>'+(p.t?p.t+'년 뒤':'지금')+'</td><td>'+p.a.toFixed(2)+'억</td><td>'+p.b.toFixed(2)+'억</td></tr>'}).join('')+'</tbody></table></div></details>';
+}
+function kwCloud(){
+  var mx=Math.max.apply(null,AG.kw.map(function(k){return k[1]}));
+  return '<div class="kw">'+AG.kw.slice().sort(function(a,b){return b[1]-a[1]}).map(function(k){var fs=(.875+.55*k[1]/mx).toFixed(3);
+    return '<span style="font-size:'+fs+'rem">'+(k[2]?'<i class="dot '+k[2]+'"></i>':'')+esc(k[0])+'<small>'+k[1]+'</small></span>'}).join('')+'</div>';
+}
+function predStrip(arr,today){
+  var cells=arr.map(function(v){return '<span class="'+(v===1?'h':v===0?'m':'n')+'" title="'+(v===1?'적중':v===0?'빗나감':'참여 안 함')+'"></span>'}).join('');
+  if(today!==undefined)cells+='<span class="n" title="오늘">'+(today?'?':'')+'</span>';
+  return '<div class="strip" role="img" aria-label="최근 예측 기록">'+cells+'</div>';
+}
+
+/* ===== 화면: 홈 ===== */
+function viewHome(){
+  var t=liveTally(),h='';
+  if(P.picked){
+    var mo=myOpinion();
+    h+='<section class="cele"><span class="lbl acc">축하해요</span><b>회원님의 의견이 이번 주 뽑힌 의견에 올랐어요</b><p class="small">홈과 결과 리포트에 이름과 함께 실려요. 친구에게도 알려 보세요.</p>'+quoteCard(mo,AG,{picked:true})+'</section>';
+  }
+  // 1. 이번 주 토론 배너
+  h+='<section class="sec"><button class="banner" data-go="detail"><span class="brow"><span class="lbl acc">이번 주 토론</span><span class="lbl">D-'+AG.dday+' · '+num(t.n)+'명 참여</span></span>'+
+    '<h2>'+esc(AG.title)+'</h2>'+
+    '<span class="vs"><span class="va"><b>'+esc(AG.a.name)+'</b><small>'+esc(AG.a.sub)+'</small></span><i>VS</i><span class="vb"><b>'+esc(AG.b.name)+'</b><small>'+esc(AG.b.sub)+'</small></span></span>'+
+    (P.vote?'<span style="display:flex;flex-direction:column;gap:.4rem">'+splitBar(t.pa,esc(AG.a.name),esc(AG.b.name))+'</span>':'<span class="locked">'+I.lock+'투표하면 '+num(t.n)+'명의 선택이 열려요</span>')+
+    '<span class="bfoot"><span>'+esc(AG.due)+'</span><span class="go">본문 전체 보기 ›</span></span></button></section>';
+  h+=liveSection('lv-home',3);
+  // 2. 오늘의 예측
+  var pt=predTally();
+  h+='<section class="sec"><h2 class="sech">오늘의 예측<span class="meta">매일 · 다음 날 채점</span></h2><div class="card pred">'+
+    '<h3>'+esc(PRED.q)+'</h3><div class="two"><button class="pick a" data-act="pred" data-v="up" aria-pressed="'+(P.pred==='up')+'">'+I.up+'오른다</button><button class="pick b" data-act="pred" data-v="down" aria-pressed="'+(P.pred==='down')+'">'+I.down+'내린다</button></div>'+
+    (P.pred?'<div style="display:flex;flex-direction:column;gap:.4rem">'+splitBar(pt.pu,'오른다','내린다')+'<p class="small">'+num(pt.n)+'명 참여 · 내일 오전 9시에 채점해요. 다른 쪽을 눌러 바꿀 수 있어요 (장 마감 전까지).</p></div>':'<p class="small">누르면 다른 분들의 예측이 보여요. '+num(pt.n)+'명 참여 중</p>')+
+    '<div class="yrow"><span style="flex:1;min-width:0">지난 거래일 '+PRED.y.date+' — <b>'+PRED.y.pct+'%가 "'+PRED.y.pick+'"</b>, 실제로 '+PRED.y.res+'. 다수 의견 적중 <span class="mono">(예시)</span></span></div>'+
+    '<div style="display:flex;flex-direction:column;gap:.45rem"><span class="small">내 최근 10일</span>'+predStrip(P.myPred,!!P.pred)+'<div class="legend"><span><i class="lg-h"></i>적중</span><span><i class="lg-m"></i>빗나감</span><span><i class="lg-n"></i>참여 안 함·채점 전</span></div></div>'+
+    '</div></section>';
+  // 3. 뽑힌 의견
+  var picks=LAST.picks.slice();var mo2=P.picked?myOpinion():null;
+  h+='<section class="sec"><h2 class="sech">지난 주 뽑힌 의견<span class="meta">5 PICKS</span></h2><p class="small" style="margin-top:-.4rem">"'+esc(LAST.title)+'"에 남겨 주신 의견 중 골랐어요.</p>'+
+    '<div class="quotes">'+(mo2?quoteCard(mo2,AG,{picked:true}):'')+picks.map(function(o){return quoteCard(o,LAST,{picked:true})}).join('')+'</div>'+
+    '<button class="link" data-go="report" style="align-self:flex-start">결과 리포트 전체 보기 ›</button></section>';
+  // 4. 지난 주 결과 배너
+  var lt=tally(LAST);
+  h+='<section class="sec"><h2 class="sech">지난 주 결과</h2><button class="report" data-go="report">'+donut(lt.pa,84)+
+    '<span class="rt"><span class="lbl">'+LAST.week+' · '+num(lt.n)+'명</span><h3>'+esc(LAST.title)+'</h3><span class="small"><i class="dot b"></i> '+esc(LAST.b.name)+' '+(100-lt.pa)+'% · <i class="dot a"></i> '+esc(LAST.a.name)+' '+lt.pa+'%</span></span></button></section>';
+  // 5. 다음 달 아젠다 투표
+  h+='<section class="sec"><h2 class="sech">11월에 이야기할 주제<span class="meta">10/30 마감</span></h2><p class="small" style="margin-top:-.4rem">가장 많이 고른 주제가 11월 첫 주 토론 주제가 돼요.</p><div class="card">'+candList()+'</div></section>';
+  h+='<p class="foot">투표와 의견은 회원들의 생각을 모은 것이며 투자 권유가 아니에요. 화면의 숫자와 의견은 모두 예시예요.</p>';
+  return h;
+}
+function candList(){
+  var mx=0;CANDS.forEach(function(c,i){var v=c[1]+(P.cand===i&&!window.__dbVoted?1:0);if(v>mx)mx=v});
+  return CANDS.map(function(c,i){var v=c[1]+(P.cand===i&&!window.__dbVoted?1:0);
+    return '<button class="cand" data-act="cand" data-v="'+i+'" aria-pressed="'+(P.cand===i)+'"><span class="ct"><span>'+esc(c[0])+'</span><span class="mono">'+num(v)+'</span></span><span class="cbar" style="width:'+Math.round(v/mx*100)+'%"></span></button>';
+  }).join('');
+}
+function myOpinion(){
+  if(P.myOp)return P.myOp;
+  return {name:'나',age:P.age,side:P.vote||'a',like:24,mine:true,text:'매달 들어오는 배당으로 병원비와 경조사비를 해결하니 마음이 편해요.'};
+}
+
+/* ===== 화면: 아젠다 본문 ===== */
+function viewDetail(){
+  var t=liveTally(),h='<article class="art">';
+  h+='<header style="display:flex;flex-direction:column;gap:.75rem"><span class="lbl acc">이번 주 토론 · '+AG.week+'</span><h1>'+esc(AG.title)+'</h1>'+
+    '<div class="metas"><span class="chip">'+esc(AG.due)+'</span><span class="chip mono">'+num(t.n)+'명 참여</span><span class="chip mono">의견 '+num(OPS.length+(P.myOp?1:0)+214)+'</span></div></header>';
+  h+='<div class="vs"><span class="va"><b>'+esc(AG.a.name)+'</b><small>'+esc(AG.a.sub)+'</small></span><i>VS</i><span class="vb"><b>'+esc(AG.b.name)+'</b><small>'+esc(AG.b.sub)+'</small></span></div>';
+  h+='<section class="prose"><h2>왜 이 질문인가요</h2>'+AG.why.map(function(p){return '<p>'+esc(p)+'</p>'}).join('')+'</section>';
+  // 시각화 1
+  var A10=SERIES[10];
+  h+='<figure class="fig"><figcaption><span class="lbl">계산 예시</span><b>1억 원을 10년 둔다면, 불어나는 모양이 달라요</b><span class="small">배당주: 해마다 배당 4% + 주가 2% 상승 · 성장주: 배당 없이 주가 7% 상승</span></figcaption>'+
+    '<div class="legend"><span><i class="dot a"></i>배당주 (자산 + 받은 배당)</span><span><i class="dot b"></i>성장주</span></div>'+lineChart()+
+    '<div class="tiles"><div class="tile"><span class="tk"><i class="dot a"></i>배당주 · 10년간 받은 돈</span><b>'+Math.round(A10.cash*10000).toLocaleString('ko-KR')+'만 원</b><span class="s">첫해 약 400만 원부터</span></div>'+
+    '<div class="tile"><span class="tk"><i class="dot b"></i>성장주 · 10년 뒤 자산</span><b>'+A10.b.toFixed(2)+'억</b><span class="s">중간에 받는 돈은 없음</span></div></div>'+
+    lineTable()+'<p class="small">세금·수수료를 빼지 않은 단순 계산이에요. 실제 수익은 해마다 오르내리며, 이 숫자를 보장하지 않아요.</p></figure>';
+  // 양쪽 생각
+  h+='<section class="prose" style="max-width:none"><h2>양쪽은 이렇게 생각해요</h2><div class="sides"><div class="side a"><b>'+esc(AG.a.name)+' 쪽</b><ul>'+AG.aSide.map(function(x){return '<li>'+esc(x)+'</li>'}).join('')+'</ul></div>'+
+    '<div class="side b"><b>'+esc(AG.b.name)+' 쪽</b><ul>'+AG.bSide.map(function(x){return '<li>'+esc(x)+'</li>'}).join('')+'</ul></div></div></section>';
+  // 투표
+  h+='<section class="votebox" id="vote"><h2>'+(P.vote?'내 선택':'회원님은 어느 쪽이세요?')+'</h2>'+
+    '<div class="two"><button class="pick a" data-act="vote" data-v="a" aria-pressed="'+(P.vote==='a')+'">'+esc(AG.a.name)+'</button><button class="pick b" data-act="vote" data-v="b" aria-pressed="'+(P.vote==='b')+'">'+esc(AG.b.name)+'</button></div>';
+  if(P.vote&&!P.myOp){
+    h+='<label class="small" for="reason">이유를 한 줄 남겨 주세요 (선택). 금요일에 5개를 뽑아 홈과 리포트에 이름과 함께 실어요.</label>'+
+      '<textarea class="field" id="reason" maxlength="80" placeholder="예: 매달 들어오는 돈이 있어야 마음이 편해요">'+esc(P.reason)+'</textarea><span class="cnt" id="rc">'+P.reason.length+' / 80</span>'+
+      '<button class="btn btn-primary btn-block" data-act="post">의견 남기기</button>';
+  }else if(P.myOp){
+    h+='<div class="done"><b>의견을 남겼어요</b><span class="small">금요일 오후 6시에 뽑힌 의견을 발표해요. 뽑히면 알림을 드려요.</span></div>';
+  }else{
+    h+='<p class="small">누르면 다른 분들의 선택과 나이대별 결과가 열려요. 마감 전까지 바꿀 수 있어요.</p>';
+  }
+  h+='</section>';
+  h+=liveSection('lv-detail',2);
+  // 시각화 2: 결과
+  h+='<figure class="fig"><figcaption><span class="lbl">지금까지의 선택</span><b>'+(P.vote?(t.pa>=50?esc(AG.a.name):esc(AG.b.name))+'를 고른 분이 조금 더 많아요':'투표하면 결과가 열려요')+'</b></figcaption>';
+  if(P.vote){
+    var mineSide=P.vote,share=mineSide==='a'?t.pa:100-t.pa;
+    h+=splitBar(t.pa,esc(AG.a.name),esc(AG.b.name))+'<p class="small">회원님은 <b style="color:var(--ink)">'+(share>=50?'다수':'소수')+' 의견('+share+'%)</b> 쪽이에요.</p>'+
+      '<div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap"><span class="small">내 나이대</span>'+['40대','50대','60대','70대 이상'].map(function(a){return '<button class="tab" data-act="age" data-v="'+a+'" aria-pressed="'+(P.age===a)+'">'+a+'</button>'}).join('')+'</div>'+
+      '<b style="font-size:1rem">나이대별로 보면</b>'+ageBars(AG,P.age)+'<p class="small">나이가 많을수록 배당주를 고른 비율이 높아요.</p>'+ageTable(AG);
+  }else{
+    h+='<div class="locked">'+I.lock+num(t.n)+'명의 선택과 나이대별 결과가 기다리고 있어요</div>';
+  }
+  h+='</figure>';
+  // 공감 많은 의견
+  var top=allOps().slice().sort(function(a,b){return b.like-a.like}).slice(0,3);
+  h+='<section class="sec"><h2 class="sech">지금 공감 많은 의견<span class="meta">금요일 5개 선정</span></h2><div class="qstack">'+top.map(function(o){return quoteCard(o,AG)}).join('')+'</div></section>';
+  // 시각화 3: 많이 나온 말
+  h+='<figure class="fig"><figcaption><span class="lbl">의견 속 낱말</span><b>의견에 많이 나온 말</b><span class="small">글자가 클수록 많이 나왔어요. 숫자는 나온 횟수예요.</span></figcaption>'+kwCloud()+
+    '<div class="legend"><span><i class="dot a"></i>'+esc(AG.a.name)+' 쪽에서 주로</span><span><i class="dot b"></i>'+esc(AG.b.name)+' 쪽에서 주로</span></div></figure>';
+  // 전체 의견
+  h+='<section class="sec"><h2 class="sech">모든 의견</h2><div class="ops-ctl">'+[['like','공감 많은 순'],['new','최신 순']].map(function(c){return '<button class="tab" data-act="sort" data-v="'+c[0]+'" aria-pressed="'+(S.sort===c[0])+'">'+c[1]+'</button>'}).join('')+
+    '<span style="flex-basis:100%;height:0"></span>'+[['all','전체'],['a',AG.a.name],['b',AG.b.name]].map(function(c){return '<button class="tab" data-act="side" data-v="'+c[0]+'" aria-pressed="'+(S.side===c[0])+'">'+esc(c[1])+'</button>'}).join('')+'</div>'+
+    '<div>'+opList()+'</div></section>';
+  h+='<p class="foot">투표와 의견은 회원들의 생각을 모은 것이며 투자 권유가 아니에요. 투자 판단과 결과의 책임은 본인에게 있어요. 화면의 숫자와 의견은 모두 예시예요.</p>';
+  return h+'</article>';
+}
+function allOps(){var o=OPS.map(function(x){return Object.assign({},x,{like:x.like+(P.likes[x.id]?1:0)})});o=o.concat(window.__remoteOps||[]);if(P.myOp)o.unshift(P.myOp);return o}
+function opList(){
+  var list=allOps();
+  if(S.side!=='all')list=list.filter(function(o){return o.side===S.side});
+  if(S.sort==='like')list.sort(function(a,b){return b.like-a.like});
+  else list.sort(function(a,b){return (b.mine?1:0)-(a.mine?1:0)||OPS.indexOf(b)-OPS.indexOf(a)});
+  if(!list.length)return '<p class="small" style="padding:1rem 0">아직 이쪽 의견이 없어요.</p>';
+  return list.map(function(o){var on=!!P.likes[o.id];
+    return '<div class="op'+(o.mine?' mine':'')+'"><div class="op-who"><b>'+esc(o.name)+'</b><span>'+esc(o.age)+'</span>'+sideChip(AG,o.side)+(o.mine?'<span class="chip" style="color:var(--accent);border-color:var(--accent)">내 의견</span>':'')+'</div><p class="op-text">'+esc(o.text)+'</p>'+
+      (o.mine?'<span class="small mono">공감 '+num(o.like)+'</span>':'<button class="like" data-act="like" data-v="'+o.id+'" aria-pressed="'+on+'">'+(on?I.heartOn:I.heart)+'공감 '+num(o.like)+'</button>')+'</div>';
+  }).join('');
+}
+
+/* ===== 화면: 결과 리포트 ===== */
+function viewReport(){
+  var t=tally(LAST),h='<article class="art">';
+  h+='<header style="display:flex;flex-direction:column;gap:.75rem"><span class="lbl acc">결과 리포트 · '+LAST.week+'</span><h1>'+esc(LAST.title)+'</h1><div class="metas"><span class="chip mono">'+num(t.n)+'명 참여</span><span class="chip">마감됨</span></div></header>';
+  h+='<figure class="fig"><figcaption><span class="lbl">최종 결과</span><b>'+esc(LAST.b.name)+'가 '+(100-t.pa)+'%로 더 많았어요</b></figcaption>'+
+    '<div style="display:grid;grid-template-columns:auto minmax(0,1fr);gap:1rem;align-items:center">'+donut(t.pa,112)+
+    '<div class="legend" style="flex-direction:column;gap:.5rem;font-size:.9375rem"><span><i class="dot b"></i>'+esc(LAST.b.name)+' <b class="mono" style="color:var(--ink)">'+(100-t.pa)+'%</b> · '+num(t.b)+'명</span><span><i class="dot a"></i>'+esc(LAST.a.name)+' <b class="mono" style="color:var(--ink)">'+t.pa+'%</b> · '+num(t.a)+'명</span></div></div></figure>';
+  h+='<section class="prose"><h2>에디터 정리</h2><p>모든 나이대에서 "늦게 받기"가 더 많았어요. 의견이 가장 팽팽했던 건 60대(일찍 44%, 늦게 56%)였고, 이미 연금을 받고 계신 70대 이상은 늦게 받기가 71%로 가장 높았어요.</p>'+
+    '<p class="dim">"다른 소득이 있는지", "건강에 자신이 있는지"가 선택을 가르는 두 가지 기준으로 가장 많이 나왔어요.</p></section>';
+  h+='<figure class="fig"><figcaption><span class="lbl">나이대별</span><b>나이대에 따라 선택이 달랐어요</b></figcaption><div class="legend"><span><i class="dot a"></i>'+esc(LAST.a.name)+'</span><span><i class="dot b"></i>'+esc(LAST.b.name)+'</span></div>'+ageBars(LAST)+ageTable(LAST)+'</figure>';
+  // 참고 그림: 받는 돈 비교
+  var rows=[['5년 일찍',70],['제때',100],['5년 늦게',136]];
+  h+='<figure class="fig"><figcaption><span class="lbl">참고</span><b>언제 받느냐에 따라 매달 받는 돈이 달라져요</b><span class="small">제때 받는 금액을 100으로 볼 때 (1년 일찍 받을 때마다 6% 줄고, 1년 늦출 때마다 7.2% 늘어요)</span></figcaption>'+
+    '<div class="ages">'+rows.map(function(r){return '<div class="age"><div class="age-t"><b>'+r[0]+'</b><span class="mono" style="color:var(--ink)">'+r[1]+'</span></div><div class="split"><span style="width:'+(r[1]/136*100).toFixed(1)+'%;background:'+(r[1]<100?'var(--sa)':r[1]>100?'var(--sb)':'var(--ink2)')+';border-radius:0 4px 4px 0"></span></div></div>'}).join('')+'</div>'+
+    '<p class="small">정확한 금액은 국민연금공단에서 내 가입 기록으로 확인하세요.</p></figure>';
+  h+='<section class="sec"><h2 class="sech">뽑힌 의견<span class="meta">5 PICKS</span></h2><div class="qstack">'+LAST.picks.map(function(o){return quoteCard(o,LAST,{picked:true})}).join('')+'</div></section>';
+  h+='<section class="sec"><span class="lbl acc">이번 주 토론</span><button class="banner" data-go="detail"><h2 style="font-size:1.25rem">'+esc(AG.title)+'</h2><span class="bfoot"><span>'+esc(AG.due)+'</span><span class="go">참여하기 ›</span></span></button></section>';
+  return h+'</article>';
+}
+
+/* ===== 화면: 아젠다 목록·운영 일정 ===== */
+function viewAgendas(){
+  var t=liveTally(),lt=tally(LAST),h='';
+  h+='<section class="sec"><h2 class="sech">진행 중</h2><button class="banner" data-go="detail"><span class="brow"><span class="lbl acc">'+AG.week+'</span><span class="lbl">D-'+AG.dday+'</span></span><h2 style="font-size:1.25rem">'+esc(AG.title)+'</h2>'+
+    (P.vote?'<span style="display:flex;flex-direction:column;gap:.4rem">'+splitBar(t.pa,esc(AG.a.name),esc(AG.b.name))+'</span>':'<span class="locked">'+I.lock+'투표하면 결과가 열려요</span>')+'</button></section>';
+  h+='<section class="sec"><h2 class="sech">지난 토론</h2><div class="alist">'+
+    '<button class="arow" data-go="report"><span class="brow"><span class="lbl">'+LAST.week+'</span><span class="lbl">'+num(lt.n)+'명</span></span><h3>'+esc(LAST.title)+'</h3>'+splitBar(lt.pa,esc(LAST.a.name),esc(LAST.b.name))+'</button>'+
+    PAST.map(function(p){return '<div class="arow"><span class="brow"><span class="lbl">'+p.week+'</span><span class="lbl">'+num(p.n)+'명</span></span><h3>'+esc(p.title)+'</h3>'+splitBar(p.pa,esc(p.a),esc(p.b))+'</div>'}).join('')+'</div></section>';
+  h+='<section class="sec"><h2 class="sech">운영 일정<span class="meta">10월 ~ 11월</span></h2><div class="plan">'+
+    PLAN.map(function(p){return '<div class="prow'+(p.now?' now':'')+'"><span class="when">'+p.when+'</span><span class="what"><b>'+esc(p.t)+'</b><span class="small">'+esc(p.s)+'</span></span></div>'}).join('')+'</div></section>';
+  h+='<section class="sec"><h2 class="sech">요일별 오늘의 예측</h2><div class="week">'+DAILY.map(function(d,i){return '<div class="'+(i===0?'today':'')+'"><span class="d">'+d[0]+'</span><b>'+d[1]+'</b></div>'}).join('')+'</div>'+
+    '<p class="small">매일 장 시작 전에 열고, 장 마감에 닫고, 다음 날 오전 9시에 채점해요. 금요일 리포트에서 한 주 예측 왕을 소개해요.</p></section>';
+  h+='<section class="sec"><h2 class="sech">한 주의 흐름</h2><div class="plan">'+
+    [['월 오전','토론 주제 공개 · 홈 배너'],['월~금','투표 · 이유 한 줄 · 공감'],['수 저녁','중간 결과 알림 ("지금 62%가 배당주")'],['금 오후 6시','마감 · 뽑힌 의견 5개 선정'],['토 오전','결과 리포트 발행 · 뽑힌 분께 알림']].map(function(r){return '<div class="prow"><span class="when">'+r[0]+'</span><span class="what"><b>'+r[1]+'</b></span></div>'}).join('')+'</div></section>';
+  return h;
+}
+
+/* ===== 화면: 내 기록 ===== */
+function viewMe(){
+  var hits=P.myPred.filter(function(v){return v===1}).length,tried=P.myPred.filter(function(v){return v!==null}).length,h='';
+  h+='<section class="sec"><h2 class="sech">내 참여<span class="meta">예시 기록 포함</span></h2><div class="stats">'+
+    '<div class="tile"><span class="tk">참여한 토론</span><b>'+(3+(P.vote?1:0))+'개</b><span class="s">지난 3주 + 이번 주</span></div>'+
+    '<div class="tile"><span class="tk">남긴 의견</span><b>'+(2+(P.myOp?1:0))+'개</b><span class="s">공감 받은 수 41</span></div>'+
+    '<div class="tile"><span class="tk">뽑힌 의견</span><b>'+(P.picked?1:0)+'개</b><span class="s">'+(P.picked?'이번 주 선정':'아직 없어요')+'</span></div>'+
+    '<div class="tile"><span class="tk">예측 적중률</span><b>'+Math.round(hits/tried*100)+'%</b><span class="s">'+tried+'번 중 '+hits+'번</span></div></div></section>';
+  h+='<section class="sec"><h2 class="sech">예측 기록</h2><div class="card pred">'+predStrip(P.myPred,!!P.pred)+'<div class="legend"><span><i class="lg-h"></i>적중</span><span><i class="lg-m"></i>빗나감</span><span><i class="lg-n"></i>참여 안 함·채점 전</span></div>'+
+    '<p class="small">다수 의견의 최근 10일 적중: '+PRED.crowd.filter(function(v){return v}).length+'번. 회원님은 다수보다 '+(hits/tried*10>=PRED.crowd.filter(function(v){return v}).length?'잘':'덜')+' 맞혔어요.</p></div></section>';
+  h+='<section class="sec"><h2 class="sech">뽑힌 의견 미리 보기</h2><p class="small">의견이 뽑히면 홈 맨 위와 결과 리포트에 이렇게 실려요.</p>'+
+    (P.picked?'<button class="btn btn-line btn-block" data-act="unpick">미리 보기 끄기</button>':'<button class="btn btn-primary btn-block" data-act="pickme">내 의견이 뽑혔다고 가정하고 보기</button>')+
+    (P.myOp?'':'<p class="small">이번 주 토론에 이유를 남기면 그 글로 보여드려요. 아직 없으면 예시 문장으로 보여드려요.</p>')+'</section>';
+  h+='<section class="sec"><button class="btn btn-line btn-block" data-act="reset">처음 상태로 되돌리기 (예시용)</button></section>';
+  return h;
+}
+
+/* ===== 그리기 ===== */
+function render(){
+  var v=S.view,title={detail:'이번 주 토론',report:'결과 리포트',chat:'실시간 토론'}[v];
+  document.getElementById('top').innerHTML=title?'<button class="back" data-act="back" aria-label="뒤로">'+I.back+'</button><h1 class="top-title">'+title+'</h1>'+(v==='chat'?'<span class="meta" style="margin-left:auto;display:flex;align-items:center;gap:.4rem;font-family:var(--f-mono);font-size:.8125rem;color:var(--ink2)"><i class="live"></i><span id="chat-on">'+S.online+'명</span></span>':''):
+    '<span class="mark" aria-label="커뮤니티"><b>커뮤니티</b><small>VOTE · OPINION · TALK</small></span>';
+  document.getElementById('main').innerHTML=v==='chat'?viewChat():v==='detail'?viewDetail():v==='report'?viewReport():v==='agendas'?viewAgendas():v==='me'?viewMe():viewHome();
+  var tab=v==='detail'||v==='report'||v==='chat'?(S.stack[0]||'home'):v;
+  document.querySelector('.nav').hidden=v==='chat';
+  document.querySelector('.app').classList.toggle('in-chat',v==='chat');
+  var oc=document.getElementById('composer');if(oc)oc.remove();var op=document.getElementById('newpill');if(op)op.remove();
+  if(v==='chat'){document.body.insertAdjacentHTML('beforeend',composerHTML());S.unseen=0;setTimeout(toBottom,0)}
+  document.getElementById('nav').innerHTML=[['home','홈',I.home],['agendas','토론 목록',I.ag],['me','내 활동',I.me]].map(function(n){return '<button data-tab="'+n[0]+'"'+(tab===n[0]?' aria-current="page"':'')+'>'+n[2]+n[1]+'</button>'}).join('');
+  bindChart();
+}
+function go(v){S.stack.push(S.view);S.view=v;render();if(v!=='chat')window.scrollTo(0,0)}
+var tt=null;function toast(m){var t=document.getElementById('toast');t.textContent=m;t.hidden=false;clearTimeout(tt);tt=setTimeout(function(){t.hidden=true},2800)}
+function bindChart(){
+  var hit=document.getElementById('lc-hit');if(!hit)return;
+  var svg=hit.ownerSVGElement,tip=document.getElementById('lc-tip'),xl=document.getElementById('lc-x');
+  function show(ev){var r=svg.getBoundingClientRect(),vb=svg.viewBox.baseVal,sx=(ev.clientX-r.left)/r.width*vb.width,t=Math.max(0,Math.min(10,Math.round((sx-34)/(320-34-84)*10))),p=SERIES[t],x=34+t/10*(320-34-84);
+    xl.setAttribute('x1',x);xl.setAttribute('x2',x);xl.setAttribute('visibility','visible');
+    tip.innerHTML='<b>'+(t?t+'년 뒤':'지금')+'</b><br><i class="dot a"></i> 배당주 '+p.a.toFixed(2)+'억 <span class="small">(받은 배당 '+Math.round(p.cash*10000).toLocaleString('ko-KR')+'만)</span><br><i class="dot b"></i> 성장주 '+p.b.toFixed(2)+'억';
+    tip.hidden=false;var px=x/vb.width*r.width;tip.style.left=Math.min(Math.max(px-90,0),r.width-190)+'px';tip.style.top='0px';}
+  hit.addEventListener('pointermove',show);hit.addEventListener('pointerdown',show);
+  hit.addEventListener('pointerleave',function(){tip.hidden=true;xl.setAttribute('visibility','hidden')});
+}
+document.addEventListener('click',function(ev){
+  var b=ev.target.closest('[data-go],[data-act],[data-tab]');if(!b)return;
+  if(b.dataset.tab){S.stack=[];S.view=b.dataset.tab;render();window.scrollTo(0,0);return}
+  if(b.dataset.go){go(b.dataset.go);return}
+  var a=b.dataset.act,v=b.dataset.v;
+  if(a==='back'){S.view=S.stack.pop()||'home';render();window.scrollTo(0,0)}
+  else if(a==='vote'){var first=!P.vote;P.vote=v;if(P.myOp)P.myOp.side=v;save();render();if(first){toast('투표했어요. 결과가 열렸어요');var el=document.getElementById('vote');if(el)el.scrollIntoView({block:'start'})}}
+  else if(a==='post'){var t=(document.getElementById('reason').value||'').trim();if(t.length<4){toast('이유를 4자 이상 적어 주세요');return}
+    P.myOp={id:'me',name:'나',age:P.age,side:P.vote,like:0,mine:true,text:t};P.reason='';save();render();toast('의견을 남겼어요. 금요일에 뽑힌 의견을 발표해요');}
+  else if(a==='age'){P.age=v;if(P.myOp)P.myOp.age=v;save();render()}
+  else if(a==='like'){if(P.likes[v])delete P.likes[v];else P.likes[v]=1;save();render()}
+  else if(a==='sort'){S.sort=v;render()}
+  else if(a==='side'){S.side=v;render()}
+  else if(a==='pred'){var f=!P.pred;P.pred=v;save();render();toast(f?'예측했어요. 내일 오전 9시에 채점해요':'예측을 바꿨어요')}
+  else if(a==='cand'){P.cand=P.cand===+v?null:+v;save();render()}
+  else if(a==='pickme'){P.picked=true;save();S.stack=[];S.view='home';render();window.scrollTo(0,0);toast('알림: 회원님의 의견이 이번 주 뽑힌 의견에 올랐어요')}
+  else if(a==='unpick'){P.picked=false;save();render()}
+  else if(a==='clike'){P.clikes=P.clikes||{};if(P.clikes[v])delete P.clikes[v];else P.clikes[v]=1;save();var m=S.chat.filter(function(x){return x.id===v})[0];var el=document.getElementById('cm-'+v);if(m&&el)el.outerHTML=chatMsg(m)}
+  else if(a==='reply'){var i=document.getElementById('chat-in');i.value='@'+v+' ';S.draft=i.value;i.focus()}
+  else if(a==='chip'){var i2=document.getElementById('chat-in');i2.value=(i2.value?i2.value.replace(/\s*$/,' '):'')+v;S.draft=i2.value;i2.focus()}
+  else if(a==='newpill'){S.unseen=0;b.hidden=true;toBottom()}
+  else if(a==='tovote'){S.stack=['home'];S.view='detail';render();var vb=document.getElementById('vote');if(vb)vb.scrollIntoView({block:'start'})}
+  else if(a==='reset'){P=defaults();save();S.chat=CHAT_SEED.map(function(m){return Object.assign({},m)});S.view='home';S.stack=[];S.sort='like';S.side='all';render();window.scrollTo(0,0);toast('처음 상태로 되돌렸어요')}
+});
+document.addEventListener('submit',function(ev){
+  if(ev.target.id!=='chat-form')return;ev.preventDefault();
+  var i=document.getElementById('chat-in'),t=(i.value||'').trim();
+  if(!t){toast('보낼 말을 적어 주세요');return}
+  if(blocked(t)){toast('인터넷 주소·전화번호·단체방 주소는 올릴 수 없어요');return}
+  var m={id:'me'+Date.now(),mine:true,name:'나',age:P.age,side:P.vote,text:t,at:hhmm(),like:0};
+  P.chat=(P.chat||[]).concat([{id:m.id,mine:true,name:'나',age:m.age,side:m.side,text:t,at:m.at,like:0}]);save();
+  i.value='';S.draft='';pushMsg(m);
+  // 참여하면 바로 반응이 와요 (시안용 연출)
+  setTimeout(function(){m.like+=2;var el=document.getElementById('cm-'+m.id);if(el)el.outerHTML=chatMsg(m);toast('2명이 회원님 말에 공감했어요')},3000);
+  var r=REPLIES[Math.floor(Math.random()*REPLIES.length)];
+  setTimeout(function(){setTyping(r.name)},4200);
+  setTimeout(function(){setTyping(null);pushMsg({id:'r'+Date.now(),name:r.name,age:r.age,side:r.side,text:'@회원님 '+r.t,at:hhmm(),like:0})},6200);
+});
+document.addEventListener('input',function(ev){
+  if(ev.target.id==='chat-in')S.draft=ev.target.value;if(ev.target.id==='reason'){P.reason=ev.target.value;var c=document.getElementById('rc');if(c)c.textContent=P.reason.length+' / 80';save()}});
+render();
+</script>
+<style>html[data-size="l"]{font-size:18px}html[data-size="xl"]{font-size:20px}</style><script>
+(function(){
+var APP='cm';
+function siteCfg(){try{return JSON.parse(localStorage.getItem('site.v1'))||window.__siteCfg||{}}catch(e){return window.__siteCfg||{}}}
+function siteSend(type,app,route){try{parent.postMessage({site:1,type:type,app:app||'',route:route||''},'*')}catch(e){}}
+window.siteCfg=siteCfg;window.siteSend=siteSend;
+document.addEventListener('click',function(ev){var b=ev.target.closest('[data-x]');if(!b)return;ev.preventDefault();ev.stopPropagation();var x=b.getAttribute('data-x').split(':');siteSend(x[0],x[1],x.slice(2).join(':'))},true);
+
+window.siteHid=function(id){var h=(siteCfg().hiddenChat)||{};return !!h[id]};
+window.__site={
+  apply:function(c){var r=document.documentElement;r.setAttribute('data-theme',c.theme==='light'?'light':'dark');r.setAttribute('data-size',c.size||'m')},
+  go:function(r){S.stack=[];S.view=(r==='agendas'||r==='me'||r==='chat')?r:'home';render();if(r!=='chat')window.scrollTo(0,0)}
+};
+window.__site.apply(siteCfg());
+})();
+</script><script>
+/* 커뮤니티 ↔ 서버(Supabase): 투표·예측·후보·의견·실시간 토론. 서버가 없으면 아무것도 하지 않아요 */
+(function(){
+function pdb(){try{var d=parent.__db;return d&&d.state==='ready'?d:null}catch(e){return null}}
+var X={on:false,timer:null,hk:null};
+var SEED={ages:JSON.parse(JSON.stringify(AG.ages)),up:PRED.up,down:PRED.down,cands:CANDS.map(function(c){return c[1]})};
+var PRED_ID='pred-'+TODAY,CAND_ID='cand-'+AG.id;
+function hasDb(){return X.on&&pdb()}
+function mapChat(r,d){var me=r.user_id===d.uid;return {id:'db-'+r.id,mine:me,name:me?'나':r.nickname,age:r.age_group||'',side:r.side||'',text:r.body,at:d.hhmm(r.created_at),like:0}}
+function saveOp(d){
+  if(!P.myOp||!P.vote)return Promise.resolve({});
+  return d.opinion({agenda_id:AG.id,nickname:d.nickname(),age_group:P.age,side:P.myOp.side||P.vote,body:P.myOp.text}).then(function(r){
+    if(r.error)return r;if(r.data&&r.data.id&&P.myOp){P.myOp.dbid=r.data.id;save()}return r});
+}
+function pickSync(){
+  var pk=(siteCfg().picks)||[];
+  if(P.myOp&&P.myOp.dbid){var on=pk.indexOf('db-'+P.myOp.dbid)>-1;if(on!==!!P.picked){P.picked=on;save();return true}}
+  return false;
+}
+function counts(d,withChat){
+  var jobs=[d.tally(AG.id),d.pollTally(PRED_ID),d.pollTally(CAND_ID),d.opinions(AG.id)];if(withChat)jobs.push(d.chatList(AG.id));
+  return Promise.all(jobs).then(function(rs){
+    var by={};(rs[0].data||[]).forEach(function(r){var x=by[r.age_group]=by[r.age_group]||{a:0,n:0};x.n+=+r.n;if(r.side==='a')x.a+=+r.n});
+    AG.ages=SEED.ages.map(function(r){var x=by[r[0]];if(!x)return r.slice();var a=Math.round(r[2]*r[1]/100)+x.a,n=r[2]+x.n;return [r[0],n?Math.round(a/n*100):r[1],n]});
+    var pc={};(rs[1].data||[]).forEach(function(r){pc[r.choice]=+r.n});PRED.up=SEED.up+(pc.up||0);PRED.down=SEED.down+(pc.down||0);
+    var cc={};(rs[2].data||[]).forEach(function(r){cc[r.choice]=+r.n});CANDS.forEach(function(c,i){c[1]=SEED.cands[i]+(cc[String(i)]||0)});
+    var ops=rs[3].data||[];
+    window.__remoteOps=ops.filter(function(r){return r.user_id!==d.uid}).map(function(r){return {id:'db-'+r.id,name:r.nickname,age:r.age_group,side:r.side,like:0,text:r.body}});
+    var mine=ops.filter(function(r){return r.user_id===d.uid})[0];if(mine&&P.myOp&&P.myOp.dbid!==mine.id){P.myOp.dbid=mine.id;save()}
+    if(withChat&&rs[4]&&!rs[4].error){var rows=(rs[4].data||[]).slice().reverse();S.chat=CHAT_SEED.map(function(m){return Object.assign({},m)}).concat(rows.map(function(r){return mapChat(r,d)}))}
+    pickSync();
+    if(S.view!=='chat'||withChat)render();
+  });
+}
+function later(){clearTimeout(X.timer);X.timer=setTimeout(function(){var d=pdb();if(d)counts(d,false)},400)}
+function dbInit(d){
+  X.on=true;window.__dbVoted=true;
+  S.lq=LIVE_Q.length;S.typing=null;   // 미리 적어 둔 대화(시안용 연출)는 끄고 실제 대화만
+  window.setOnline=function(){S.online=Math.max(1,d.online||1);['lv-home','lv-detail'].forEach(function(id){var el=document.getElementById(id+'-on');if(el)el.textContent=S.online+'명 접속 중'});var t=document.getElementById('chat-on');if(t)t.textContent=S.online+'명'};
+  S.online=Math.max(1,d.online||1);
+  d.on('online',function(){window.setOnline()});
+  d.on('chat',function(r){if(!X.on||r.agenda_id!==AG.id||r.user_id===d.uid)return;if(S.chat.some(function(x){return x.id==='db-'+r.id}))return;pushMsg(mapChat(r,d))});
+  var sync=[];
+  if(P.vote)sync.push(d.vote(AG.id,P.vote,P.age));
+  if(P.pred)sync.push(d.poll(PRED_ID,P.pred));
+  if(P.cand!=null)sync.push(d.poll(CAND_ID,P.cand));
+  if(P.myOp&&!P.myOp.dbid)sync.push(saveOp(d));
+  return Promise.all(sync).then(function(){return counts(d,true)});
+}
+document.addEventListener('submit',function(ev){
+  if(ev.target.id!=='chat-form'||!hasDb())return;ev.preventDefault();ev.stopImmediatePropagation();
+  var d=pdb(),i=document.getElementById('chat-in'),t=(i.value||'').trim();
+  if(!t){toast('보낼 말을 적어 주세요');return}
+  if(blocked(t)){toast('인터넷 주소·전화번호·단체방 주소는 올릴 수 없어요');return}
+  var id=d.uuid(),m={id:'db-'+id,mine:true,name:'나',age:P.age,side:P.vote||'',text:t,at:hhmm(),like:0};
+  i.value='';S.draft='';pushMsg(m);
+  d.chatSend({id:id,agenda_id:AG.id,nickname:d.nickname(),age_group:P.age,side:P.vote||null,body:t}).then(function(r){
+    if(r.error){toast('보내지 못했어요. 잠시 뒤 다시 해 주세요');S.chat=S.chat.filter(function(x){return x.id!==m.id});var el=document.getElementById('cm-'+m.id);if(el)el.remove()}
+  });
+},true);
+document.addEventListener('click',function(ev){
+  if(!hasDb())return;var b=ev.target.closest('[data-act]');if(!b)return;
+  var a=b.dataset.act,d=pdb(),job=null;
+  if(a==='vote'){job=d.vote(AG.id,P.vote,P.age);if(P.myOp)saveOp(d)}
+  else if(a==='age'){if(P.vote)job=d.vote(AG.id,P.vote,P.age);if(P.myOp)saveOp(d)}
+  else if(a==='post'){job=saveOp(d)}
+  else if(a==='pred'){job=d.poll(PRED_ID,P.pred)}
+  else if(a==='cand'){job=d.poll(CAND_ID,P.cand)}
+  if(job)job.then(function(r){if(r&&r.error)toast('서버에 저장하지 못했어요');later()});
+});
+var base=window.__site.apply;
+window.__site.apply=function(c){
+  base(c);var d=pdb();
+  if(c.db&&d&&!X.on){dbInit(d);X.hk=JSON.stringify(c.hiddenChat||{})+JSON.stringify(c.picks||[]);return}
+  var hk=JSON.stringify(c.hiddenChat||{})+JSON.stringify(c.picks||[]);
+  if(X.on&&X.hk!==null&&hk!==X.hk){X.hk=hk;pickSync();render()}else X.hk=hk;
+};
+window.__site.refresh=function(){var d=pdb();if(X.on&&d)counts(d,false)};
+window.__site.apply(siteCfg());
+})();
+</script></body></html>
