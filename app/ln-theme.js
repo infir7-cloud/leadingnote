@@ -51,6 +51,8 @@
     '[data-act="clike"],[data-act="like"],.cand-tag{display:none!important}';
 
   var LN_CSS = TOK_LN + BASE + [
+    // 전문가 이름은 어디서나 굵게
+    'html.t2 .t2-xn{font-weight:800;color:var(--ink)}html.t2 .kname{font-weight:800!important;color:var(--ink)}',
     // 바탕·카드
     'html.t2 .app{background:var(--bg)}',
     'html.t2 .card{border:0!important;border-radius:1.5rem;box-shadow:none}',
@@ -195,6 +197,8 @@
     if (w.__t2 || !w.screenHome || !w.screenExpert || !w.render || !w.P || !w.S) return false;
     w.__t2 = true;
     d.documentElement.classList.add('t2');
+    cmPatch(w, 'feedSig', [["'<span class=\"sm\">'+esc(x.name)+' 추천 · '", "'<span class=\"sm\"><b class=\"t2-xn\">'+esc(x.name)+'</b> 추천 · '"]]);
+    cmPatch(w, 'pushHTML', [["'<span>리딩노트 · '+esc(x.name)+'</span>'", "'<span>리딩노트 · <b class=\"t2-xn\">'+esc(x.name)+'</b></span>'"]]);
     font(d); css(d, 't2-ln', LN_CSS);
     var P = w.P, S = w.S;
     function won(n){ return n == null || isNaN(n) ? '-' : Number(n).toLocaleString('ko-KR') + '원'; }
@@ -275,7 +279,7 @@
       h += '<section class="t2-sec">' + headStatic(rc.today ? '오늘 새 추천' : '최근 추천', rc.list.length || null) +
         (rc.list.length ? rc.list.slice(0, 5).map(function(s){
           var x = w.expertById(s.L.expert) || {};
-          return '<button class="t2-row" data-a="toLeading" data-v="' + esc(s.L.id) + '">' + scHTML(s.L.stock) + '<span class="t2-mid"><b>' + esc((w.STOCKS[s.L.stock] || {}).name || s.L.stock) + '</b><span>' + esc(x.name || '') + ' · ' + esc(when(s.e.at)) + '</span></span><span class="t2-rt">' + evRight(s) + '</span></button>';
+          return '<button class="t2-row" data-a="toLeading" data-v="' + esc(s.L.id) + '">' + scHTML(s.L.stock) + '<span class="t2-mid"><b>' + esc((w.STOCKS[s.L.stock] || {}).name || s.L.stock) + '</b><span><b class="t2-xn">' + esc(x.name || '') + '</b> · ' + esc(when(s.e.at)) + '</span></span><span class="t2-rt">' + evRight(s) + '</span></button>';
         }).join('') : '<p class="t2-empty">아직 올라온 추천이 없어요.<br>전문가가 방송·게시글에서 추천하면 바로 여기에 보여드릴게요.</p>') + '</section>';
       var rk = w.expertRanking().filter(function(o){ return o.st.hitRate != null; }).slice(0, 3);
       if (rk.length) {
@@ -375,6 +379,50 @@
       return '<button class="t2-stk" data-ln-stock="' + esc(r.code) + '"><span class="nm"><b>' + esc(nm) + '</b><span>' + sub + '</span></span>' + (r.n ? '<span class="ct">오늘 ' + r.n + '개</span>' : '') + '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></button>';
     }).join('') + '</div></section>';
   }
+  // ── 커뮤니티 히어로: 지금 어떤 주제로 많이 이야기하는지 (최근 24시간, 없으면 7일)
+  var HEAT = { ag: null, ag7: null, at: 0, busy: false };
+  var HC = ['#5B4CF0', '#F04452', '#3182F6', '#F59E0B', '#10B981', '#9AA3AE'];
+  function heatLoad(w, done){
+    var D = window.__communityLive; if (!D || !D.ready || !D.sb || HEAT.busy || !w.AG) return;
+    HEAT.busy = true;
+    var t24 = new Date(Date.now() - 864e5).toISOString(), t7 = new Date(Date.now() - 7 * 864e5).toISOString();
+    var cnt = function(since){ return D.sb.from('cm_chat').select('id', { count: 'exact', head: true }).eq('agenda_id', w.AG.id).gte('created_at', since).then(function(r){ return r && !r.error ? (r.count || 0) : null; }, function(){ return null; }); };
+    Promise.all([cnt(t24), cnt(t7)]).then(function(rs){ HEAT.ag = rs[0]; HEAT.ag7 = rs[1]; HEAT.at = Date.now(); HEAT.busy = false; if (done) done(); });
+  }
+  function heatData(w){
+    var L = window.__lnLive || {}, ST = (L.feed && L.feed.stocks) || {}, talk = L.talk || [];
+    var name = function(c){ if (ST[c] && ST[c].name) return ST[c].name; try { var bc = window.__lnPlus && window.__lnPlus.bc; (bc && bc.episodes || []).some(function(e){ return (e.picks || []).some(function(k){ if (k.stock_code === c && k.stock_name) { c = k.stock_name; return true; } }); }); } catch (e) {} return c; };
+    function build(ms, agN){
+      var since = new Date(Date.now() - ms).toISOString(), by = {}, rows = [];
+      talk.forEach(function(m){ if (m.created_at >= since && m.stock_id) by[m.stock_id] = (by[m.stock_id] || 0) + 1; });
+      Object.keys(by).forEach(function(c){ rows.push({ key: 's', code: c, label: name(c) + ' 종목 토론', n: by[c] }); });
+      if (agN) rows.push({ key: 'ag', label: '이번 주 토론 · ' + w.AG.title, n: agN });
+      rows.sort(function(a, b){ return b.n - a.n; });
+      return rows;
+    }
+    var rows = build(864e5, HEAT.ag), win = '최근 24시간';
+    if (!rows.length) { rows = build(7 * 864e5, HEAT.ag7); win = '최근 7일'; }
+    var tot = rows.reduce(function(s2, r){ return s2 + r.n; }, 0);
+    if (rows.length > 5) { var rest = rows.slice(4).reduce(function(s2, r){ return s2 + r.n; }, 0); rows = rows.slice(0, 4).concat([{ key: 'etc', label: '그 밖의 이야기', n: rest }]); }
+    return { rows: rows, tot: tot, win: win };
+  }
+  function heatHTML(w){
+    var H = heatData(w), head = '<h2 class="sech"><i class="live" aria-hidden="true"></i>지금 많이 이야기하는 주제<span class="meta">' + H.win + (H.tot ? ' · 대화 ' + H.tot.toLocaleString('ko-KR') + '개' : '') + '</span></h2>';
+    if (!H.tot) return '<section class="sec" id="t2-heat">' + head + '<div class="card t2-heat"><b class="hl">아직 오가는 대화가 없어요</b><p class="small">이번 주 토론방에 첫 이야기를 남겨 보세요.</p><button class="t2-heat-go" data-go="chat">토론방 들어가기 ›</button></div></section>';
+    var pc = function(n){ return Math.round(n / H.tot * 100); }, top = H.rows[0];
+    return '<section class="sec" id="t2-heat">' + head + '<div class="card t2-heat"><b class="hl">' + esc(top.key === 'ag' ? '이번 주 토론' : top.label.replace(/ 종목 토론$/, '')) + ' 이야기가 <em>' + pc(top.n) + '%</em>로 가장 많아요</b>' +
+      '<div class="hbar" role="img" aria-label="' + esc(H.rows.map(function(r){ return r.label + ' ' + pc(r.n) + '%'; }).join(', ')) + '">' + H.rows.map(function(r, i){ return '<i style="flex:' + r.n + ';background:' + HC[i] + '"></i>'; }).join('') + '</div>' +
+      '<div class="hleg">' + H.rows.map(function(r, i){
+        var inner = '<i style="background:' + HC[i] + '"></i><span class="nm">' + esc(r.label) + '</span><span class="pc">' + pc(r.n) + '%</span><span class="ct">' + r.n + '개</span>';
+        return r.key === 'ag' ? '<button data-go="chat">' + inner + '</button>' : r.key === 's' ? '<button data-ln-stock="' + esc(r.code) + '">' + inner + '</button>' : '<div>' + inner + '</div>';
+      }).join('') + '</div></div></section>';
+  }
+  var HEAT_CSS = '.t2-heat{display:flex;flex-direction:column;gap:.75rem}.t2-heat .hl{font-size:1.125rem;line-height:1.45}.t2-heat .hl em{font-style:normal;color:var(--accent,#5B4CF0)}' +
+    '.t2-heat .hbar{display:flex;height:1rem;border-radius:.5rem;overflow:hidden;gap:2px}.t2-heat .hbar i{display:block;min-width:4px}' +
+    '.t2-heat .hleg{display:flex;flex-direction:column}.t2-heat .hleg>*{display:flex;align-items:center;gap:.5rem;width:100%;border:0;background:none;color:inherit;font:inherit;text-align:left;padding:.55rem 0;border-top:1px solid var(--line)}' +
+    '.t2-heat .hleg button{cursor:pointer}.t2-heat .hleg i{flex:none;width:.75rem;height:.75rem;border-radius:3px}.t2-heat .hleg .nm{flex:1;min-width:0;font-size:.9375rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}' +
+    '.t2-heat .hleg .pc{font-weight:800}.t2-heat .hleg .ct{font-size:.8125rem;color:var(--ink2);min-width:2.75rem;text-align:right}' +
+    '.t2-heat-go{align-self:flex-start;border:0;background:none;color:var(--accent,#5B4CF0);font:inherit;font-weight:800;cursor:pointer;padding:0}';
   function patchCm(w, d){
     if (w.__t2 || !w.viewHome || !w.chatMsg || !w.render || !w.P || !w.S) return;
     w.__t2 = true;
@@ -426,10 +474,21 @@
       var ban = pick(function(e){ return !!e.querySelector('button.banner'); });
       var foot = pick(function(e){ return e.classList.contains('foot'); });
       var rest = kids.filter(Boolean);
-      var out = [cele, live].filter(Boolean).map(function(e){ return e.outerHTML; }).join('') + stockTalkHTML() +
-        [pred, last, ban].concat(rest).concat([foot]).filter(Boolean).map(function(e){ return e.outerHTML; }).join('');
-      return out;
+      // 토론 주제는 한 번에 하나만: 오늘의 예측 · 다음 달 주제 후보는 홈에서 빼요 (지난 결과는 그대로)
+      var picks = null, cand = null; rest = rest.filter(function(e){ var t2 = txt(e); if (/뽑힌 의견/.test(t2)) { picks = e; return false; } if (/이야기할 주제|주제 후보/.test(t2)) { cand = e; return false; } return true; });
+      void pred; void cand;
+      return heatHTML(w) + [cele, live, ban, last, picks].concat(rest).concat([foot]).filter(Boolean).map(function(e){ return e.outerHTML; }).join('');
     };
+    var oa = w.viewAgendas;
+    if (oa) w.viewAgendas = function(){
+      var t = d.createElement('template'); t.innerHTML = oa();
+      Array.prototype.slice.call(t.content.children).forEach(function(e){ var h = e.querySelector && e.querySelector('.sech'); if (h && /운영 일정|요일별 오늘의 예측/.test(h.textContent)) e.remove(); });
+      return t.innerHTML;
+    };
+    var hs = d.createElement('style'); hs.textContent = HEAT_CSS; d.head.appendChild(hs);
+    var heatRedraw = function(){ var el = d.getElementById('t2-heat'); if (el) el.outerHTML = heatHTML(w); };
+    var hTry = 0, hIv = setInterval(function(){ hTry++; var D = window.__communityLive; if (D && D.ready) { clearInterval(hIv); heatLoad(w, heatRedraw); } else if (hTry > 40) clearInterval(hIv); }, 500);
+    setInterval(function(){ heatLoad(w, heatRedraw); }, 60000);
     d.addEventListener('click', function(ev){
       var b = ev.target.closest && ev.target.closest('[data-ln-stock]'); if (!b) return;
       ev.preventDefault(); ev.stopPropagation();
