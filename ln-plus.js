@@ -88,7 +88,7 @@
     '.p-bcx{margin:0 0 .25rem}.p-bcx-h{display:flex;align-items:center;gap:.2rem;border:0;background:none;padding:.5rem 0 .3rem;font:inherit;font-size:.8125rem;font-weight:800;color:var(--ink2);cursor:pointer}.p-bcx-h svg{width:.9rem;height:.9rem}',
     '.p-bc:last-of-type{border-bottom:0}.p-bc .h{display:flex;align-items:center;justify-content:space-between;gap:.5rem}',
     '.p-bc .h b{font-size:1.0625rem}.p-bc .h small{font-size:.8125rem;color:var(--sn);white-space:nowrap}',
-    '.p-bc .who{display:block;font-size:.875rem;color:var(--ink2);margin-top:.15rem}',
+    '.p-bc .who{display:block;font-size:.875rem;color:var(--ink);font-weight:700;margin-top:.15rem}',
     '.p-bc .pk{display:flex;flex-wrap:wrap;gap:.3rem;margin-top:.45rem}.p-bc .pk span{font-size:.8125rem;font-weight:700;background:var(--raise);border-radius:.5rem;padding:.2rem .5rem}',
     '.p-bc .wait{display:block;font-size:.8125rem;color:var(--sn);margin-top:.35rem}',
     '.p-bq{display:flex;gap:.75rem;padding:.9rem 0;border-bottom:1px solid var(--line)}.p-bq:last-child{border-bottom:0}',
@@ -340,6 +340,7 @@
     var now = nowK(), r = bcSlots(X.bc, now); X.bcSig = bcSig(r);
     if (!r.top && !r.past.length) return '';
     return '<section class="t2-sec"><div class="t2-h" style="cursor:default">방송 속 고수 종목</div>' + bcTopCard(r.top, now) + r.past.slice(0, 5).map(bcRow).join('') +
+      '<button class="p-go" data-a="pBcAll" style="margin:.5rem 0 0;background:var(--raise)"><span>지난 방송 · 출연 전문가 · 추천 종목 모두 보기</span>' + IC.chev + '</button>' +
       '<p class="p-disc">SBS Biz 본방송에서 전문가가 직접 한 말과 가격을 원본 영상과 함께 정리해요. 수익률은 방송에서 말한 매수가 기준이에요. 사거나 팔라는 권유가 아니에요.</p></section>';
   }
   function bcSig(r){ return (r.top ? r.top.key + r.top.state : '') + '/' + r.past.slice(0, 5).map(function(x){ return x.key; }).join(','); }
@@ -388,7 +389,37 @@
           (g.x ? leadCard(g.x, w) : '') + '</section>';
       }).join('') + '<p class="t2-basis">방송에서 전문가가 직접 한 말과 가격을 옮겼어요. 앞뒤 맥락은 원본 영상에서 꼭 확인해 주세요. 사거나 팔라는 권유가 아니에요.</p>';
     }
-    return '<main class="t2" style="padding-top:.25rem">' + head + body + '</main>';
+    return '<main class="t2" style="padding-top:.25rem">' + head + body + '<button class="p-go" data-a="pBcAll"><span>지난 방송 모두 보기</span>' + IC.chev + '</button></main>';
+  }
+  // 지난 방송 모아 보기: 프로그램·전문가로 골라 보기, 주별로 묶어요
+  function weekLbl(ymd){ var ms = kstMs(ymd), wd = wdOf(ymd), mon = ymdOf(ms - (wd - 1) * 864e5), fri = ymdOf(kstMs(mon) + 4 * 864e5);
+    return (+mon.slice(5, 7)) + '월 ' + (+mon.slice(8, 10)) + '일 ~ ' + (+fri.slice(5, 7) !== +mon.slice(5, 7) ? (+fri.slice(5, 7)) + '월 ' : '') + (+fri.slice(8, 10)) + '일'; }
+  function screenBcAll(w){
+    var F = X.bc || {}, S2 = w.S, f = S2.pba = S2.pba || { pg: '', ex: '' }, now = nowK(), today = ymdOf(now);
+    var P = {}; (F.programs || []).forEach(function(p){ P[p.id] = p; });
+    var eps = (F.episodes || []).filter(function(e){ return P[e.program_id] && !e.canceled && e.published && e.air_date <= today; });
+    var who = function(e){ return (e.experts || []).concat((e.picks || []).map(function(k){ return { name: k.expert_name }; })); };
+    var exNames = {}; eps.forEach(function(e){ who(e).forEach(function(x){ var k = bcNorm(x.name); if (k && !exNames[k]) exNames[k] = x.name; }); });
+    var L = eps.filter(function(e){ if (f.pg && e.program_id !== f.pg) return false; if (f.ex && !who(e).some(function(x){ return bcNorm(x.name) === f.ex; })) return false; return true; })
+      .sort(function(a, b){ return a.air_date < b.air_date ? 1 : a.air_date > b.air_date ? -1 : 0; });
+    var all = [], rs = [];
+    L.forEach(function(e){ (e.picks || []).forEach(function(k){ if (f.ex && bcNorm(k.expert_name) !== f.ex) return; all.push(k); var r = pickRet(k); if (r) rs.push(r.v); }); });
+    var avg = rs.length ? rs.reduce(function(a, b){ return a + b; }, 0) / rs.length : null;
+    var chipsP = '<div class="p-tchips" role="group" aria-label="프로그램">' + [['', '전체']].concat((F.programs || []).map(function(p){ return [p.id, p.name]; })).map(function(c){ return '<button data-a="pBcAllPg" data-v="' + esc(c[0]) + '" aria-pressed="' + (f.pg === c[0]) + '">' + esc(c[1]) + '</button>'; }).join('') + '</div>';
+    var exSel = '<div class="p-tsel"><select data-pba="ex" aria-label="전문가"><option value="">전체 전문가</option>' + Object.keys(exNames).sort(function(a, b){ return exNames[a] < exNames[b] ? -1 : 1; }).map(function(k){ return '<option value="' + esc(k) + '"' + (f.ex === k ? ' selected' : '') + '>' + esc(exNames[k]) + '</option>'; }).join('') + '</select></div>';
+    var h = '<main class="t2" style="padding-top:.25rem"><div class="p-tbar">' + chipsP + exSel + '</div>' +
+      '<div class="p-kv"><div><span>방송</span><b>' + L.length + '회</b></div><div><span>추천 종목</span><b>' + all.length + '개</b></div><div><span>평균 수익률</span><b class="' + (avg == null ? '' : tone(avg)) + '">' + (avg == null ? '-' : pctS(avg)) + '</b></div></div>' +
+      '<p class="t2-basis2" style="padding:.25rem 0 .75rem">방송에서 말한 매수가 기준 · 수익률이 계산된 ' + rs.length + '종목 평균이에요</p>';
+    if (!L.length) return h + '<section class="t2-sec"><p class="t2-empty">조건에 맞는 지난 방송이 없어요.</p></section></main>';
+    var groups = [], gi = {};
+    L.forEach(function(e){ var wk = weekLbl(e.air_date); if (!(wk in gi)) { gi[wk] = groups.length; groups.push({ wk: wk, eps: [] }); } groups[gi[wk]].eps.push(e); });
+    h += groups.map(function(g){
+      return '<section class="t2-sec"><div class="t2-h" style="cursor:default">' + esc(g.wk) + '<span class="n">' + g.eps.length + '</span></div>' + g.eps.map(function(e){
+        var p = P[e.program_id], st = kstMs(e.air_date + 'T' + (p.air_time || '20:30'));
+        return bcRow({ key: e.program_id + '|' + e.air_date, p: p, date: e.air_date, ep: e, start: st, end: st + (p.duration_min || 60) * 60000, state: 'done' });
+      }).join('') + '</section>';
+    }).join('');
+    return h + '<p class="t2-basis">최근 4개월 방송이에요 · 사거나 팔라는 권유가 아니에요</p></main>';
   }
   // 전문가에게 생긴 호감을 가입으로: 관심 전문가로 받기
   function leadCard(x, w){
@@ -452,7 +483,7 @@
     var says = (it.says || []).map(function(s){
       var px = [];
       if (s.buy) px.push('구매 ' + wonS(s.buy)); if (s.target) px.push('목표 ' + wonS(s.target)); if (s.stop) px.push('손해 막는 ' + wonS(s.stop)); if (s.sell) px.push('판매 ' + wonS(s.sell));
-      return '<div class="p-tl ' + esc(s.t) + '"><i></i><small>' + hm(s.at) + ' · ' + esc(s.xname) + '</small><b>' + esc(TL[s.t] || '조언') + (s.via === 'ai' ? '<span class="p-aitag">AI 분류 · 검수 전</span>' : '') + '</b>' +
+      return '<div class="p-tl ' + esc(s.t) + '"><i></i><small>' + hm(s.at) + ' · <b style="color:var(--ink)">' + esc(s.xname) + '</b></small><b>' + esc(TL[s.t] || '조언') + (s.via === 'ai' ? '<span class="p-aitag">AI 분류 · 검수 전</span>' : '') + '</b>' +
         (px.length ? '<p>' + px.join(' · ') + '</p>' : '') + (s.text ? '<p>"' + esc(s.text) + '"' + (s.url ? ' <a href="' + esc(s.url) + '" target="_blank" rel="noopener noreferrer">원문</a>' : '') + '</p>' : (s.url ? '<p><a href="' + esc(s.url) + '" target="_blank" rel="noopener noreferrer">원문 보기</a></p>' : '')) + '</div>';
     }).join('');
     return '<main class="t2" style="padding-top:.25rem"><section class="t2-sec" style="padding-top:1.25rem">' +
@@ -503,7 +534,7 @@
       if (!R.length) return h + '<section class="t2-sec"><p class="t2-empty">이 조건에 맞는 기록이 없어요.</p></section></main>';
       h += '<div class="p-twrap"><table class="p-tbl"><thead><tr><th>날짜</th><th>전문가</th><th>종목</th><th>구분</th><th class="n">가격</th><th class="n">결과</th><th class="n">목표</th><th class="n">손해 막는</th><th>출처</th></tr></thead><tbody>' +
         R.slice(0, 300).map(function(r){
-          return '<tr data-a="toLeading" data-v="' + esc(r.lid) + '"><td>' + dt(r.at) + '</td><td>' + esc(String(r.ex).replace(/ (대표|위원)$/, '')) + '</td><td>' + esc(r.name) + '</td><td class="' + (r.t === 'buy' ? 'up' : r.t === 'sell' ? 'down' : '') + '">' + TL[r.t] + '</td>' +
+          return '<tr data-a="toLeading" data-v="' + esc(r.lid) + '"><td>' + dt(r.at) + '</td><td><b>' + esc(String(r.ex).replace(/ (대표|위원)$/, '')) + '</b></td><td>' + esc(r.name) + '</td><td class="' + (r.t === 'buy' ? 'up' : r.t === 'sell' ? 'down' : '') + '">' + TL[r.t] + '</td>' +
             '<td class="n">' + wonS(mainPrice(r)) + '</td><td class="n">' + resultCell(r) + '</td><td class="n">' + wonS(r.target) + '</td><td class="n">' + wonS(r.stop) + '</td><td>' + (r.url ? '<a href="' + esc(r.url) + '" target="_blank" rel="noopener noreferrer">' + esc(r.src || '원문') + '</a>' : esc(r.src)) + '</td></tr>';
         }).join('') + '</tbody></table></div><p class="p-tnote">' + R.length + '건' + (avg != null ? ' · 판매 ' + sells.length + '건 평균 ' + pctS(avg) : '') + ' · 표를 옆으로 밀면 목표·손해 막는 가격·출처가 더 있어요</p>';
       return h + '<p class="t2-basis">전문가가 말한 가격 기준이에요 · 투자 권유가 아니에요</p></main>';
@@ -522,7 +553,7 @@
     var sells = R.filter(function(r){ return r.t === 'sell' && r.ret != null; }), avg = sells.length ? sells.reduce(function(s2, r){ return s2 + r.ret; }, 0) / sells.length : null;
     var cols = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I'];
     var body = R.slice(0, 500).map(function(r, i){
-      return '<tr data-row="' + i + '"><td class="rn">' + (i + 2) + '</td><td>' + esc(String(r.at).slice(5, 16).replace('T', ' ').replace('-', '.')) + '</td><td>' + esc(r.ex) + '</td><td>' + esc(r.name) + '</td>' +
+      return '<tr data-row="' + i + '"><td class="rn">' + (i + 2) + '</td><td>' + esc(String(r.at).slice(5, 16).replace('T', ' ').replace('-', '.')) + '</td><td><b>' + esc(r.ex) + '</b></td><td>' + esc(r.name) + '</td>' +
         '<td class="' + (r.t === 'buy' ? 'up' : r.t === 'sell' ? 'down' : '') + '">' + TL[r.t] + '</td><td class="n">' + wonS(r.buy) + '</td><td class="n">' + wonS(r.target) + '</td><td class="n">' + wonS(r.stop) + '</td>' +
         '<td class="n">' + (r.t === 'sell' ? resultCell(r) + ' <span class="mut">(' + wonS(r.sell) + ')</span>' : resultCell(r)) + '</td><td>' + (r.url ? '<a href="' + esc(r.url) + '" target="_blank" rel="noopener noreferrer">' + esc(r.src || '원문') + '</a>' : esc(r.src)) + '</td></tr>';
     }).join('');
@@ -661,7 +692,7 @@
     w.__p = true; window.__pW = w;
     var A = w.A, S = w.S, P = w.P;
     var st = d.createElement('style'); st.id = 'p-css'; st.textContent = CSS; d.head.appendChild(st);
-    try { w.VIEW_TITLE.ptable = '전체 추천 기록'; w.VIEW_TITLE.pmention = '오늘의 언급 종목'; w.VIEW_TITLE.pbc = '방송 속 고수 종목'; } catch (e) {}
+    try { w.VIEW_TITLE.ptable = '전체 추천 기록'; w.VIEW_TITLE.pmention = '오늘의 언급 종목'; w.VIEW_TITLE.pbc = '방송 속 고수 종목'; w.VIEW_TITLE.pbcall = '지난 방송 모아 보기'; } catch (e) {}
     // 공유 링크: 예전 임시 주소 대신 이 사이트 주소
     w.linkOf = function(tok){ return link(tok); };
     var guest = function(){ return P.member ? '' : '<div class="p-guest"><span>가입 없이 모두 볼 수 있어요</span><button data-a="join">3초 가입</button></div>'; };
@@ -710,6 +741,7 @@
       if (v && v.t === 'ptable') return screenTable(w);
       if (v && v.t === 'pmention') return screenMention(v.id);
       if (v && v.t === 'pbc') return screenBc(v.id);
+      if (v && v.t === 'pbcall') return screenBcAll(w);
       return oXs.apply(this, arguments);
     };
     var top0 = function(){ try { w.scrollTo(0, 0); } catch (e) {} };
@@ -718,6 +750,8 @@
     A.pTblT = function(v){ S.ptf = S.ptf || { ex: '', days: 30, t: 'all' }; S.ptf.t = v; w.render(); };
     A.pMention = function(v){ w.pushView('pmention', v); w.render(); top0(); };
     A.pBc = function(v){ w.pushView('pbc', v); w.render(); top0(); };
+    A.pBcAll = function(){ w.pushView('pbcall', ''); w.render(); top0(); };
+    A.pBcAllPg = function(v){ S.pba = S.pba || { pg: '', ex: '' }; S.pba.pg = v || ''; w.render(); };
     A.pBcFollow = function(v){
       var x = w.expertById(v); if (!x) return;
       try { if (w.isFollow(v)) { w.toast(nameOnly(x.name) + ' 님을 이미 받고 있어요'); return; } } catch (e) {}
@@ -728,6 +762,7 @@
     setInterval(function(){ try { if (!X.bc || w.view() || S.tab !== 'home') return; var sg = bcSig(bcSlots(X.bc, nowK())); if (sg !== X.bcSig) w.render(); } catch (e) {} }, 60000);
     A.pCard = function(v){ openCard(w, d, v); };
     d.addEventListener('change', function(ev){
+      var sa = ev.target.closest && ev.target.closest('[data-pba]'); if (sa) { S.pba = S.pba || { pg: '', ex: '' }; S.pba.ex = sa.value; w.render(); return; }
       var s = ev.target.closest && ev.target.closest('[data-pt]'); if (!s) return;
       S.ptf = S.ptf || { ex: '', days: 30, t: 'all' }; var k = s.getAttribute('data-pt');
       S.ptf[k] = k === 'days' ? +s.value : s.value; w.render();
