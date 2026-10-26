@@ -1,0 +1,889 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>리딩노트 운영실</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<style>
+:root{--bg:#f4f5f8;--card:#fff;--ink:#17171c;--sub:#6b6f7b;--line:#e6e7ec;--acc:#5B4CF0;--acc-soft:#efedff;--ok:#11845b;--ok-soft:#e5f6ee;--warn:#b25e00;--warn-soft:#fff3e0;--bad:#c62828;--bad-soft:#fdecec;--r:14px}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#111317;--card:#1a1d23;--ink:#eef0f4;--sub:#a3a9b6;--line:#2c3039;--acc:#8F84FF;--acc-soft:#24213f;--ok:#4cc38a;--ok-soft:#14291f;--warn:#f0a443;--warn-soft:#2e2312;--bad:#ff7b7b;--bad-soft:#331a1a}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 "Pretendard Variable",Pretendard,-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",sans-serif;-webkit-text-size-adjust:100%}
+button,input,select,textarea{font:inherit;color:inherit}
+a{color:var(--acc)}
+.wrap{max-width:980px;margin:0 auto;padding:0 16px 80px}
+header{position:sticky;top:0;z-index:5;background:var(--card);border-bottom:1px solid var(--line)}
+.hd{max-width:980px;margin:0 auto;padding:12px 16px;display:flex;align-items:center;gap:12px}
+.logo{font-weight:800;letter-spacing:-.02em}
+.logo small{font-weight:600;color:var(--sub);margin-left:6px}
+.me{margin-left:auto;color:var(--sub);font-size:14px;display:flex;gap:10px;align-items:center;min-width:0}
+.me span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+nav{max-width:980px;margin:0 auto;padding:0 8px;display:flex;gap:2px;overflow-x:auto;scrollbar-width:none}
+nav::-webkit-scrollbar{display:none}
+nav button{border:0;background:none;padding:10px 12px 12px;font-weight:600;color:var(--sub);border-bottom:3px solid transparent;white-space:nowrap;cursor:pointer}
+nav button.on{color:var(--ink);border-color:var(--acc)}
+.badge{display:inline-block;min-width:20px;padding:0 6px;border-radius:10px;background:var(--bad);color:#fff;font-size:12px;line-height:20px;text-align:center;margin-left:4px}
+h2{font-size:21px;margin:26px 0 6px;letter-spacing:-.02em}
+h2 .cnt{font-size:15px;color:var(--sub);font-weight:600;margin-left:6px}
+.lead{color:var(--sub);margin:0 0 16px;font-size:15px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:16px;margin:0 0 12px;box-shadow:0 1px 2px rgba(20,20,40,.03)}
+.row{display:flex;gap:12px;flex-wrap:wrap}
+.row>*{flex:1 1 180px;min-width:0}
+label.f{display:block;margin:0 0 12px}
+label.f>b{display:block;font-size:14px;font-weight:600;margin:0 0 4px}
+label.f>i{display:block;font-style:normal;color:var(--sub);font-size:13px;margin-top:4px}
+input[type=text],input[type=email],input[type=password],input[type=datetime-local],input[type=url],select,textarea{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg);outline:none}
+input:focus,select:focus,textarea:focus{border-color:var(--acc);box-shadow:0 0 0 3px var(--acc-soft)}
+textarea{min-height:72px;resize:vertical}
+.paste{border-color:var(--acc);background:linear-gradient(var(--acc-soft),var(--card) 70%)}
+#pz{min-height:96px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:1px solid var(--line);background:var(--card);border-radius:10px;padding:10px 16px;font-weight:600;cursor:pointer}
+.btn.p{background:var(--acc);border-color:var(--acc);color:#fff}
+.btn.ok{background:var(--ok);border-color:var(--ok);color:#fff}
+.btn.bad{color:var(--bad);border-color:var(--bad)}
+.btn.s{padding:6px 10px;font-size:14px}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.types{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 6px}
+.types label{display:flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:999px;padding:7px 14px;cursor:pointer;font-weight:600;background:var(--bg)}
+.types input{accent-color:var(--acc)}
+.types label.dis{opacity:.4;cursor:not-allowed}
+.types label:has(input:checked){border-color:var(--acc);background:var(--acc-soft);color:var(--acc)}
+.hint{font-size:14px;color:var(--sub);margin:0 0 14px}
+.state{padding:10px 12px;border-radius:10px;background:var(--bg);font-size:14px;margin:0 0 14px}
+.sug{position:relative}
+.sug ul{position:absolute;left:0;right:0;top:100%;z-index:3;list-style:none;margin:4px 0 0;padding:4px;background:var(--card);border:1px solid var(--line);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.12);max-height:260px;overflow:auto}
+.sug li{padding:8px 10px;border-radius:8px;cursor:pointer}
+.sug li:hover,.sug li.on{background:var(--acc-soft)}
+.sug li small{color:var(--sub);margin-left:6px}
+.msg{padding:10px 12px;border-radius:10px;margin:10px 0;font-size:15px}
+.msg.ok{background:var(--ok-soft);color:var(--ok)}
+.msg.bad{background:var(--bad-soft);color:var(--bad)}
+.msg.warn{background:var(--warn-soft);color:var(--warn)}
+.ev{display:grid;gap:6px}
+.ev .top{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.tag{display:inline-block;padding:2px 8px;border-radius:6px;font-size:13px;font-weight:700;background:var(--bg);border:1px solid var(--line)}
+.t-buy{color:#E5323F}.t-sell{color:#2F6FE4}.t-revise{color:#b25e00}.t-watch{color:#6b4fd8}.t-strategy,.t-news{color:var(--sub)}
+.tag.late{color:var(--warn);background:var(--warn-soft);border-color:transparent}
+.tag.cor{color:var(--acc);background:var(--acc-soft);border-color:transparent}
+.tag.mine{color:var(--sub)}
+.kv{display:flex;flex-wrap:wrap;gap:4px 16px;font-size:15px}
+.kv b{font-weight:600;color:var(--sub);margin-right:4px}
+.quote{border-left:3px solid var(--line);padding:2px 0 2px 10px;color:var(--ink)}
+.src{font-size:14px;color:var(--sub);word-break:break-all}
+.chk{display:flex;gap:8px;align-items:flex-start;font-size:14px;margin:4px 0}
+.chk input{margin-top:4px;accent-color:var(--ok)}
+.acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.empty{padding:28px;text-align:center;color:var(--sub)}
+.ex{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.ex .nm{font-weight:700;font-size:17px}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--bad);margin-right:6px;animation:p 1.4s infinite}
+.xg{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:0 0 12px}
+.xbtn{display:flex;flex-direction:column;align-items:flex-start;gap:2px;min-width:0;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--card);cursor:pointer;text-align:left}
+.xbtn:hover{border-color:var(--acc)}
+.xbtn b{font-size:15px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.xbtn small{font-size:12px;color:var(--sub);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.xbtn.on{border-color:var(--acc);background:var(--acc-soft)}
+.xbtn.hid{opacity:.55}
+.xbtn .tgi{display:inline-block;font-size:11px;font-weight:700;color:var(--acc);margin-left:4px;vertical-align:1px}
+.xd{grid-column:1/-1;margin:0;border-color:var(--acc)}
+@media (max-width:420px){.xbtn{padding:9px 8px}.xbtn b{font-size:14px}}
+@keyframes p{50%{opacity:.3}}
+.tb{display:grid;gap:8px;margin:0 0 14px}
+.chips{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding:1px 0}
+.chips::-webkit-scrollbar{display:none}
+.chips>span{flex:none;align-self:center;font-size:13px;color:var(--sub);font-weight:600;margin-right:2px}
+.chip{flex:none;border:1px solid var(--line);background:var(--card);border-radius:999px;padding:6px 12px;font-size:14px;font-weight:600;color:var(--sub);cursor:pointer;white-space:nowrap}
+.chip em{font-style:normal;font-weight:700;margin-left:4px;opacity:.75}
+.chip.on{background:var(--ink);border-color:var(--ink);color:var(--card)}
+.srch{position:relative}
+.srch input{padding-left:38px!important}
+.srch:before{content:"";position:absolute;left:14px;top:50%;width:12px;height:12px;margin-top:-8px;border:2px solid var(--sub);border-radius:50%}
+.srch:after{content:"";position:absolute;left:26px;top:50%;width:6px;height:2px;margin-top:4px;background:var(--sub);transform:rotate(45deg)}
+.cnt-line{font-size:14px;color:var(--sub);margin:0 0 10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.cnt-line .btn{margin-left:auto}
+.combo input{background:var(--bg)}
+.swr{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}.swr:last-child{border-bottom:0}
+.swr .t{flex:1;min-width:0}.swr .t b{display:block;font-size:16px}.swr .t span{display:block;font-size:13px;color:var(--sub);margin-top:2px}
+.tgl{flex:none;width:52px;height:30px;border-radius:999px;border:0;background:var(--line);position:relative;cursor:pointer}
+.tgl:after{content:"";position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.25);transition:left .15s}
+.tgl[aria-pressed="true"]{background:var(--ok)}.tgl[aria-pressed="true"]:after{left:25px}
+.room{padding:12px 0;border-bottom:1px solid var(--line)}.room:last-child{border-bottom:0}
+.room .rt{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.room .rt b{font-size:16px}
+.room .rs{font-size:14px;color:var(--sub);margin-top:4px}.room .rs .on{color:var(--ok);font-weight:700}
+.room .rf{margin-top:10px;padding:12px;border-radius:10px;background:var(--bg)}
+.chks{display:flex;flex-direction:column;gap:6px;margin:6px 0 10px}.chks label{display:flex;align-items:center;gap:8px;font-size:15px}.chks input{width:18px;height:18px;accent-color:var(--acc)}
+.beat{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.beat .dt{width:10px;height:10px;border-radius:50%;background:var(--ok)}.beat .dt.off{background:var(--bad)}.beat .dt.none{background:var(--line)}
+table{width:100%;border-collapse:collapse;font-size:14px}
+td,th{padding:8px 6px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{color:var(--sub);font-weight:600}
+.login{max-width:400px;margin:12vh auto 0}
+.hide{display:none!important}
+.bcr{padding:12px 0;border-bottom:1px solid var(--line)}.bcr:last-child{border-bottom:0}
+.bcr-t{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.bcr-t b{font-size:16px}
+.pkr{border:1px solid var(--line);border-radius:12px;padding:12px 12px 4px;margin:0 0 8px;background:var(--bg)}
+input[type=date],input[type=time]{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg);outline:none}
+.sw{display:flex;gap:10px;align-items:center}
+
+.au{padding:12px 0;border-bottom:1px solid var(--line);display:grid;gap:4px}.au:last-child{border-bottom:0}.au .top{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+details summary{cursor:pointer;color:var(--acc);font-weight:600;font-size:14px}
+@media (max-width:600px){.hd{padding:10px 16px}.me .em{display:none}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3/dist/umd/supabase.js"></script>
+<script>
+(function(){
+'use strict';
+// ── 연결 정보: 사이트 안에서 열리면 바깥 앱의 값을, 따로 열리면 공개 키를 써요 (공개 키는 누구에게 보여도 되는 값이에요)
+function findCfg(){var w=window;for(var i=0;i<5;i++){try{if(w.__SB&&w.__SB.projectId)return{url:'https://'+w.__SB.projectId+'.supabase.co',key:w.__SB.anonKey}}catch(e){}if(w===w.parent)break;try{w=w.parent}catch(e){break}}return null}
+var CFG=findCfg()||{url:'https://khbgiybvzagvbilbqnsn.supabase.co',key:'sb_publishable_IHaBbRAESCgOJLi8jLPkVQ_X1AsUONe'};
+var sb=window.supabase.createClient(CFG.url,CFG.key,{auth:{storageKey:'ln.ops.auth',persistSession:true,autoRefreshToken:true,detectSessionInUrl:false}});
+
+var T={buy:'구매',watch:'지켜보기',revise:'가격 변경',strategy:'조언',news:'뉴스',sell:'판매'};
+var TDESC={buy:'새로 사라는 추천. 구매·목표·손해 막는 가격 세 가지가 꼭 있어야 해요.',watch:'아직 사지 말고 지켜보라는 추천.',revise:'가지고 있는 종목의 가격 중 바뀐 것만 적어요.',strategy:'가지고 있거나 지켜보는 종목에 대한 조언.',news:'종목 관련 기사·소식.',sell:'가지고 있는 종목을 팔라는 추천. 성적이 이 값으로 정해져요.'};
+var STYLE={swing:'스윙 (몇 주)',day:'단타 (며칠)',long:'중장기 (몇 달)'};
+var STYLE_S={swing:'스윙',day:'단타',long:'중장기'};
+var SRC=['방송','유튜브','게시글','기사'];
+var S={me:null,tab:'review',experts:[],events:[],people:{},names:{},audit:[],price:null,flash:null};
+
+function $(s,r){return (r||document).querySelector(s)}
+function $$(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))}
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+function won(n){return n==null||n===''?'':Number(n).toLocaleString('ko-KR')+'원'}
+function num(v){v=String(v||'').replace(/[^0-9]/g,'');return v?parseInt(v,10):null}
+function kst(iso){if(!iso)return'';var d=new Date(iso);var k=new Date(d.getTime()+9*3600e3);return k.toISOString().slice(0,16).replace('T',' ')}
+function nowLocal(){return new Date(Date.now()+9*3600e3).toISOString().slice(0,16)}
+function toIso(local){return local?local+':00+09:00':null}
+function who(id){return id===(S.me&&S.me.id)?'나':(S.people[id]||'운영자')}
+function errText(e){var m=(e&&(e.message||e.error_description))||String(e);return m.replace(/^.*?ERROR:\s*/,'')}
+// 필터 칩: [[값,이름,개수?],...]
+function chips(name,opts,cur,label){return '<div class="chips" data-chips="'+name+'">'+(label?'<span>'+label+'</span>':'')+opts.map(function(o){return '<button type="button" class="chip'+(o[0]===cur?' on':'')+'" data-v="'+esc(o[0])+'">'+esc(o[1])+(o[2]!=null?'<em>'+o[2]+'</em>':'')+'</button>'}).join('')+'</div>'}
+function onChips(root,name,cb){$$('[data-chips="'+name+'"] .chip',root).forEach(function(b){b.onclick=function(){cb(b.dataset.v)}})}
+function nk(v){return String(v||'').replace(/\s+/g,'').toLowerCase()}
+// 전문가 고르기 칸: <select>를 숨기고 이름으로 찾아 고르는 칸을 붙여요 (값·change 이벤트는 원래 select 그대로)
+function combo(sel,what){
+  if(!sel||sel._combo)return;sel._combo=1;sel.classList.add('hide');
+  var w=document.createElement('div');w.className='sug combo srch';
+  w.innerHTML='<input type="text" autocomplete="off"><ul class="hide"></ul>';
+  sel.parentNode.insertBefore(w,sel.nextSibling);
+  var inp=$('input',w),ul=$('ul',w);
+  var label=function(){var o=sel.options[sel.selectedIndex];return o&&o.value?o.textContent:''};
+  var o0=sel.options[0];inp.placeholder=(o0&&!o0.value?o0.textContent+' · ':'')+(what||'이름')+'으로 찾기';
+  inp.value=label();
+  function pick(v){sel.value=v;inp.value=label();ul.classList.add('hide');sel.dispatchEvent(new Event('change'))}
+  function show(){var q=nk(inp.value);if(q&&q===nk(label()))q='';
+    var L=[].slice.call(sel.options).filter(function(o){return !q||nk(o.textContent).indexOf(q)>-1}).slice(0,80);
+    ul.innerHTML=L.length?L.map(function(o){return '<li data-v="'+esc(o.value)+'"'+(o.value===sel.value?' class="on"':'')+'>'+esc(o.textContent)+'</li>'}).join(''):'<li style="cursor:default;color:var(--sub)">찾는 결과가 없어요</li>';
+    ul.classList.remove('hide');
+    $$('li[data-v]',ul).forEach(function(li){li.onmousedown=function(ev){ev.preventDefault();pick(li.dataset.v);inp.blur()}});
+  }
+  inp.onfocus=function(){inp.select();show()};inp.oninput=show;
+  inp.onkeydown=function(ev){if(ev.key==='Enter'){ev.preventDefault();var f=$('li[data-v]',ul);if(f){pick(f.dataset.v);inp.blur()}}else if(ev.key==='Escape'){inp.blur()}};
+  inp.onblur=function(){setTimeout(function(){ul.classList.add('hide');inp.value=label()},150)};
+}
+function flash(kind,text){S.flash={kind:kind,text:text};var el=$('#flash');if(el){el.className='msg '+kind;el.textContent=text;el.classList.remove('hide');el.scrollIntoView({block:'nearest'})}}
+
+// ── 로그인
+function viewLogin(msg){
+  $('#app').innerHTML='<div class="wrap"><div class="card login"><div class="logo" style="font-size:20px;margin-bottom:4px">리딩노트 운영실</div>'+
+  '<p class="lead">운영자 이메일로 로그인해요. 운영자 계정이 아니면 들어올 수 없어요.</p>'+
+  (msg?'<div class="msg bad">'+esc(msg)+'</div>':'')+
+  '<form id="lf"><label class="f"><b>이메일</b><input type="email" id="le" autocomplete="username" required></label>'+
+  '<label class="f"><b>비밀번호</b><input type="password" id="lp" autocomplete="current-password" required></label>'+
+  '<button class="btn p" style="width:100%">로그인</button></form></div></div>';
+  $('#lf').onsubmit=function(ev){ev.preventDefault();var b=$('#lf button');b.disabled=true;
+    sb.auth.signInWithPassword({email:$('#le').value.trim(),password:$('#lp').value}).then(function(r){
+      if(r.error)throw r.error;return start();
+    }).catch(function(e){viewLogin(/Invalid login/i.test(e.message)?'이메일이나 비밀번호가 맞지 않아요':errText(e))});
+  };
+}
+
+function start(){
+  return sb.auth.getUser().then(function(r){
+    var u=r.data&&r.data.user;if(!u||u.is_anonymous)return viewLogin();
+    S.me=u;
+    return sb.rpc('is_admin').then(function(a){
+      if(a.error||a.data!==true){return sb.auth.signOut().then(function(){viewLogin('이 계정은 운영자 권한이 없어요. 다른 운영자에게 권한을 받아 주세요.')})}
+      shell();return loadAll();
+    });
+  });
+}
+
+function shell(){
+  $('#app').innerHTML='<header><div class="hd"><div class="logo">리딩노트 <small>운영실</small></div><div class="me"><span class="em">'+esc(S.me.email)+'</span><button class="btn s" id="out">로그아웃</button></div></div>'+
+  '<nav id="nav">'+[['review','검수 대기'],['add','기록 올리기'],['ingest','가져온 글'],['experts','전문가'],['bc','방송'],['pub','공개 기록'],['audit','고친 기록'],['set','설정']].map(function(t){return '<button data-t="'+t[0]+'">'+t[1]+(t[0]==='review'?'<span class="badge hide" id="rvn"></span>':t[0]==='ingest'?'<span class="badge hide" id="ign" style="background:var(--acc)"></span>':'')+'</button>'}).join('')+'</nav></header>'+
+  '<div class="wrap"><div id="cwarn" class="msg warn hide" style="margin-top:12px"></div><div id="flash" class="msg hide"></div><div id="main"><div class="empty">불러오는 중…</div></div></div>';
+  $('#out').onclick=function(){sb.auth.signOut().then(function(){viewLogin()})};
+  $$('#nav button').forEach(function(b){b.onclick=function(){go(b.dataset.t)}});
+}
+function go(t){S.tab=t;try{history.replaceState(null,'','#'+t)}catch(e){}$('#flash').classList.add('hide');render()}
+
+function loadAll(){
+  return Promise.all([
+    sb.from('experts').select('*').order('name'),
+    sb.from('rec_events').select('*').order('at',{ascending:false}).order('entered_at',{ascending:false}).limit(2000),
+    sb.rpc('ops_people'),
+    sb.from('rec_audit').select('*').order('at',{ascending:false}).limit(200),
+    sb.from('site_config').select('value').eq('key','price_display').maybeSingle(),
+    sb.from('ingest_posts').select('*').eq('status','new').order('posted_at',{ascending:false}).limit(100),
+    sb.from('ingest_sources').select('*').order('handle'),
+    sb.from('tg_rooms').select('*').is('left_at',null).order('title'),
+    sb.from('collector_beat').select('*').eq('id','main').maybeSingle(),
+    sb.from('site_config').select('value').eq('key','collect').maybeSingle(),
+    sb.from('bc_programs').select('*').order('sort').order('id'),
+    sb.from('bc_episodes').select('*').gte('air_date',kYmd(kNow()-30*864e5)).order('air_date',{ascending:false})
+  ]).then(function(rs){
+    S.bcOff=!!rs[10].error;S.bcP=rs[10].error?[]:(rs[10].data||[]);S.bcE=rs[11].error?[]:(rs[11].data||[]);
+    rs.slice(0,5).forEach(function(r){if(r.error)throw r.error});
+    S.posts=rs[5].error?[]:(rs[5].data||[]);S.sources=rs[6].error?[]:(rs[6].data||[]);S.ingestOff=!!rs[6].error;
+    S.rooms=rs[7].error?[]:(rs[7].data||[]);S.beat=rs[8].error?null:rs[8].data;S.collect=(rs[9].data&&rs[9].data.value)||{public:false,pc:true,ai:true};
+    S.experts=rs[0].data||[];S.events=rs[1].data||[];S.audit=rs[3].data||[];S.price=rs[4].data&&rs[4].data.value;
+    S.people={};(rs[2].data||[]).forEach(function(p){S.people[p.id]=p.email});
+    var codes={};S.events.forEach(function(e){if(!S.names[e.stock_code])codes[e.stock_code]=1});
+    var list=Object.keys(codes);
+    return list.length?sb.from('stocks').select('code,name,market').in('code',list).then(function(r){(r.data||[]).forEach(function(s){S.names[s.code]=s.name})}):null;
+  }).then(function(){
+    var t=(location.hash||'').slice(1);if(t&&!S._init){S.tab=t}S._init=1;render();
+  }).catch(function(e){$('#main').innerHTML='<div class="msg bad">불러오지 못했어요: '+esc(errText(e))+'</div>'});
+}
+function reload(msgKind,msg){return loadAll().then(function(){if(msg)flash(msgKind,msg)})}
+
+function beatState(){var b=S.beat;if(!b||!b.last_seen)return {k:'none',min:0};var m=Math.round((Date.now()-new Date(b.last_seen).getTime())/60000);return {k:m>10?'off':'on',min:m}}
+function srcLabel(s){return s&&s.kind==='tg_user'?(s.title||'PC 수집기 방'):'@'+((s&&s.handle)||'')}
+function exName(id){var e=S.experts.find(function(x){return x.id===id});return e?e.name:id}
+function stName(c){return (S.names[c]||'')+' '+c}
+
+// 지금 상태 계산 (서버의 rec_state와 같은 규칙, 거절된 기록은 빼요)
+function stateOf(ex,code){
+  var st={st:'none'};
+  S.events.filter(function(e){return e.expert_id===ex&&e.stock_code===code&&e.status!=='rejected'})
+   .sort(function(a,b){return a.at<b.at?-1:a.at>b.at?1:(a.entered_at<b.entered_at?-1:1)})
+   .forEach(function(r){
+     if(r.t==='buy'){st={st:'holding',lid:r.lid,buy:r.buy,target:r.target,stop:r.stop}}
+     else if(r.t==='watch'&&st.st!=='holding'){st={st:'watch',lid:r.lid}}
+     else if(r.t==='revise'&&st.st==='holding'){st.buy=r.buy||st.buy;st.target=r.target||st.target;st.stop=r.stop||st.stop}
+     else if(r.t==='sell'&&st.st==='holding'){st={st:'none'}}
+   });
+  return st;
+}
+function allowed(st){return st==='holding'?['revise','strategy','news','sell']:st==='watch'?['buy','watch','strategy','news']:['buy','watch']}
+
+function evCard(e,opt){
+  opt=opt||{};
+  var prices=[];
+  if(e.buy)prices.push('<span><b>구매</b>'+won(e.buy)+'</span>');
+  if(e.target)prices.push('<span><b>목표</b>'+won(e.target)+'</span>');
+  if(e.stop)prices.push('<span><b>손해 막는</b>'+won(e.stop)+'</span>');
+  if(e.sell)prices.push('<span><b>판매</b>'+won(e.sell)+'</span>');
+  return '<div class="ev"><div class="top"><span class="tag t-'+e.t+'">'+T[e.t]+'</span><b>'+esc(exName(e.expert_id))+'</b> · '+esc(stName(e.stock_code))+
+    (e.late?'<span class="tag late">늦은 입력</span>':'')+(e.corrected?'<span class="tag cor">정정됨</span>':'')+
+    (e.status==='rejected'?'<span class="tag" style="color:var(--bad)">거절됨</span>':'')+'</div>'+
+    '<div class="kv"><span><b>방송·게시</b>'+kst(e.at)+'</span>'+prices.join('')+'</div>'+
+    (e.text?'<div class="quote">'+esc(e.text)+'</div>':'')+
+    '<div class="src">출처: '+esc(e.src_kind)+' · '+esc(e.src_channel)+(e.src_title?' · '+esc(e.src_title):'')+' · <a href="'+esc(e.src_url)+'" target="_blank" rel="noopener noreferrer">출처 열기 ↗</a></div>'+
+    '<div class="src">올린 사람: '+esc(who(e.entered_by))+' · '+kst(e.entered_at)+(e.reviewed_by?' / 검수: '+esc(who(e.reviewed_by))+' · '+kst(e.reviewed_at):'')+(e.review_note?' · 메모: '+esc(e.review_note):'')+'</div>'+
+    (opt.extra||'')+'</div>';
+}
+
+function render(){
+  $$('#nav button').forEach(function(b){b.classList.toggle('on',b.dataset.t===S.tab)});
+  var drafts=S.events.filter(function(e){return e.status==='draft'});
+  var forMe=drafts.filter(function(e){return e.entered_by!==S.me.id}).length;
+  var bn=$('#rvn');bn.textContent=forMe;bn.classList.toggle('hide',!forMe);
+  var ig=(S.posts||[]).filter(function(x){return pkind(x)==='rec'}).length,gn=$('#ign');gn.textContent=ig;gn.classList.toggle('hide',!ig);
+  var cw=$('#cwarn'),bt=beatState();
+  if(cw){var need=S.collect&&S.collect.pc&&(S.sources||[]).some(function(x){return x.kind==='tg_user'&&x.active});
+    cw.classList.toggle('hide',!(need&&bt.k==='off'));if(need&&bt.k==='off')cw.innerHTML='<b>PC 수집기 신호가 '+bt.min+'분째 없어요.</b> 서브PC가 켜져 있는지, 수집기 창(LeadingNote Collector)이 떠 있는지 확인해 주세요. <a href="#set" data-goset="1">설정 보기</a>';
+    var gl=cw.querySelector('[data-goset]');if(gl)gl.onclick=function(ev){ev.preventDefault();go('set')}}
+  var f={review:vReview,add:vAdd,ingest:vIngest,experts:vExperts,bc:vBc,pub:vPub,audit:vAudit,set:vSet}[S.tab]||vReview;
+  f($('#main'));
+}
+
+// ── 검수 대기
+function vReview(m){
+  var drafts=S.events.filter(function(e){return e.status==='draft'}).sort(function(a,b){return a.at<b.at?-1:1});
+  var mine=drafts.filter(function(e){return e.entered_by===S.me.id}),others=drafts.filter(function(e){return e.entered_by!==S.me.id});
+  var h='<h2>검수 대기'+(drafts.length?'<span class="cnt">'+drafts.length+'건</span>':'')+'</h2><p class="lead">다른 운영자가 올린 기록을 출처와 맞춰 보고 공개해요. 내가 올린 기록은 다른 운영자가 확인해야 공개돼요.</p>';
+  if(!drafts.length)h+='<div class="card empty">검수할 기록이 없어요.</div>';
+  others.forEach(function(e){
+    h+='<div class="card" data-id="'+e.id+'">'+evCard(e,{extra:
+      '<div style="margin-top:6px"><label class="chk"><input type="checkbox" class="c1"> 출처를 열어 종목·가격이 맞는지 확인했어요</label>'+
+      '<label class="chk"><input type="checkbox" class="c2"> 방송·게시 시각이 맞는지 확인했어요</label></div>'+
+      '<div class="acts"><button class="btn ok pub" disabled>공개하기</button><button class="btn s edit">고치기</button><button class="btn bad s rej">거절</button></div>'+
+      '<div class="ed hide"></div>'})+'</div>';
+  });
+  if(mine.length){h+='<h2 style="font-size:17px">내가 올려서 기다리는 기록</h2>';mine.forEach(function(e){h+='<div class="card" data-id="'+e.id+'">'+evCard(e,{extra:'<div class="acts"><button class="btn s edit">고치기</button><span class="tag mine">다른 운영자 확인 대기</span></div><div class="ed hide"></div>'})+'</div>'})}
+  m.innerHTML=h;
+  $$('.card[data-id]',m).forEach(function(c){
+    var id=c.dataset.id,ev=S.events.find(function(x){return x.id===id});
+    var p=$('.pub',c);
+    if(p){var upd=function(){p.disabled=!($('.c1',c).checked&&$('.c2',c).checked)};$('.c1',c).onchange=upd;$('.c2',c).onchange=upd;
+      p.onclick=function(){p.disabled=true;sb.rpc('ops_review',{p_id:id,p_ok:true,p_note:null}).then(function(r){if(r.error)throw r.error;return reload('ok','공개했어요. 리딩 모음에 바로 보여요.')}).catch(function(e){flash('bad',errText(e));p.disabled=false})};
+      $('.rej',c).onclick=function(){var ed=$('.ed',c);ed.classList.remove('hide');ed.innerHTML='<label class="f" style="margin-top:10px"><b>거절 이유</b><input type="text" class="rr" placeholder="예: 출처 영상에서 목표가가 다르게 나와요"></label><button class="btn bad s go">거절하기</button>';
+        $('.go',ed).onclick=function(){var r=$('.rr',ed).value.trim();if(!r){flash('warn','거절 이유를 적어 주세요');return}
+          sb.rpc('ops_review',{p_id:id,p_ok:false,p_note:r}).then(function(x){if(x.error)throw x.error;return reload('ok','거절했어요. 올린 운영자가 고친 기록에서 이유를 볼 수 있어요.')}).catch(function(e){flash('bad',errText(e))})}};
+    }
+    $('.edit',c).onclick=function(){editForm($('.ed',c),ev,'draft')};
+  });
+}
+
+function editForm(box,e,mode){
+  box.classList.remove('hide');
+  var pf=function(k,l){return '<label class="f"><b>'+l+'</b><input type="text" inputmode="numeric" data-k="'+k+'" value="'+(e[k]?Number(e[k]).toLocaleString('ko-KR'):'')+'"></label>'};
+  var fields='';
+  if(e.t==='buy'||e.t==='revise')fields+='<div class="row">'+pf('buy','구매 가격')+pf('target','목표 가격')+pf('stop','손해 막는 가격')+'</div>';
+  if(e.t==='sell')fields+='<div class="row">'+pf('sell','판매 가격')+'</div>';
+  box.innerHTML='<div style="margin-top:12px;padding-top:12px;border-top:1px dashed var(--line)">'+
+    '<label class="f"><b>방송·게시 시각</b><input type="datetime-local" data-k="at" value="'+kst(e.at).replace(' ','T')+'"></label>'+fields+
+    '<label class="f"><b>전문가가 한 말</b><textarea data-k="text" maxlength="300">'+esc(e.text||'')+'</textarea></label>'+
+    '<label class="f"><b>출처 주소</b><input type="url" data-k="src_url" value="'+esc(e.src_url)+'"></label>'+
+    (mode==='pub'?'<label class="f"><b>정정 이유 (꼭 적어요 · 회원 화면에 \'정정됨\'이 붙어요)</b><input type="text" class="why" placeholder="예: 방송 다시 보니 목표가 72,000원"></label>':'')+
+    '<div class="acts"><button class="btn p s sv">'+(mode==='pub'?'정정 저장':'고친 내용 저장')+'</button><button class="btn s cc">닫기</button></div></div>';
+  $('.cc',box).onclick=function(){box.classList.add('hide');box.innerHTML=''};
+  $('.sv',box).onclick=function(){
+    var p={};$$('[data-k]',box).forEach(function(i){var k=i.dataset.k,v=i.value.trim();
+      if(k==='at'){if(v&&v!==kst(e.at).replace(' ','T'))p.at=toIso(v)}
+      else if(k==='text'||k==='src_url'){if(v!==(e[k]||''))p[k]=v}
+      else{var n=num(v);if(n!==e[k]&&n!=null)p[k]=n}});
+    if(!Object.keys(p).length){flash('warn','바뀐 내용이 없어요');return}
+    var call=mode==='pub'?sb.rpc('ops_correct',{p_id:e.id,p:p,p_reason:($('.why',box).value||'').trim()}):sb.rpc('ops_edit_draft',{p_id:e.id,p:p});
+    call.then(function(r){if(r.error)throw r.error;return reload('ok',mode==='pub'?'정정했어요. 원래 값은 고친 기록에 남았어요.':'고쳤어요.')}).catch(function(x){flash('bad',errText(x))});
+  };
+}
+
+// ── 기록 올리기
+function vAdd(m){
+  if(!S.experts.length){m.innerHTML='<h2>기록 올리기</h2><div class="card empty">먼저 <a href="#experts" id="gx">전문가</a>를 등록해 주세요.</div>';$('#gx').onclick=function(ev){ev.preventDefault();go('experts')};return}
+  var d=S.addDraft||{};
+  m.innerHTML='<h2>기록 올리기</h2><p class="lead">방송·유튜브·게시글에서 전문가가 한 말을 그대로 옮겨요. 올리면 검수 대기로 들어가고, 다른 운영자가 확인하면 공개돼요.</p>'+
+  '<div class="card paste"><b style="font-size:15px">✨ 붙여넣기로 채우기</b><p class="hint" style="margin:4px 0 10px">텔레그램·카카오톡·자막에서 전문가가 쓴 문장을 그대로 붙여 넣으면 AI가 아래 칸을 채워 줘요. 채운 뒤 꼭 원문과 맞는지 확인해 주세요.</p>'+
+  '<textarea id="pz" maxlength="6000" placeholder="예) 삼전 6만원 초반 분할매수, 목표 7만 / 손절 5.5만"></textarea>'+
+  '<div class="acts"><button class="btn p s" id="pzb" type="button">AI로 채우기</button><span class="hint" id="pzm" style="margin:0;align-self:center"></span></div><div id="pzr"></div></div>'+
+  (d.ingest?'<div class="msg warn">가져온 글로 채웠어요: <a href="'+esc(d.url||'')+'" target="_blank" rel="noopener noreferrer">원문 보기 ↗</a> · 원문과 맞는지 확인해 주세요</div>':'')+
+  '<div class="card"><form id="af" autocomplete="off">'+
+  '<div class="row"><label class="f"><b>전문가</b><select id="aex">'+S.experts.filter(function(x){return x.status==='active'}).map(function(x){return '<option value="'+esc(x.id)+'"'+(d.ex===x.id?' selected':'')+'>'+esc(x.name)+'</option>'}).join('')+'</select></label>'+
+  '<label class="f sug"><b>종목</b><input type="text" id="ast" placeholder="종목명이나 코드 (예: 삼성전자, 005930)" value="'+esc(d.label||'')+'"><ul id="asg" class="hide"></ul></label></div>'+
+  '<div id="ast2" class="state hide"></div>'+
+  '<b style="font-size:14px">기록 종류</b><div class="types" id="aty">'+Object.keys(T).map(function(k){return '<label data-t="'+k+'"><input type="radio" name="t" value="'+k+'"> '+T[k]+'</label>'}).join('')+'</div><p class="hint" id="atd">종목을 먼저 고르면 쓸 수 있는 종류가 켜져요.</p>'+
+  '<label class="f"><b>방송·게시 시각</b><input type="datetime-local" id="aat" value="'+(d.at||nowLocal())+'"><i>오늘보다 이전 날짜면 회원 화면에 \'늦은 입력\'이 붙어요.</i></label>'+
+  '<div class="row" id="apx"></div>'+
+  '<label class="f"><b>전문가가 한 말</b><textarea id="atx" maxlength="300" placeholder="방송에서 한 말을 짧게 그대로 (300자까지)">'+esc(d.text||'')+'</textarea></label>'+
+  '<div class="card" style="background:var(--bg);margin:6px 0 14px"><b style="font-size:14px">출처 (없으면 저장되지 않아요)</b>'+
+  '<div class="row" style="margin-top:8px"><label class="f"><b>종류</b><select id="ask">'+SRC.map(function(s){return '<option'+(d.sk===s?' selected':'')+'>'+s+'</option>'}).join('')+'</select></label>'+
+  '<label class="f"><b>채널·프로그램</b><input type="text" id="asc" maxlength="60" placeholder="예: OO경제TV 장마감 브리핑" value="'+esc(d.sc||'')+'"></label></div>'+
+  '<label class="f"><b>제목 (선택)</b><input type="text" id="asi" maxlength="120" value="'+esc(d.title||'')+'"></label>'+
+  '<label class="f"><b>다시 볼 수 있는 주소</b><input type="url" id="asu" placeholder="https://" value="'+esc(d.url||'')+'"><i>방송 다시보기·유튜브 영상·게시글 주소. 검수하는 운영자가 이 주소로 확인해요.</i></label></div>'+
+  '<button class="btn p" id="asb" style="width:100%">검수 대기로 올리기</button></form></div>';
+  var pick=d.code?{code:d.code,name:d.name}:null;
+  var stInp=$('#ast'),sg=$('#asg'),tm;
+  function setTypes(){
+    var st=pick?stateOf($('#aex').value,pick.code):null,ok=st?allowed(st.st):[];
+    $$('#aty label').forEach(function(l){var on=ok.indexOf(l.dataset.t)>-1;l.classList.toggle('dis',!on);$('input',l).disabled=!on;if(!on)$('input',l).checked=false});
+    var box=$('#ast2');
+    if(!st){box.classList.add('hide');return}
+    box.classList.remove('hide');
+    box.innerHTML=st.st==='holding'?'<b>지금: 가지고 있는 중</b> · 구매 '+won(st.buy)+' · 목표 '+won(st.target)+' · 손해 막는 '+won(st.stop)+' <span style="color:var(--sub)">(검수 대기 포함)</span>':
+      st.st==='watch'?'<b>지금: 지켜보는 중</b> · 구매 추천이 나오면 "구매"를 올려요':'<b>지금: 이 전문가의 진행 중인 추천이 없어요</b> · "구매"나 "지켜보기"로 시작해요';
+    fields();
+  }
+  function fields(){
+    var t=($('#aty input:checked')||{}).value,px=$('#apx');
+    $('#atd').textContent=t?TDESC[t]:'종목을 먼저 고르면 쓸 수 있는 종류가 켜져요.';
+    var pf=function(id,l,req){return '<label class="f"><b>'+l+(req?'':' <span style="color:var(--sub);font-weight:400">(바뀐 것만)</span>')+'</b><input type="text" inputmode="numeric" id="'+id+'" placeholder="원"></label>'};
+    px.innerHTML=t==='buy'?pf('pb','구매 가격',1)+pf('pt','목표 가격',1)+pf('ps','손해 막는 가격',1):t==='revise'?pf('pb','구매 가격')+pf('pt','목표 가격')+pf('ps','손해 막는 가격'):t==='sell'?pf('pl','판매 가격',1):'';
+    $$('input[inputmode=numeric]',px).forEach(function(i){i.oninput=function(){var n=num(i.value);i.value=n==null?'':n.toLocaleString('ko-KR')}});
+  }
+  stInp.oninput=function(){pick=null;setTypes();clearTimeout(tm);var q=stInp.value.trim();if(!q){sg.classList.add('hide');return}
+    tm=setTimeout(function(){
+      var qq=q.replace(/[%,()*]/g,'');
+      var req=/^[0-9]{2,6}$/.test(qq)?sb.from('stocks').select('code,name,market').like('code',qq+'%').limit(8):sb.from('stocks').select('code,name,market').ilike('name','%'+qq+'%').order('cap_eok',{ascending:false,nullsFirst:false}).limit(8);
+      req.then(function(r){var L=r.data||[];sg.innerHTML=L.length?L.map(function(s){return '<li data-c="'+s.code+'" data-n="'+esc(s.name)+'">'+esc(s.name)+'<small>'+s.code+' · '+(s.market==='K'?'코스피':s.market==='Q'?'코스닥':esc(s.market||''))+'</small></li>'}).join(''):'<li style="cursor:default;color:var(--sub)">찾는 종목이 없어요</li>';sg.classList.remove('hide');
+        $$('li[data-c]',sg).forEach(function(li){li.onmousedown=function(ev){ev.preventDefault();pick={code:li.dataset.c,name:li.dataset.n};S.names[pick.code]=pick.name;stInp.value=pick.name+' ('+pick.code+')';sg.classList.add('hide');setTypes()}})});
+    },180)};
+  stInp.onblur=function(){setTimeout(function(){sg.classList.add('hide')},150)};
+  $('#aex').onchange=setTypes;
+  $$('#aty input').forEach(function(i){i.onchange=fields});
+  combo($('#aex'));
+  setTypes();
+  if(d.t){var ti=$('#aty input[value="'+d.t+'"]');if(ti&&!ti.disabled){ti.checked=true;fields()}else if(ti){flash('warn','AI가 고른 종류('+T[d.t]+')는 지금 이 종목 상태에서 쓸 수 없어요. 종류를 다시 골라 주세요')}}
+  [['pb','buy'],['pt','target'],['ps','stop'],['pl','sell']].forEach(function(k){var i=$('#'+k[0]);if(i&&d[k[1]])i.value=Number(d[k[1]]).toLocaleString('ko-KR')});
+  $('#pzb').onclick=function(){
+    var tx=$('#pz').value.trim();if(tx.length<4){flash('warn','해석할 글을 붙여 넣어 주세요');return}
+    var b=this;b.disabled=true;$('#pzm').textContent='읽는 중…';
+    aiParse(tx,'운영자가 붙여 넣은 글 · 전문가: '+exName($('#aex').value)).then(function(out){
+      b.disabled=false;$('#pzm').textContent='';
+      showItems($('#pzr'),out.items||[],{text:tx});
+    }).catch(function(e){b.disabled=false;$('#pzm').textContent='';flash('bad',e.message||String(e))});
+  };
+  $('#af').onsubmit=function(ev){ev.preventDefault();
+    var t=($('#aty input:checked')||{}).value;
+    if(!pick){flash('warn','종목을 검색해서 골라 주세요');return}
+    if(!t){flash('warn','기록 종류를 골라 주세요');return}
+    var p={t:t,expert_id:$('#aex').value,stock_code:pick.code,at:toIso($('#aat').value),text:$('#atx').value.trim(),src_kind:$('#ask').value,src_channel:$('#asc').value.trim(),src_title:$('#asi').value.trim(),src_url:$('#asu').value.trim()};
+    if($('#pb'))p.buy=num($('#pb').value);if($('#pt'))p.target=num($('#pt').value);if($('#ps'))p.stop=num($('#ps').value);if($('#pl'))p.sell=num($('#pl').value);
+    var b=$('#asb');b.disabled=true;
+    sb.rpc('ops_add_event',{p:p}).then(function(r){if(r.error)throw r.error;
+      var ing=d.ingest;S.addDraft={ex:p.expert_id,sk:p.src_kind,sc:p.src_channel};
+      return (ing?sb.rpc('ops_ingest_mark',{p_id:ing,p_status:'used',p_event:r.data}).then(function(){}):Promise.resolve()).then(function(){return reload('ok','검수 대기로 올렸어요: '+exName(p.expert_id)+' · '+pick.name+' '+T[t]+'. 다른 운영자에게 확인을 부탁해 주세요.')});
+    }).catch(function(e){flash('bad',errText(e));b.disabled=false});
+  };
+}
+
+// ── AI 해석 · 채우기
+function aiParse(text,hint){
+  return sb.functions.invoke('ops-parse',{body:{text:text,hint:hint}}).then(function(r){
+    if(!r.error)return r.data;
+    var c=r.error.context;
+    return (c&&c.json?c.json().catch(function(){return {}}):Promise.resolve({})).then(function(j){
+      throw new Error(j&&j.code==='nokey'?'AI 키가 아직 등록되지 않았어요. 설정 안내의 "AI 키 넣기"를 먼저 해 주세요':(j&&j.error)||'AI 해석에 실패했어요. 잠시 뒤 다시 해 주세요');
+    });
+  });
+}
+function itemLine(it){
+  var px=[];if(it.buy)px.push('구매 '+won(it.buy));if(it.target)px.push('목표 '+won(it.target));if(it.stop)px.push('손해 막는 '+won(it.stop));if(it.sell)px.push('판매 '+won(it.sell));
+  return '<span class="tag t-'+it.t+'">'+T[it.t]+'</span><b>'+esc(it.stock_name)+'</b>'+(it.stock_code?' <span style="color:var(--sub)">'+it.stock_code+'</span>':'')+(px.length?' · '+px.join(' · '):'')+
+    (it.confidence<0.6?' <span class="tag late">확신 낮음</span>':'');
+}
+// items: AI 결과, base: {expert, at, url, sk, sc, ingest, text}
+function showItems(box,items,base){
+  if(!items.length){box.innerHTML='<div class="msg warn">추천으로 볼 만한 내용을 찾지 못했어요. 직접 입력해 주세요.</div>';return}
+  box.innerHTML=items.map(function(it,i){
+    var cand=!it.stock_code&&(it.candidates||[]).length?'<div class="hint" style="margin:6px 0 0">종목을 정확히 못 찾았어요. 맞는 것을 골라 주세요: '+it.candidates.map(function(c){return '<button class="btn s pk" type="button" data-i="'+i+'" data-c="'+c.code+'" data-n="'+esc(c.name)+'">'+esc(c.name)+'</button>'}).join(' ')+'</div>':
+      (!it.stock_code?'<div class="hint" style="margin:6px 0 0">종목을 찾지 못했어요. 채운 뒤 종목 칸에서 직접 검색해 주세요.</div>':'');
+    return '<div class="card it" style="margin:10px 0 0;background:var(--bg)"><div class="ev"><div class="top">'+itemLine(it)+'</div>'+
+      (it.text?'<div class="quote">'+esc(it.text)+'</div>':'')+(it.note?'<div class="src">AI 메모: '+esc(it.note)+'</div>':'')+cand+
+      '<div class="acts"><button class="btn p s fill" type="button" data-i="'+i+'">이 내용으로 채우기</button></div></div></div>';
+  }).join('');
+  $$('.pk',box).forEach(function(b){b.onclick=function(){var it=items[+b.dataset.i];it.stock_code=b.dataset.c;it.stock_name=b.dataset.n;showItems(box,items,base)}});
+  $$('.fill',box).forEach(function(b){b.onclick=function(){
+    var it=items[+b.dataset.i],cur=S.addDraft||{};
+    var nd={ex:base.expert||($('#aex')&&$('#aex').value)||cur.ex,sk:base.sk||cur.sk,sc:base.sc||cur.sc,t:it.t,buy:it.buy,target:it.target,stop:it.stop,sell:it.sell,
+      text:(it.text||'').slice(0,300),at:base.at||($('#aat')&&$('#aat').value)||null,url:base.url||($('#asu')&&$('#asu').value)||'',title:base.title||'',ingest:base.ingest||null};
+    if(it.stock_code){nd.code=it.stock_code;nd.name=it.stock_name;nd.label=it.stock_name+' ('+it.stock_code+')';S.names[it.stock_code]=it.stock_name}
+    S.addDraft=nd;go('add');window.scrollTo(0,0);
+  }});
+}
+
+// ── 가져온 글 (텔레그램 공개 채널)
+function pkind(p){var n=((p.parsed&&p.parsed.items)||[]).length;return p.parse_status==='pending'?'wait':p.parse_status==='failed'?'fail':n?'rec':'none'}
+function vIngest(m){
+  var src={};(S.sources||[]).forEach(function(x){src[x.id]=x});
+  var P=S.posts||[],F=S.if=S.if||{k:'rec',src:'all'};
+  var cnt={rec:0,wait:0,none:0,fail:0};P.forEach(function(p){cnt[pkind(p)]++});
+  if(F.k==='rec'&&!cnt.rec&&P.length&&!S._ifTouched)F.k='all';
+  var bySrc={};P.forEach(function(p){bySrc[p.source_id]=(bySrc[p.source_id]||0)+1});
+  var L=P.filter(function(p){return (F.k==='all'||pkind(p)===F.k)&&(F.src==='all'||String(p.source_id)===F.src)});
+  var h='<h2>가져온 글<span class="cnt">'+P.length+'개</span></h2><p class="lead">텔레그램 공개 채널(5분마다)과 PC 수집기로 연결한 방(바로)의 새 글을 모아 AI가 미리 읽어 둬요. "채우기"를 누르면 기록 올리기 칸이 채워지고, 확인 후 올리면 평소처럼 검수를 거쳐요.</p>';
+  var oldWait=P.filter(function(p){return p.parse_status==='pending'&&Date.now()-new Date(p.posted_at).getTime()>30*60e3}).length;
+  if(oldWait)h+='<div class="msg warn">AI가 아직 읽지 못한 글이 '+oldWait+'개 있어요. AI 키(ANTHROPIC_API_KEY)가 등록되지 않았다면 Supabase → Edge Functions → Secrets에서 등록해 주세요. 그동안은 "직접 입력"으로 올릴 수 있어요.</div>';
+  if(S.ingestOff)h+='<div class="msg warn">가져온 글 표를 아직 읽을 수 없어요.</div>';
+  else if(!(S.sources||[]).length)h+='<div class="card empty">아직 등록한 채널이 없어요. <a href="#set" id="gs">설정</a>에서 텔레그램 공개 채널을 추가해 주세요.</div>';
+  else if(!P.length)h+='<div class="card empty">새로 가져온 글이 없어요.</div>';
+  if(P.length){
+    h+='<div class="tb">'+chips('k',[['rec','추천 있음',cnt.rec],['wait','AI 읽는 중',cnt.wait],['none','추천 아님',cnt.none],['fail','해석 실패',cnt.fail],['all','전체',P.length]].filter(function(o){return o[0]==='all'||o[0]==='rec'||o[2]}),F.k)+
+      chips('src',[['all','모든 채널']].concat((S.sources||[]).filter(function(x){return bySrc[x.id]}).map(function(x){return [String(x.id),x.expert_id?exName(x.expert_id):'@'+x.handle,bySrc[x.id]]})),F.src,'채널')+'</div>';
+    var noneIds=L.filter(function(p){return pkind(p)==='none'}).map(function(p){return p.id});
+    h+='<div class="cnt-line">'+L.length+'개 보는 중'+(noneIds.length?'<button type="button" class="btn s bad" id="ignAll">추천 아닌 글 '+noneIds.length+'개 모두 무시</button>':'')+'</div>';
+    if(!L.length)h+='<div class="card empty">이 조건에 맞는 글이 없어요.</div>';
+  }
+  L.forEach(function(p){
+    var s=src[p.source_id]||{},items=(p.parsed&&p.parsed.items)||[],k=pkind(p);
+    var st=k==='wait'?'<span class="tag">AI 읽는 중</span>':k==='none'?'<span class="tag">추천 아님으로 판단</span>':k==='fail'?'<span class="tag" style="color:var(--bad)">AI 해석 실패</span>':'<span class="tag t-buy">추천 '+items.length+'건</span>';
+    h+='<div class="card" data-p="'+p.id+'"><div class="ev"><div class="top"><b>'+esc(s.expert_id?exName(s.expert_id):'')+'</b><span class="src">'+esc(srcLabel(s))+'</span>'+st+'</div>'+
+      '<div class="src">'+kst(p.posted_at)+' · <a href="'+esc(p.url)+'" target="_blank" rel="noopener noreferrer">원문 보기 ↗</a></div>'+
+      '<div class="quote" style="white-space:pre-wrap;max-height:'+(k==='none'?'4.8em':'9.5em')+';overflow:hidden">'+esc(p.body)+'</div>'+
+      '<div class="its"></div>'+
+      '<div class="acts"><button class="btn s man">직접 입력</button><button class="btn bad s ign">무시</button></div></div></div>';
+  });
+  m.innerHTML=h;
+  onChips(m,'k',function(v){F.k=v;S._ifTouched=1;vIngest(m)});onChips(m,'src',function(v){F.src=v;vIngest(m)});
+  var gs=$('#gs');if(gs)gs.onclick=function(ev){ev.preventDefault();go('set')};
+  var ia=$('#ignAll');if(ia)ia.onclick=function(){ia.disabled=true;var ids=L.filter(function(p){return pkind(p)==='none'}).map(function(p){return p.id});
+    ids.reduce(function(pr,id){return pr.then(function(){return sb.rpc('ops_ingest_mark',{p_id:id,p_status:'ignored'}).then(function(r){if(r.error)throw r.error})})},Promise.resolve())
+     .then(function(){return reload('ok','추천 아닌 글 '+ids.length+'개를 무시했어요.')}).catch(function(e){flash('bad',errText(e));ia.disabled=false})};
+  $$('.card[data-p]',m).forEach(function(c){
+    var p=P.find(function(x){return String(x.id)===c.dataset.p}),s=src[p.source_id]||{};
+    var base={expert:s.expert_id||null,at:kst(p.posted_at).replace(' ','T'),url:p.url,sk:'게시글',sc:'텔레그램 '+srcLabel(s),ingest:p.id};
+    var items=(p.parsed&&p.parsed.items)||[];
+    if(items.length)showItems($('.its',c),items,base);
+    $('.man',c).onclick=function(){var cur=S.addDraft||{};S.addDraft={ex:base.expert||cur.ex,sk:base.sk,sc:base.sc,at:base.at,url:base.url,text:p.body.slice(0,300),ingest:p.id};go('add');window.scrollTo(0,0)};
+    $('.ign',c).onclick=function(){sb.rpc('ops_ingest_mark',{p_id:p.id,p_status:'ignored'}).then(function(r){if(r.error)throw r.error;return reload('ok','무시했어요. 이 글은 목록에서 빠져요.')}).catch(function(e){flash('bad',errText(e))})};
+  });
+}
+
+// ── 전문가 (찾기·필터 → 3열 단추 → 누르면 그 줄 아래에 자세히)
+function vExperts(m){
+  var F=S.xf=S.xf||{st:'all',sty:'all',ch:'all',sort:'name'};
+  var tgSet={};(S.sources||[]).forEach(function(x){if(x.expert_id&&x.active)tgSet[x.expert_id]=1});
+  var pubCnt={};S.events.forEach(function(e){if(e.status==='published')pubCnt[e.expert_id]=(pubCnt[e.expert_id]||0)+1});
+  var X=S.experts,chs={};X.forEach(function(x){(x.channels||[]).forEach(function(c){chs[c]=(chs[c]||0)+1})});
+  var stOpt=[['all','전체',X.length],['live','방송 중',X.filter(function(x){return x.live}).length],['rec','기록 있음',X.filter(function(x){return pubCnt[x.id]}).length],['norec','기록 없음',X.filter(function(x){return !pubCnt[x.id]}).length],['tg','채널 연결',X.filter(function(x){return tgSet[x.id]}).length],['hidden','숨김',X.filter(function(x){return x.status==='hidden'}).length]];
+  var styOpt=[['all','전체']].concat(Object.keys(STYLE_S).map(function(k){return [k,STYLE_S[k],X.filter(function(x){return x.style===k}).length]}));
+  var chOpt=[['all','전체']].concat(Object.keys(chs).sort(function(a,b){return chs[b]-chs[a]}).map(function(c){return [c,c,chs[c]]}));
+  m.innerHTML='<h2>전문가<span class="cnt">'+X.length+'명</span></h2><p class="lead">외부에 공개 활동하는 전문가만 등록해요. 방송 중 표시는 실제 방송이 시작되면 켜고 끝나면 꺼요.</p>'+
+    '<div class="card"><details id="newx"'+(X.length?'':' open')+'><summary>+ 새 전문가 등록</summary><div class="xb" style="margin-top:12px"></div></details></div>'+
+    '<div class="tb"><label class="srch" style="display:block"><input type="text" id="xq" placeholder="전문가 이름으로 찾기" value="'+esc(S.xq||'')+'" autocomplete="off"></label>'+
+    chips('st',stOpt,F.st)+chips('sty',styOpt,F.sty,'투자 방식')+chips('ch',chOpt,F.ch,'채널')+
+    chips('sort',[['name','이름순'],['rec','기록 많은 순'],['new','최근 등록순']],F.sort,'정렬')+'</div>'+
+    '<div class="cnt-line" id="xn"></div><div class="xg" id="xg"></div>';
+  expertForm($('.xb',$('#newx')),null);
+  ['st','sty','ch','sort'].forEach(function(k){onChips(m,k,function(v){F[k]=v;$$('[data-chips="'+k+'"] .chip',m).forEach(function(b){b.classList.toggle('on',b.dataset.v===v)});draw()})});
+  function draw(){
+    var g=$('#xg');S.xq=$('#xq').value;var k=nk(S.xq);
+    var L=X.filter(function(x){
+      if(k&&nk(x.name).indexOf(k)<0&&nk(x.id).indexOf(k)<0)return false;
+      if(F.st==='live'&&!x.live)return false;if(F.st==='rec'&&!pubCnt[x.id])return false;if(F.st==='norec'&&pubCnt[x.id])return false;
+      if(F.st==='tg'&&!tgSet[x.id])return false;if(F.st==='hidden'&&x.status!=='hidden')return false;
+      if(F.sty!=='all'&&x.style!==F.sty)return false;if(F.ch!=='all'&&(x.channels||[]).indexOf(F.ch)<0)return false;return true})
+     .sort(function(a,b){var l=(b.live?1:0)-(a.live?1:0);if(l)return l;
+       if(F.sort==='rec')return (pubCnt[b.id]||0)-(pubCnt[a.id]||0)||a.name.localeCompare(b.name,'ko');
+       if(F.sort==='new')return (b.created_at||'')<(a.created_at||'')?-1:(b.created_at||'')>(a.created_at||'')?1:0;
+       return a.name.localeCompare(b.name,'ko')});
+    var filtered=k||F.st!=='all'||F.sty!=='all'||F.ch!=='all';
+    $('#xn').innerHTML=(filtered?'<b style="color:var(--ink)">'+L.length+'명</b> 찾았어요':'전체 '+L.length+'명')+' · 이름을 누르면 자세히 보여요'+(filtered?'<button type="button" class="btn s" id="xr">필터 지우기</button>':'');
+    var xr=$('#xr');if(xr)xr.onclick=function(){S.xq='';S.xf=null;vExperts(m)};
+    g.innerHTML=L.length?L.map(function(x){
+      return '<button type="button" class="xbtn'+(S.xSel===x.id?' on':'')+(x.status==='hidden'?' hid':'')+'" data-x="'+esc(x.id)+'"><b>'+(x.live?'<span class="dot"></span>':'')+esc(x.name)+'</b><small>'+esc(STYLE_S[x.style]||x.style)+' · 기록 '+(pubCnt[x.id]||0)+(tgSet[x.id]?'<span class="tgi">TG</span>':'')+(x.status==='hidden'?' · 숨김':'')+'</small></button>'}).join('')
+      :'<div class="card empty" style="grid-column:1/-1;margin:0">조건에 맞는 전문가가 없어요</div>';
+    var bs=$$('.xbtn',g);
+    bs.forEach(function(b){b.onclick=function(){S.xSel=S.xSel===b.dataset.x?'':b.dataset.x;draw()}});
+    var i=-1;bs.forEach(function(b,j){if(b.dataset.x===S.xSel)i=j});
+    if(i>-1){var end=Math.min(Math.ceil((i+1)/3)*3,bs.length)-1;var d=document.createElement('div');d.className='card xd';bs[end].insertAdjacentElement('afterend',d);
+      xDetail(d,X.find(function(e){return e.id===S.xSel}))}
+  }
+  $('#xq').oninput=draw;draw();
+}
+function xDetail(c,x){
+  var cnt=S.events.filter(function(e){return e.expert_id===x.id&&e.status==='published'}).length;
+  c.innerHTML='<div class="ex"><span class="nm">'+(x.live?'<span class="dot"></span>':'')+esc(x.name)+'</span><span class="tag">'+esc(STYLE[x.style]||x.style)+'</span>'+(x.status==='hidden'?'<span class="tag">숨김</span>':'')+
+    '<span style="color:var(--sub);font-size:14px">공개 기록 '+cnt+'개 · '+esc((x.channels||[]).join(', '))+'</span></div>'+
+    (x.intro?'<p style="margin:8px 0 0">'+esc(x.intro)+'</p>':'')+
+    '<div class="src" style="margin-top:6px">'+(x.links||[]).map(function(l){return '<a href="'+esc(l.u)+'" target="_blank" rel="noopener noreferrer">'+esc(l.t||l.u)+' ↗</a>'}).concat((S.sources||[]).filter(function(t){return t.expert_id===x.id}).map(function(t){return '<a href="https://t.me/s/'+esc(t.handle)+'" target="_blank" rel="noopener noreferrer">텔레그램 @'+esc(t.handle)+(t.active?'':' (멈춤)')+' ↗</a>'})).join(' · ')+'</div>'+
+    (x.live?'<div class="msg warn" style="margin:10px 0 0">방송 중: '+esc(x.live.ch||'')+' '+esc(x.live.title||'')+' (시작 '+esc((x.live.since||'').replace('T',' '))+')</div>':'')+
+    '<div class="acts">'+(x.live?'<button class="btn s lvoff">방송 끝남</button>':'<button class="btn s lvon">방송 시작</button>')+'<button class="btn s xe">정보 고치기</button><button class="btn s xc" style="margin-left:auto">닫기</button></div><div class="xb hide"></div>';
+  $('.xc',c).onclick=function(){S.xSel='';vExperts($('#main'))};
+  $('.xe',c).onclick=function(){var b=$('.xb',c);b.classList.toggle('hide');if(!b.classList.contains('hide'))expertForm(b,x)};
+  var on=$('.lvon',c),off=$('.lvoff',c);
+  if(on)on.onclick=function(){var b=$('.xb',c);b.classList.remove('hide');b.innerHTML='<div class="row" style="margin-top:12px"><label class="f"><b>채널</b><input type="text" class="lc" value="'+esc((x.channels||[])[0]||'')+'"></label><label class="f"><b>방송 제목</b><input type="text" class="lt" placeholder="예: 장중 시황"></label></div><button class="btn p s lgo">방송 중으로 표시</button>';
+    $('.lgo',b).onclick=function(){sb.rpc('ops_set_live',{p_expert:x.id,p_live:{ch:$('.lc',b).value.trim(),title:$('.lt',b).value.trim()}}).then(function(r){if(r.error)throw r.error;return reload('ok',x.name+' 방송 중으로 표시했어요. 끝나면 꼭 "방송 끝남"을 눌러 주세요.')}).catch(function(e){flash('bad',errText(e))})}};
+  if(off)off.onclick=function(){sb.rpc('ops_set_live',{p_expert:x.id,p_live:null}).then(function(r){if(r.error)throw r.error;return reload('ok','방송 중 표시를 껐어요.')}).catch(function(e){flash('bad',errText(e))})};
+}
+function expertForm(box,x){
+  x=x||{};
+  box.innerHTML='<div class="row"><label class="f"><b>이름</b><input type="text" class="fn" maxlength="40" value="'+esc(x.name||'')+'"></label>'+
+  '<label class="f"><b>주소 이름 (영문)</b><input type="text" class="fi" maxlength="40" value="'+esc(x.id||'')+'"'+(x.id?' disabled':'')+' placeholder="예: kim-jh"><i>공유 링크에 쓰여요. 나중에 바꿀 수 없어요.</i></label></div>'+
+  '<div class="row"><label class="f"><b>투자 방식</b><select class="fs">'+Object.keys(STYLE).map(function(k){return '<option value="'+k+'"'+(x.style===k?' selected':'')+'>'+STYLE[k]+'</option>'}).join('')+'</select></label>'+
+  '<label class="f"><b>상태</b><select class="fh"><option value="active">공개</option><option value="hidden"'+(x.status==='hidden'?' selected':'')+'>숨김</option></select></label></div>'+
+  '<label class="f"><b>출연 채널 (쉼표로 구분)</b><input type="text" class="fc" value="'+esc((x.channels||[]).join(', '))+'" placeholder="예: OO경제TV, 유튜브 OO채널"></label>'+
+  '<label class="f"><b>특징 (쉼표로 구분)</b><input type="text" class="ft" value="'+esc((x.tags||[]).join(', '))+'" placeholder="예: 반도체, 배당주"></label>'+
+  '<label class="f"><b>소개 (200자까지)</b><textarea class="fo" maxlength="200">'+esc(x.intro||'')+'</textarea></label>'+
+  '<label class="f"><b>공개 활동 주소 (한 줄에 하나: 이름 | 주소)</b><textarea class="fl" placeholder="유튜브 | https://youtube.com/@...">'+esc((x.links||[]).map(function(l){return (l.t||'')+' | '+l.u}).join('\n'))+'</textarea><i>외부에서 누구나 볼 수 있는 활동만 등록해요.</i></label>'+
+  '<button class="btn p s fsv">'+(x.id?'저장':'등록')+'</button>';
+  var sp=function(v){return v.split(',').map(function(s){return s.trim()}).filter(Boolean)};
+  $('.fsv',box).onclick=function(){
+    var links=$('.fl',box).value.split('\n').map(function(l){var p=l.split('|');var u=(p.length>1?p.slice(1).join('|'):p[0]).trim();return u?{t:p.length>1?p[0].trim():'',u:u}:null}).filter(Boolean);
+    if(links.some(function(l){return !/^https?:\/\//.test(l.u)})){flash('warn','활동 주소는 https:// 로 시작해야 해요');return}
+    var p={id:x.id||$('.fi',box).value.trim(),name:$('.fn',box).value.trim(),style:$('.fs',box).value,status:$('.fh',box).value,channels:sp($('.fc',box).value),tags:sp($('.ft',box).value),intro:$('.fo',box).value.trim(),links:links};
+    if(!p.name){flash('warn','이름을 적어 주세요');return}
+    sb.rpc('ops_save_expert',{p:p}).then(function(r){if(r.error)throw r.error;return reload('ok',(x.id?'저장했어요: ':'등록했어요: ')+p.name)}).catch(function(e){flash('bad',errText(e))});
+  };
+}
+
+// ── 공개 기록
+function vPub(m){
+  var F=S.pf=S.pf||{ex:'',t:'all',q:''};
+  var base=S.events.filter(function(e){return e.status!=='draft'});
+  var L=base.filter(function(e){if(F.ex&&e.expert_id!==F.ex)return false;if(F.t==='rejected')return e.status==='rejected';if(F.t!=='all'&&e.t!==F.t)return false;
+    if(F.q){var q=nk(F.q);if(nk(S.names[e.stock_code]).indexOf(q)<0&&e.stock_code.indexOf(q)<0)return false}return true});
+  var tc={};base.forEach(function(e){if(!F.ex||e.expert_id===F.ex){var k=e.status==='rejected'?'rejected':e.t;tc[k]=(tc[k]||0)+1}});
+  var h='<h2>공개 기록<span class="cnt">'+base.filter(function(e){return e.status==='published'}).length+'건</span></h2><p class="lead">공개된 기록은 지울 수 없어요. 틀린 곳은 이유를 남기고 정정해요.</p>'+
+   '<div class="tb"><div class="row"><label class="f" style="margin:0"><select id="pfx"><option value="">전체 전문가</option>'+S.experts.map(function(x){return '<option value="'+esc(x.id)+'"'+(F.ex===x.id?' selected':'')+'>'+esc(x.name)+'</option>'}).join('')+'</select></label>'+
+   '<label class="srch" style="display:block"><input type="text" id="pq" placeholder="종목명이나 코드로 찾기" value="'+esc(F.q)+'" autocomplete="off"></label></div>'+
+   chips('t',[['all','전체']].concat(Object.keys(T).filter(function(k){return tc[k]}).map(function(k){return [k,T[k],tc[k]]})).concat(tc.rejected?[['rejected','거절됨',tc.rejected]]:[]),F.t)+'</div>';
+  h+='<div class="cnt-line">'+L.length+'건'+(L.length>300?' · 최근 300건만 보여요':'')+'</div>';
+  if(!L.length)h+='<div class="card empty">'+(base.length?'조건에 맞는 기록이 없어요.':'아직 공개된 기록이 없어요.')+'</div>';
+  L.slice(0,300).forEach(function(e){h+='<div class="card" data-id="'+e.id+'">'+evCard(e,{extra:e.status==='published'?'<div class="acts"><button class="btn s cr">정정</button></div><div class="ed hide"></div>':''})+'</div>'});
+  m.innerHTML=h;
+  combo($('#pfx'));
+  $('#pfx').onchange=function(){F.ex=this.value;vPub(m)};
+  onChips(m,'t',function(v){F.t=v;vPub(m)});
+  var tm;$('#pq').oninput=function(){var v=this.value;clearTimeout(tm);tm=setTimeout(function(){F.q=v.trim();vPub(m);var i=$('#pq');i.focus();i.setSelectionRange(i.value.length,i.value.length)},250)};
+  $$('.card[data-id]',m).forEach(function(c){var b=$('.cr',c);if(b)b.onclick=function(){editForm($('.ed',c),S.events.find(function(x){return x.id===c.dataset.id}),'pub')}});
+}
+
+// ── 고친 기록
+var ACT={create:'올림',edit_draft:'검수 전 고침',publish:'공개',reject:'거절',correct:'정정',expert_create:'전문가 등록',expert_edit:'전문가 고침',live:'방송 표시',price_display:'시세 표시 설정',grant_operator:'운영자 추가',ingest_source:'채널 설정',revoke_operator:'운영자 해제',collect_switch:'수집 켬/끔',bc_program:'방송 편성',bc_episode:'방송 회차'};
+var KL={at:'시각',buy:'구매',target:'목표',stop:'손해 막는',sell:'판매',text:'한 말',src_url:'출처 주소',name:'이름',status:'상태'};
+function fmtv(k,v){if(v==null||v==='')return'-';if(k==='at')return kst(v);if(/^(buy|target|stop|sell)$/.test(k))return won(v);return v}
+function diff(a,b){if(!a||!b)return'';var out=[];Object.keys(KL).forEach(function(k){if(k in a&&JSON.stringify(a[k])!==JSON.stringify(b[k]))out.push(KL[k]+' '+fmtv(k,a[k])+' → '+fmtv(k,b[k]))});return out.join(' / ')}
+var AGRP={rec:['create','edit_draft','publish','reject','correct'],ex:['expert_create','expert_edit','live'],set:['price_display','grant_operator','revoke_operator','ingest_source','collect_switch','bc_program','bc_episode']};
+function swText(v){v=v||{};return '공개 채널 '+(v.public?'켬':'끔')+' · PC 수집기 '+(v.pc?'켬':'끔')+' · AI 해석 '+(v.ai?'켬':'끔')}
+function vAudit(m){
+  var g=S.ag||'all',A=S.audit.filter(function(a){return g==='all'||(AGRP[g]||[]).indexOf(a.action)>-1});
+  var c=function(k){return S.audit.filter(function(a){return AGRP[k].indexOf(a.action)>-1}).length};
+  var h='<h2>고친 기록</h2><p class="lead">누가 언제 무엇을 했는지 모두 남아요. 지울 수 없어요. 최근 200건.</p>';
+  if(S.audit.length)h+='<div class="tb">'+chips('ag',[['all','전체',S.audit.length],['rec','추천 기록',c('rec')],['ex','전문가',c('ex')],['set','설정',c('set')]],g)+'</div>';
+  if(!A.length)h+='<div class="card empty">'+(S.audit.length?'이 종류의 기록이 없어요.':'아직 기록이 없어요.')+'</div>';
+  else h+='<div class="card" style="padding:4px 16px">'+A.map(function(a){var ev=a.after||a.before||{};
+    var d=(a.action==='correct'||a.action==='edit_draft')?diff(a.before,a.after):'';
+    return '<div class="au"><div class="top"><span class="tag">'+esc(ACT[a.action]||a.action)+'</span><b>'+esc(who(a.by))+'</b><span class="src">'+kst(a.at)+'</span></div>'+
+      '<div>'+esc(a.expert_id?exName(a.expert_id):'')+(ev.stock_code?' · '+esc(stName(ev.stock_code))+' '+esc(T[ev.t]||''):'')+(a.action==='grant_operator'||a.action==='revoke_operator'||a.action==='price_display'?esc((a.after||{}).email||((a.after||{}).on===true?'켬':(a.after||{}).on===false?'끔':'')):'')+(a.action==='collect_switch'?esc(swText(a.after)):'')+((a.action==='bc_episode'||a.action==='bc_program')&&a.after?esc(a.action==='bc_program'?(a.after.name||'')+' · '+(WDN[a.after.weekday]||'')+'요일 '+String(a.after.air_time||'').slice(0,5):(a.after.program_id||'')+' · '+(a.after.air_date||'')+' · 종목 '+((a.after.picks||[]).length)+'개'+(a.after.published?' · 공개':'')+(a.after.canceled?' · 결방':'')):'')+(a.action==='ingest_source'&&(a.after||{}).room?esc((a.after||{}).room+((a.after||{}).active===false?' · 멈춤':' · 연결')):'')+'</div>'+
+      (d?'<div class="src">'+esc(d)+'</div>':'')+(a.reason?'<div class="src">이유: '+esc(a.reason)+'</div>':'')+'</div>'}).join('')+'</div>';
+  m.innerHTML=h;
+  onChips(m,'ag',function(v){S.ag=v;vAudit(m)});
+}
+
+// ── 방송: 편성표 · 회차(출연자·종목) · 사이트에 보이는 순서
+var WDN=['','월','화','수','목','금','토','일'];
+function kMs(s){var m=String(s||'').match(/^(\d{4})-(\d{2})-(\d{2})(?:T(\d{2}):(\d{2})(?::(\d{2}))?)?/);return m?Date.UTC(+m[1],m[2]-1,+m[3],+(m[4]||0),+(m[5]||0),+(m[6]||0)):0}
+function kYmd(ms){return new Date(ms).toISOString().slice(0,10)}
+function kWd(ymd){var d=new Date(kMs(ymd)).getUTCDay();return d===0?7:d}
+function kHm(ms){var d=new Date(ms);return ('0'+d.getUTCHours()).slice(-2)+':'+('0'+d.getUTCMinutes()).slice(-2)}
+function kNow(){return Date.now()+9*3600e3}
+function bcLbl(ymd){return WDN[kWd(ymd)]+' '+(+ymd.slice(5,7))+'.'+(+ymd.slice(8,10))}
+// 사이트와 같은 규칙: 오늘 방송 예정·방송 중이 맨 위, 그다음 가장 최근에 끝난 방송부터
+function bcOrder(progs,eps,now,daysAhead){
+  var P={},E={},out=[],seen={},today=kYmd(now);
+  progs.filter(function(p){return p.active}).forEach(function(p){P[p.id]=p});
+  eps.forEach(function(e){E[e.program_id+'|'+e.air_date]=e});
+  function mk(p,date){var k=p.id+'|'+date;if(seen[k])return;seen[k]=1;
+    var st=kMs(date+'T'+String(p.air_time||'20:30').slice(0,5)),en=st+(p.duration_min||60)*60000;
+    out.push({key:k,p:p,date:date,ep:E[k]||null,start:st,end:en,state:now<st?'soon':now<en?'live':'done'})}
+  for(var i=-14;i<=(daysAhead||0);i++){var dt=kYmd(kMs(today)+i*864e5),wd=kWd(dt);Object.keys(P).forEach(function(id){if(+P[id].weekday===wd)mk(P[id],dt)})}
+  eps.forEach(function(e){if(P[e.program_id]&&e.air_date>=kYmd(kMs(today)-14*864e5)&&e.air_date<=kYmd(kMs(today)+(daysAhead||0)*864e5))mk(P[e.program_id],e.air_date)});
+  var vis=out.filter(function(x){return !(x.ep&&x.ep.canceled)});
+  var top=vis.filter(function(x){return x.date===today&&x.state!=='done'}).sort(function(a,b){return a.start-b.start})[0]||null;
+  var past=vis.filter(function(x){return x.state==='done'}).sort(function(a,b){return b.start-a.start});
+  var next=out.filter(function(x){return x.date>today}).sort(function(a,b){return a.start-b.start});
+  return {top:top,past:past,next:next,all:out};
+}
+function bcStateTag(sl){
+  if(sl.ep&&sl.ep.canceled)return '<span class="tag" style="color:var(--sub)">결방</span>';
+  if(sl.state==='soon')return '<span class="tag" style="background:var(--acc-soft);color:var(--acc)">예정</span>';
+  if(sl.state==='live')return '<span class="tag" style="background:var(--bad-soft);color:var(--bad)">방송 중</span>';
+  var ep=sl.ep;if(!ep||!(ep.picks||[]).length)return '<span class="tag" style="background:var(--warn-soft);color:var(--warn)">종목 입력 전</span>';
+  var nO=ep.picks.filter(function(k){return k.kind!=='secret'}).length,nS=ep.picks.length-nO,cnt='공개 '+nO+(nS?' · 비공개 '+nS:'');
+  return ep.published?'<span class="tag" style="background:var(--ok-soft);color:var(--ok)">사이트 공개 중 · '+cnt+'</span>':'<span class="tag" style="background:var(--warn-soft);color:var(--warn)">사이트 공개 전 · '+cnt+'</span>';
+}
+function bcSlotRow(sl,label){
+  var whoH=sl.ep&&(sl.ep.experts||[]).length?esc(sl.ep.experts.map(function(x){return x.name}).join(', ')):'<span style="color:var(--sub)">출연자 미입력'+(sl.p.lineup_note?' · 예고에는 "'+esc(sl.p.lineup_note)+'"가 나와요':'')+'</span>';
+  return '<div class="bcr"><div class="bcr-t">'+(label?'<span class="tag" style="background:var(--ink);color:var(--card)">'+label+'</span>':'')+'<b>'+esc(sl.p.name)+'</b><span class="src">'+bcLbl(sl.date)+' '+kHm(sl.start)+'</span>'+bcStateTag(sl)+'</div>'+
+    '<div class="src" style="margin-top:2px">'+whoH+'</div>'+
+    '<div class="acts" style="margin-top:6px"><button class="btn s bce" data-k="'+esc(sl.key)+'">'+(sl.state==='done'?'출연자·종목 입력':'출연자 입력')+'</button></div><div class="bcx"></div></div>';
+}
+function vBc(m){
+  if(S.bcOff){m.innerHTML='<div class="msg warn">방송 표를 아직 만들지 않았어요. Claude에게 "방송 표 만들어줘"라고 말해 주세요.</div>';return}
+  var now=kNow(),r=bcOrder(S.bcP,S.bcE,now,7);
+  var h='<h2>사이트에 보이는 순서</h2><p class="lead">지금 시각('+kHm(now)+') 기준이에요. 본방송 날에는 그날 방송이 맨 위에 <b>예고</b>로 뜨고, 방송이 시작되면 <b>방송 중</b>, 끝나면 가장 최근 방송으로 내려가요. 1분마다 저절로 바뀌어요.</p><div class="card" style="padding:4px 16px">';
+  if(r.top)h+=bcSlotRow(r.top,'맨 위');
+  h+=r.past.slice(0,5).map(function(sl,i){return bcSlotRow(sl,(r.top?i+2:i+1)+'번째')}).join('');
+  if(!r.top&&!r.past.length)h+='<p class="hint" style="padding:12px 0;margin:0">편성표에 사용 중인 프로그램이 없어요.</p>';
+  h+='</div>';
+  h+='<h2>다가오는 방송</h2><p class="lead">출연자를 미리 넣어 두면 방송 당일 예고에 이름이 함께 나와요. 결방이면 회차를 열어 "결방"을 체크해요.</p><div class="card" style="padding:4px 16px">'+(r.next.length?r.next.slice(0,7).map(function(sl){return bcSlotRow(sl)}).join(''):'<p class="hint" style="padding:12px 0;margin:0">다가오는 방송이 없어요.</p>')+'</div>';
+  h+='<h2>다른 날짜 회차 열기</h2><p class="lead">특집·편성 변경처럼 원래 요일이 아닌 날의 방송도 여기서 넣어요.</p><div class="card"><div class="row"><label class="f"><b>프로그램</b><select id="bop">'+S.bcP.map(function(p){return '<option value="'+esc(p.id)+'">'+esc(p.name)+'</option>'}).join('')+'</select></label>'+
+    '<label class="f"><b>방송 날짜</b><input type="date" id="bod" value="'+kYmd(now)+'"></label></div><button class="btn p s" id="boo">회차 열기</button><div class="bcx" id="box1" style="margin-top:12px"></div></div>';
+  h+='<h2>편성표<span class="cnt">'+S.bcP.length+'개</span></h2><p class="lead">요일·시간·방송 길이를 바꾸면 사이트 순서가 바로 그 기준으로 바뀌어요. 재방송은 넣지 않아요.</p><div class="card" style="padding:4px 16px">'+
+    S.bcP.map(function(p){return bcProgRow(p)}).join('')+bcProgRow(null)+'</div>';
+  m.innerHTML=h;
+  $$('.bce',m).forEach(function(b){b.onclick=function(){var box=b.closest('.bcr').querySelector('.bcx');if(box.innerHTML){box.innerHTML='';return}openEp(box,b.dataset.k)}});
+  $('#boo').onclick=function(){var d=$('#bod').value;if(!d){flash('warn','날짜를 골라 주세요');return}openEp($('#box1'),$('#bop').value+'|'+d)};
+  $$('.bcp',m).forEach(bindProg);
+}
+function bcProgRow(p){
+  var n=!p;p=p||{id:'',name:'',channel:'SBS Biz',weekday:1,air_time:'20:30',duration_min:60,lineup_note:'',active:true,sort:(S.bcP.length+1)};
+  return '<div class="bcp room" data-id="'+esc(p.id)+'">'+(n?'<b style="display:block;margin-bottom:8px">새 프로그램 추가</b>':'')+'<div class="row">'+
+    (n?'<label class="f"><b>코드 (영문)</b><input type="text" class="pi" placeholder="예: special" autocomplete="off"></label>':'')+
+    '<label class="f"><b>프로그램 이름</b><input type="text" class="pn" value="'+esc(p.name)+'"></label><label class="f"><b>채널</b><input type="text" class="pc" value="'+esc(p.channel)+'"></label></div>'+
+    '<div class="row"><label class="f"><b>요일</b><select class="pw">'+[1,2,3,4,5,6,7].map(function(d){return '<option value="'+d+'"'+(+p.weekday===d?' selected':'')+'>'+WDN[d]+'요일</option>'}).join('')+'</select></label>'+
+    '<label class="f"><b>본방송 시작</b><input type="time" class="pt" value="'+esc(String(p.air_time).slice(0,5))+'"></label><label class="f"><b>방송 길이(분)</b><input type="text" inputmode="numeric" class="pd" value="'+esc(p.duration_min)+'"></label><label class="f"><b>보이는 순서</b><input type="text" inputmode="numeric" class="ps" value="'+esc(p.sort)+'"></label></div>'+
+    '<label class="f"><b>출연 방식 메모</b><input type="text" class="pl" value="'+esc(p.lineup_note||'')+'" placeholder="예: 전문가 8명 로테이션"><i>출연자를 넣지 않은 회차의 예고에 이 문구가 나와요</i></label>'+
+    '<label class="f"><b>본방송 보기 주소</b><input type="url" class="pu" value="'+esc(p.live_url||'')+'" placeholder="https://… (SBS Biz 온에어·라이브 페이지)"><i>앱의 \'본방송\' 단추가 이 주소로 열려요</i></label>'+
+    '<div class="acts"><label class="chk" style="margin-right:auto"><input type="checkbox" class="pa"'+(p.active?' checked':'')+'> 사이트에 사용</label><button class="btn p s pv">'+(n?'추가':'저장')+'</button></div></div>';
+}
+function bindProg(row){
+  $('.pv',row).onclick=function(){var b=this;
+    var id=row.dataset.id||($('.pi',row)?$('.pi',row).value.trim().toLowerCase():'');
+    var p={id:id,name:$('.pn',row).value.trim(),channel:$('.pc',row).value.trim(),weekday:+$('.pw',row).value,air_time:$('.pt',row).value,duration_min:num($('.pd',row).value)||60,lineup_note:$('.pl',row).value.trim(),live_url:$('.pu',row).value.trim(),active:$('.pa',row).checked,sort:num($('.ps',row).value)||0};
+    if(!p.name){flash('warn','프로그램 이름을 써 주세요');return}
+    if(p.live_url&&!/^https:\/\//.test(p.live_url)){flash('warn','본방송 주소는 https:// 로 시작해야 해요');return}
+    if(!/^[a-z0-9_-]{2,32}$/.test(p.id)){flash('warn','코드는 영문 소문자·숫자 2~32자로 써 주세요 (예: special)');return}
+    b.disabled=true;sb.rpc('ops_bc_program_save',{p:p}).then(function(r){if(r.error)throw r.error;return reload('ok',p.name+' 편성을 저장했어요.')}).catch(function(e){b.disabled=false;flash('bad',errText(e))});
+  };
+}
+function stockSearch(inp,ul,onPick){var tm;
+  inp.oninput=function(){onPick(null);clearTimeout(tm);var q=inp.value.trim();if(!q){ul.classList.add('hide');return}
+    tm=setTimeout(function(){var qq=q.replace(/[%,()*]/g,'');
+      var req=/^[0-9]{2,6}$/.test(qq)?sb.from('stocks').select('code,name,market').like('code',qq+'%').limit(8):sb.from('stocks').select('code,name,market').ilike('name','%'+qq+'%').order('cap_eok',{ascending:false,nullsFirst:false}).limit(8);
+      req.then(function(r){var L=r.data||[];ul.innerHTML=L.length?L.map(function(s){return '<li data-c="'+s.code+'" data-n="'+esc(s.name)+'">'+esc(s.name)+'<small>'+s.code+'</small></li>'}).join(''):'<li style="cursor:default;color:var(--sub)">찾는 종목이 없어요 (이름 그대로 저장돼요)</li>';ul.classList.remove('hide');
+        $$('li[data-c]',ul).forEach(function(li){li.onmousedown=function(ev){ev.preventDefault();inp.value=li.dataset.n;onPick({code:li.dataset.c,name:li.dataset.n});ul.classList.add('hide')}})})},180)};
+  inp.onblur=function(){setTimeout(function(){ul.classList.add('hide')},150)};
+}
+function bcNorm(t){return String(t||'').replace(/\s+/g,'').replace(/(대표|자문역|위원|이사|소장|원장|본부장|팀장|교수|선생님|선생|님)$/,'').toLowerCase()}
+function bcExpert(n){var k=bcNorm(n);return S.experts.filter(function(e){return e.status!=='hidden'&&bcNorm(e.name)===k}).sort(function(a,b){return (b.name===n)-(a.name===n)})[0]||null}
+function wonIn(v){var n=num(v);return n==null?'':n.toLocaleString('ko-KR')}
+function openEp(box,key){
+  var pid=key.split('|')[0],date=key.split('|')[1],p=S.bcP.filter(function(x){return x.id===pid})[0];if(!p)return;
+  var ep=S.bcE.filter(function(e){return e.program_id===pid&&e.air_date===date})[0]||{experts:[],picks:[],video_url:'',canceled:false,published:false,note:''};
+  var exNames=S.experts.map(function(x){return x.name});
+  box.innerHTML='<div class="rf"><b style="font-size:16px;display:block;margin-bottom:8px">'+esc(p.name)+' · '+bcLbl(date)+' '+esc(String(p.air_time).slice(0,5))+'</b>'+
+    '<label class="f"><b>출연 전문가</b><input type="text" class="ex" list="bc-xn" value="'+esc((ep.experts||[]).map(function(x){return x.name}).join(', '))+'" placeholder="쉼표로 나눠 써요 · 예: 김정철 대표, 장성혁 자문역"><i>등록된 전문가와 이름이 같으면(대표·자문역 같은 호칭은 빼고 비교) 앱의 전문가 화면과 자동으로 이어져요</i></label>'+
+    '<datalist id="bc-xn">'+exNames.map(function(n){return '<option value="'+esc(n)+'">'}).join('')+'</datalist><div class="unreg"></div>'+
+    '<label class="f"><b>재방송(다시보기) 영상 주소</b><input type="url" class="vu" value="'+esc(ep.video_url||'')+'" placeholder="https://www.youtube.com/watch?v=… (공식 채널 영상)"><i>앱의 \'재방송\' 단추와 종목별 \'영상 시각\'이 이 주소로 열려요</i></label>'+
+    '<b style="font-size:14px;display:block;margin:4px 0 6px">전문가별 추천 종목</b><p class="hint" style="margin:0 0 8px">전문가마다 공개 종목·비공개 종목을 하나씩 이상 넣어요. 비공개 종목은 방송에서 공개되기 전까지 앱에 종목 이름과 가격이 보이지 않아요.</p><div class="pks"></div><button class="btn s pka" type="button">+ 종목 추가</button>'+
+    '<label class="f" style="margin-top:12px"><b>메모 (사이트에 안 보여요)</b><input type="text" class="nt" value="'+esc(ep.note||'')+'"></label>'+
+    '<div class="acts"><label class="chk"><input type="checkbox" class="pub"'+(ep.published?' checked':'')+'> 종목을 사이트에 공개</label><label class="chk"><input type="checkbox" class="cn"'+(ep.canceled?' checked':'')+'> 결방</label>'+
+    '<span style="flex:1"></span><button class="btn p s sv">저장</button><button class="btn s cl">닫기</button></div></div>';
+  var pks=$('.pks',box);
+  function names(){return $('.ex',box).value.split(/[,，]/).map(function(s){return s.trim()}).filter(Boolean)}
+  function unreg(){var u=names().filter(function(n){return !bcExpert(n)}),el=$('.unreg',box),sig=u.join('|');if(el._sig===sig&&el.innerHTML)return;el._sig=sig;
+    el.innerHTML=u.length?'<div class="msg warn" style="margin:-4px 0 12px">앱에 전문가 화면이 없는 출연자: '+u.map(function(n){return '<b>'+esc(n)+'</b> <button class="btn s rgx" type="button" data-n="'+esc(n)+'">전문가로 등록</button>'}).join(' ')+'<br><span style="font-size:13px">등록하면 시청자가 이 전문가의 방송 추천 기록을 모아 볼 수 있어요. 등록 뒤 이 회차를 한 번 더 저장해 주세요.</span></div>':'';
+    $$('.rgx',el).forEach(function(b){b.onclick=function(){var n=b.dataset.n;b.disabled=true;
+      var id='bc-'+Date.now().toString(36).slice(-5)+Math.random().toString(36).slice(2,5);
+      sb.rpc('ops_save_expert',{p:{id:id,name:n,style:'swing',tags:[],channels:[(p.channel||'SBS Biz')+' '+p.name],intro:'',links:[],status:'active'}}).then(function(r){if(r.error)throw r.error;
+        S.experts.push({id:id,name:n,style:'swing',status:'active',channels:[(p.channel||'SBS Biz')+' '+p.name]});$('.unreg',box)._sig=null;unreg();flash('ok',n+' 님을 전문가로 등록했어요. 소개·채널은 전문가 탭에서 채울 수 있어요.')}).catch(function(e){b.disabled=false;flash('bad',errText(e))})}})}
+  function pkRow(k){
+    var d=document.createElement('div');d.className='pkr';k=k||{};d._pick=k.stock_name?{code:k.stock_code||'',name:k.stock_name}:null;
+    var nm=names();if(k.expert_name&&nm.indexOf(k.expert_name)<0)nm.push(k.expert_name);
+    var sec=k.kind==='secret';
+    var pf=function(c,l,v,ph){return '<label class="f"><b>'+l+'</b><input type="text" inputmode="numeric" class="'+c+'" value="'+esc(v==null?'':Number(v).toLocaleString('ko-KR'))+'" placeholder="'+(ph||'원')+'"></label>'};
+    d.innerHTML='<div class="row"><label class="f"><b>말한 전문가</b><select class="kx"><option value="">선택</option>'+nm.map(function(n){return '<option'+(n===k.expert_name?' selected':'')+'>'+esc(n)+'</option>'}).join('')+'</select></label>'+
+      '<label class="f" style="flex:0 1 150px"><b>구분</b><select class="kk"><option value="open"'+(sec?'':' selected')+'>공개 종목</option><option value="secret"'+(sec?' selected':'')+'>비공개 종목</option></select></label>'+
+      '<label class="f" style="flex:0 1 160px"><b>추천일</b><input type="date" class="kd2" value="'+esc(k.pick_date||date)+'"></label></div>'+
+      '<label class="chk kr-w'+(sec?'':' hide')+'" style="margin:-4px 0 10px"><input type="checkbox" class="kr"'+(k.revealed?' checked':'')+'> 방송에서 공개됨 (체크 전에는 앱에 종목 이름·가격이 \'비공개\'로 보여요)</label>'+
+      '<div class="row"><label class="f sug"><b>종목</b><input type="text" class="ks" autocomplete="off" value="'+esc(k.stock_name||'')+'" placeholder="'+(sec?'공개 전이면 비워 둬도 돼요':'종목 이름이나 코드')+'"><ul class="hide"></ul></label>'+
+      '<label class="f" style="flex:0 1 110px"><b>영상 시각</b><input type="text" class="kt" value="'+esc(k.ts||'')+'" placeholder="12:34"></label></div>'+
+      '<div class="row">'+pf('kb','매수가',k.buy)+pf('kg','목표가',k.target)+pf('kl','손절가',k.stop)+pf('ke','매도가',k.sell,'팔았을 때만')+'</div>'+
+      '<label class="f kse-w'+(k.sell?'':' hide')+'"><b>매도일</b><input type="date" class="kse" value="'+esc(k.sell_date||'')+'"></label>'+
+      '<label class="f"><b>방송에서 한 말 (짧게, 200자까지)</b><input type="text" class="kq" maxlength="200" value="'+esc(k.quote||'')+'" placeholder="전문가가 실제로 한 말을 그대로 한두 문장"></label>'+
+      '<div class="acts" style="justify-content:flex-end;margin-top:-4px"><button class="btn s bad kdel" type="button">이 종목 빼기</button></div>';
+    stockSearch($('.ks',d),$('ul',d),function(v){d._pick=v});
+    $$('input[inputmode=numeric]',d).forEach(function(i){i.oninput=function(){i.value=wonIn(i.value);if(i.classList.contains('ke'))$('.kse-w',d).classList.toggle('hide',!i.value)}});
+    $('.kk',d).onchange=function(){var s2=this.value==='secret';$('.kr-w',d).classList.toggle('hide',!s2);$('.ks',d).placeholder=s2?'공개 전이면 비워 둬도 돼요':'종목 이름이나 코드'};
+    $('.kdel',d).onclick=function(){d.remove()};
+    pks.appendChild(d);
+  }
+  (ep.picks||[]).forEach(pkRow);
+  unreg();
+  $('.pka',box).onclick=function(){pkRow({expert_name:names()[0]||''})};
+  $('.ex',box).onchange=function(){var nm=names();unreg();$$('.kx',box).forEach(function(sel){var cur=sel.value;sel.innerHTML='<option value="">선택</option>'+nm.concat(cur&&nm.indexOf(cur)<0?[cur]:[]).map(function(n){return '<option'+(n===cur?' selected':'')+'>'+esc(n)+'</option>'}).join('')})};
+  $('.cl',box).onclick=function(){box.innerHTML=''};
+  $('.sv',box).onclick=function(){var b=this,bad='';
+    var picks=$$('.pkr',box).map(function(d){var nm=$('.ks',d).value.trim(),pk=d._pick&&d._pick.name===nm?d._pick:null,kind=$('.kk',d).value;
+      var o={expert_name:$('.kx',d).value,kind:kind,revealed:kind==='secret'?$('.kr',d).checked:true,stock_code:pk?pk.code:'',stock_name:nm,pick_date:$('.kd2',d).value,
+        buy:num($('.kb',d).value),target:num($('.kg',d).value),stop:num($('.kl',d).value),sell:num($('.ke',d).value),sell_date:$('.kse',d).value,quote:$('.kq',d).value.trim(),ts:$('.kt',d).value.trim()};
+      if(!o.stock_name&&!(kind==='secret'&&!o.revealed))return null;
+      if(!o.expert_name)bad=bad||'종목마다 말한 전문가를 골라 주세요';
+      if(kind==='secret'&&o.revealed&&!o.stock_name)bad=bad||'공개된 비공개 종목은 종목 이름을 넣어 주세요';
+      if(o.ts&&!/^\d{1,2}:[0-5]\d(:[0-5]\d)?$/.test(o.ts))bad=bad||'영상 시각은 12:34 처럼 써 주세요';
+      if(o.buy&&o.target&&o.target<=o.buy)bad=bad||(nm+' 목표가는 매수가보다 높아야 해요');
+      if(o.buy&&o.stop&&o.stop>=o.buy)bad=bad||(nm+' 손절가는 매수가보다 낮아야 해요');
+      if(o.sell&&!o.buy)bad=bad||(nm+' 매도가를 넣으려면 매수가도 넣어 주세요');
+      return o}).filter(Boolean);
+    if(bad){flash('warn',bad);return}
+    var vu=$('.vu',box).value.trim();if(vu&&!/^https:\/\//.test(vu)){flash('warn','영상 주소는 https:// 로 시작해야 해요');return}
+    var pub=$('.pub',box).checked;if(pub&&!picks.length){flash('warn','공개할 종목이 없어요. 종목을 넣거나 공개 체크를 풀어 주세요');return}
+    var p2={program_id:pid,air_date:date,experts:names().map(function(n){var x=bcExpert(n);return {id:x?x.id:null,name:n}}),picks:picks,video_url:vu,canceled:$('.cn',box).checked,published:pub,note:$('.nt',box).value.trim()};
+    b.disabled=true;sb.rpc('ops_bc_episode_save',{p:p2}).then(function(r){if(r.error)throw r.error;return reload('ok',p.name+' '+bcLbl(date)+' 회차를 저장했어요.'+(pub?' 사이트에 바로 보여요.':''))}).catch(function(e){b.disabled=false;flash('bad',errText(e))});
+  };
+}
+setInterval(function(){try{if(S.tab==='bc'&&!document.querySelector('#main .bcx .rf')&&!document.querySelector('#main input:focus'))vBc($('#main'))}catch(e){}},60000);
+
+// ── 설정
+function pubSrc(){return (S.sources||[]).filter(function(x){return x.kind!=='tg_user'})}
+function collectHTML(){
+  var c=S.collect||{};
+  var row=function(k,t,d){return '<div class="swr"><div class="t"><b>'+t+'</b><span>'+d+'</span></div><button class="tgl" data-sw="'+k+'" aria-pressed="'+(!!c[k])+'" aria-label="'+t+' '+(c[k]?'끄기':'켜기')+'"></button></div>'};
+  return '<h2>수집 켜기 · 끄기</h2><p class="lead">누르면 바로 바뀌어요. 꺼 두면 그동안의 글은 가져오지 않아요 (PC 수집기는 다시 켜질 때 놓친 글을 따라잡아요).</p><div class="card" style="padding:4px 16px">'+
+    row('public','텔레그램 공개 채널 자동 수집','등록한 공개 채널을 5분마다 읽어요')+
+    row('pc','PC 수집기 (그룹방 · 비공개 채널)','서브PC 수집기가 연결한 방의 새 글을 바로 보내요')+
+    row('ai','글 AI 해석','모은 글에서 종목·가격을 AI가 뽑아요 (AI 크레딧 사용 · 끄면 직접 입력만)')+'</div>';
+}
+function pcHTML(){
+  var b=S.beat,bt=beatState(),R=S.rooms||[],bySrc={};
+  (S.sources||[]).forEach(function(x){if(x.kind==='tg_user'&&x.chat_id!=null)bySrc[String(x.chat_id)]=x});
+  var pubH={};pubSrc().forEach(function(x){if(x.handle)pubH[String(x.handle).toLowerCase()]=x});
+  var dup=function(r){return !bySrc[String(r.chat_id)]&&r.username&&pubH[String(r.username).toLowerCase()]};
+  var st=bt.k==='none'?'<span class="dt none"></span><b>아직 연결된 PC 수집기가 없어요</b><span class="src">서브PC에서 수집기를 처음 실행하면 여기에 표시돼요</span>':
+    '<span class="dt'+(bt.k==='off'?' off':'')+'"></span><b>'+(bt.k==='off'?'신호 없음 · '+bt.min+'분째':'작동 중')+'</b><span class="src">마지막 신호 '+kst(b.last_seen)+' · '+esc(b.account||'')+(b.version?' · 수집기 '+esc(b.version):'')+' · 들어가 있는 방 '+(b.rooms||R.length)+'개</span>';
+  var F=S.rf=S.rf||{q:'',k:'all'},q=(F.q||'').replace(/\s+/g,'');
+  var L=R.filter(function(r){var s=bySrc[String(r.chat_id)],on=s&&s.active;if(F.k==='on'&&!on)return false;if(F.k==='off'&&on)return false;return !q||String(r.title).replace(/\s+/g,'').indexOf(q)>-1});
+  var nOn=R.filter(function(r){var s=bySrc[String(r.chat_id)];return s&&s.active}).length;
+  var h='<h2>PC 수집기<span class="cnt">방 '+R.length+'개</span></h2><p class="lead">수집 전용 계정이 들어가 있는 방이에요. <b>연결한 방의, 고른 사람 글만</b> 리딩노트로 보내요. 연결하지 않은 방과 다른 참여자의 글은 서브PC 밖으로 나가지 않아요.</p>'+
+    '<div class="card"><div class="beat">'+st+'</div></div>';
+  if(!R.length)return h;
+  h+='<div class="tb"><label class="srch" style="display:block"><input type="text" id="rq" placeholder="방 이름으로 찾기" value="'+esc(F.q)+'" autocomplete="off"></label>'+chips('rk',[['all','전체',R.length],['on','연결됨',nOn],['off','연결 안 됨',R.length-nOn]],F.k)+'</div>';
+  h+='<div class="card" style="padding:4px 16px" id="rooms">'+(L.length?L.map(function(r){
+    var s=bySrc[String(r.chat_id)],on=s&&s.active,ad=r.admins||[];
+    var who=s&&s.senders&&s.senders.length?s.senders.map(function(id){var a=ad.filter(function(x){return String(x.id)===String(id)})[0];return a?a.name:'(방에서 나간 사람)'}).join(', '):(r.kind==='channel'?'채널 글 전부':'');
+    var pd=dup(r);
+    if(pd)return '<div class="room"><div class="rt"><b>'+esc(r.title)+'</b><span class="tag">'+(r.kind==='channel'?'채널':'그룹방')+'</span></div><div class="rs">공개 채널로 이미 수집 중 → '+esc(exName(pd.expert_id))+' · 중복을 막으려고 여기서는 연결하지 않아요</div></div>';
+    return '<div class="room" data-c="'+esc(r.chat_id)+'"><div class="rt"><b>'+esc(r.title)+'</b><span class="tag">'+(r.kind==='channel'?'채널':'그룹방')+'</span>'+(r.members?'<span class="src">'+Number(r.members).toLocaleString('ko-KR')+'명</span>':'')+'</div>'+
+      '<div class="rs">'+(s?(on?'<span class="on">연결됨</span>':'멈춤')+' → '+esc(exName(s.expert_id))+(who?' · 가져올 글: '+esc(who):''):'연결 안 됨')+'</div>'+
+      '<div class="acts">'+(s?'<button class="btn s re">고치기</button>'+(on?'<button class="btn s bad rx">멈추기</button>':'<button class="btn s ok ry">다시 연결</button>'):'<button class="btn p s re">연결하기</button>')+'</div><div class="rfx"></div></div>';
+  }).join(''):'<p class="hint" style="padding:12px 0;margin:0">조건에 맞는 방이 없어요.</p>')+'</div>';
+  return h;
+}
+function bindCollect(m){
+  $$('[data-sw]',m).forEach(function(b){b.onclick=function(){var k=b.dataset.sw,p={};p[k]=!(S.collect||{})[k];b.disabled=true;
+    sb.rpc('ops_collect_set',{p:p}).then(function(r){if(r.error)throw r.error;S.collect=r.data;return reload('ok',({public:'공개 채널 자동 수집',pc:'PC 수집기',ai:'글 AI 해석'})[k]+'을(를) '+(p[k]?'켰어요.':'껐어요.'))}).catch(function(e){flash('bad',errText(e));b.disabled=false})}});
+}
+function bindPc(m){
+  var rq=$('#rq');if(rq){var tm;rq.oninput=function(){var v=rq.value;clearTimeout(tm);tm=setTimeout(function(){S.rf.q=v;vSet(m);var i=$('#rq');if(i){i.focus();i.setSelectionRange(i.value.length,i.value.length)}},250)}}
+  onChips(m,'rk',function(v){S.rf.k=v;vSet(m)});
+  var save=function(p,msg){return sb.rpc('ops_tg_room_save',{p:p}).then(function(r){if(r.error)throw r.error;return reload('ok',msg)}).catch(function(e){flash('bad',errText(e))})};
+  $$('.room[data-c]',m).forEach(function(c){
+    var cid=c.dataset.c,r=(S.rooms||[]).filter(function(x){return String(x.chat_id)===cid})[0],s=(S.sources||[]).filter(function(x){return x.kind==='tg_user'&&String(x.chat_id)===cid})[0];
+    var rx=$('.rx',c);if(rx)rx.onclick=function(){save({chat_id:cid,expert_id:s.expert_id,senders:s.senders||[],active:false},r.title+' 수집을 멈췄어요.')};
+    var ry=$('.ry',c);if(ry)ry.onclick=function(){save({chat_id:cid,expert_id:s.expert_id,senders:s.senders||[],active:true},r.title+' 다시 연결했어요.')};
+    $('.re',c).onclick=function(){
+      var box=$('.rfx',c);if(box.innerHTML){box.innerHTML='';return}
+      var ad=r.admins||[],cur=(s&&s.senders||[]).map(String);
+      box.innerHTML='<div class="rf"><label class="f"><b>어느 전문가의 방인가요?</b><select class="rex"><option value="">선택</option>'+S.experts.map(function(x){return '<option value="'+esc(x.id)+'"'+(s&&s.expert_id===x.id?' selected':'')+'>'+esc(x.name)+'</option>'}).join('')+'</select></label>'+
+        (r.kind==='channel'?'<p class="hint" style="margin:0 0 10px">채널은 운영자만 글을 올려서 <b>모든 글</b>을 가져와요.</p>':
+          '<b style="font-size:14px">누구 글을 가져올까요? (전문가·방장만 골라 주세요)</b>'+(ad.length?'<div class="chks">'+ad.map(function(a){return '<label><input type="checkbox" class="rsd" value="'+esc(a.id)+'"'+(cur.indexOf(String(a.id))>-1?' checked':'')+'> '+esc(a.name)+'</label>'}).join('')+'</div>':'<p class="msg warn">이 방의 관리자 목록을 읽지 못했어요. 수집 전용 계정이 방에 있는지 확인하고, 수집기를 다시 켠 뒤 10분 후에 다시 봐 주세요.</p>')+
+          '<p class="hint" style="margin:0 0 10px">고르지 않은 참여자의 글은 서브PC에서 바로 버려지고 저장되지 않아요.</p>')+
+        '<div class="acts"><button class="btn p s rsv">'+(s?'저장':'연결하기')+'</button><button class="btn s rcc">닫기</button></div></div>';
+      combo($('.rex',box),'전문가 이름');
+      $('.rcc',box).onclick=function(){box.innerHTML=''};
+      $('.rsv',box).onclick=function(){var ex=$('.rex',box).value,snd=$$('.rsd:checked',box).map(function(i){return i.value});
+        if(!ex){flash('warn','어느 전문가의 방인지 골라 주세요');return}
+        if(r.kind!=='channel'&&!snd.length){flash('warn','글을 가져올 사람을 한 명 이상 골라 주세요');return}
+        save({chat_id:cid,expert_id:ex,senders:snd,active:true},r.title+' 연결했어요. 처음엔 고른 사람의 최근 글 5개부터 가져와요.')};
+    };
+  });
+}
+
+function vSet(m){
+  var pd=S.price||{on:false};
+  var ops=Object.keys(S.people).map(function(id){return '<li>'+esc(S.people[id])+(id===S.me.id?' (나)':'')+'</li>'}).join('');
+  m.innerHTML=collectHTML()+pcHTML()+'<h2>운영자<span class="cnt">'+Object.keys(S.people).length+'명</span></h2><p class="lead">검수는 두 사람 이상이 있어야 돌아가요. 새 운영자는 Supabase 대시보드 → Authentication → Users에서 먼저 초대한 뒤 여기서 권한을 줘요.</p>'+
+  '<div class="card"><ul style="margin:0 0 12px;padding-left:20px">'+ops+'</ul><div class="row"><label class="f"><b>이메일</b><input type="email" id="oe" placeholder="operator@example.com"></label></div>'+
+  '<div class="acts"><button class="btn p s" id="og">운영자 권한 주기</button><button class="btn bad s" id="or">권한 빼기</button></div></div>'+
+  '<h2>텔레그램 공개 채널<span class="cnt">'+pubSrc().length+'개</span></h2><p class="lead">전문가가 누구나 볼 수 있게 운영하는 공개 채널만 등록해요. 비공개·유료 방은 등록하지 않아요.</p>'+
+  '<div class="card">'+(pubSrc().length?'<table><thead><tr><th>채널</th><th>전문가</th><th>상태</th><th></th></tr></thead><tbody>'+pubSrc().map(function(x){
+    return '<tr><td><a href="https://t.me/s/'+esc(x.handle)+'" target="_blank" rel="noopener noreferrer">@'+esc(x.handle)+'</a></td><td>'+esc(x.expert_id?exName(x.expert_id):'-')+'</td><td>'+(x.active?'모으는 중':'멈춤')+(x.last_error?'<div class="src" style="color:var(--bad)">'+esc(x.last_error)+'</div>':x.last_checked?'<div class="src">'+kst(x.last_checked)+' 확인</div>':'')+'</td>'+
+      '<td><button class="btn s tg" data-h="'+esc(x.handle)+'" data-x="'+esc(x.expert_id||'')+'" data-on="'+(x.active?'0':'1')+'">'+(x.active?'멈추기':'다시 모으기')+'</button></td></tr>'}).join('')+'</tbody></table>':'<p class="hint" style="margin:0 0 10px">아직 등록한 채널이 없어요.</p>')+
+  '<div class="row" style="margin-top:12px"><label class="f"><b>채널 주소</b><input type="text" id="th" placeholder="t.me/채널이름"></label><label class="f"><b>전문가</b><select id="tx"><option value="">선택</option>'+S.experts.map(function(x){return '<option value="'+esc(x.id)+'">'+esc(x.name)+'</option>'}).join('')+'</select></label></div>'+
+  '<button class="btn p s" id="ta">채널 추가</button></div>'+
+  '<h2>시세 표시</h2><p class="lead">시세 이용계약(KRX 등)을 맺기 전에는 꺼 두세요. 꺼져 있으면 회원 화면에 가격 숫자와 수익률 대신 전문가가 말한 가격과 바로가기만 보여요.</p>'+
+  '<div class="card"><div class="sw"><b>지금: '+(pd.on?'켜짐':'꺼짐')+'</b>'+(pd.source?'<span class="tag">출처 '+esc(pd.source)+'</span>':'')+'<button class="btn s" id="pt" style="margin-left:auto">'+(pd.on?'끄기':'켜기')+'</button></div>'+
+  (pd.on?'':'<div class="msg warn" style="margin-bottom:0">켜기 전에 시세 이용계약과 출처 표시 조건을 꼭 확인해 주세요.</div>')+'</div>';
+  var role=function(on){var em=$('#oe').value.trim();if(!em){flash('warn','이메일을 적어 주세요');return}
+    sb.rpc('ops_set_role',{p_email:em,p_admin:on}).then(function(r){if(r.error)throw r.error;return reload('ok',em+(on?' 에게 운영자 권한을 줬어요.':' 의 운영자 권한을 뺐어요.'))}).catch(function(e){flash('bad',errText(e))})};
+  var saveSrc=function(p,msg){sb.rpc('ops_ingest_source_save',{p:p}).then(function(r){if(r.error)throw r.error;return reload('ok',msg)}).catch(function(e){flash('bad',errText(e))})};
+  $('#ta').onclick=function(){var h=$('#th').value.trim();if(!h){flash('warn','채널 주소를 적어 주세요');return}if(!$('#tx').value){flash('warn','어느 전문가의 채널인지 골라 주세요');return}saveSrc({handle:h,expert_id:$('#tx').value,active:true},'채널을 추가했어요. 10분 안에 최근 글 5개부터 모아요.')};
+  $$('.tg',m).forEach(function(b){b.onclick=function(){saveSrc({handle:b.dataset.h,expert_id:b.dataset.x,active:b.dataset.on==='1'},b.dataset.on==='1'?'다시 모아요.':'멈췄어요.')}});
+  combo($('#tx'));
+  $('#og').onclick=function(){role(true)};$('#or').onclick=function(){role(false)};
+  bindCollect(m);bindPc(m);
+  $('#pt').onclick=function(){sb.rpc('ops_price_display',{p_on:!pd.on}).then(function(r){if(r.error)throw r.error;return reload('ok','시세 표시를 '+(pd.on?'껐어요.':'켰어요.'))}).catch(function(e){flash('bad',errText(e))})};
+}
+
+sb.auth.getSession().then(function(r){if(r.data&&r.data.session)return start();viewLogin()}).catch(function(){viewLogin()});
+})();
+</script>
+</body>
+</html>
