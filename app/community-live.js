@@ -36,7 +36,11 @@
     try { var l = JSON.parse(localStorage.getItem('leadingnote.v5')); if (l && l.member && l.member.name && ['체험 회원', '운영자', '한선생TV'].indexOf(l.member.name) < 0) n = String(l.member.name).trim(); } catch (e) {}
     if (n) { n = n.length >= 3 ? n.charAt(0) + '*' + n.slice(2) : n.length === 2 ? n.charAt(0) + '*' : n; return n.slice(0, 20); }
     try { var lu = window.__lnLive && window.__lnLive.user; if (lu && !lu.is_anonymous) { var md = lu.user_metadata || {}; n = String(md.nickname || md.name || md.full_name || '').trim(); if (n) { n = n.length >= 3 ? n.charAt(0) + '*' + n.slice(2) : n.length === 2 ? n.charAt(0) + '*' : n; return n.slice(0, 20); } } } catch (e) {}
-    var d = 0, u = D.uid || ''; for (var i = 0; i < u.length; i++) d = (d * 31 + u.charCodeAt(i)) % 10000; return '회원' + ('000' + d).slice(-4);
+    var d = 0, u = D.uid || ''; for (var i = 0; i < u.length; i++) d = (d * 31 + u.charCodeAt(i)) % 100000;
+    // 가입 없이 들어온 분께는 기억하기 쉬운 이름을 자동으로 붙여 드려요 (같은 기기에선 늘 같은 이름)
+    var ADJ = ['차분한', '느긋한', '부지런한', '꼼꼼한', '든든한', '슬기로운', '웃는', '단단한', '성실한', '여유로운', '반가운', '씩씩한'];
+    var NOUN = ['거북이', '소나무', '두루미', '다람쥐', '부엉이', '돌고래', '참새', '진달래', '은행나무', '호랑이', '해바라기', '고래'];
+    return ADJ[d % ADJ.length] + ' ' + NOUN[Math.floor(d / ADJ.length) % NOUN.length] + (Math.floor(d / 144) % 90 + 10);
   }
   // 리딩 모음(live-data.js)과 같은 로그인 연결을 함께 써요. 카카오 로그인에서 돌아온 경우 여기서 마무리해요.
   function sharedAuth(c){

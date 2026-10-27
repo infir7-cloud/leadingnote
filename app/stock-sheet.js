@@ -51,11 +51,27 @@
     '.ss-dis .t{font-size:.9375rem;overflow-wrap:anywhere}' +
     '.ss-item .m{font-size:.8125rem;color:var(--ink2,#8D99A6)}' +
     '.ss-more{align-self:flex-start;color:var(--ink2,#8D99A6);font-size:.9375rem;padding:.35rem 0;text-decoration:underline;text-underline-offset:3px}' +
-    '.ss-hint{margin:0;font-size:.875rem;color:var(--ink2,#8D99A6);line-height:1.5}';
+    '.ss-hint{margin:0;font-size:.875rem;color:var(--ink2,#8D99A6);line-height:1.5}' +
+    '.ss-label .m{font-weight:400;font-size:.8125rem;margin-left:.35rem}' +
+    '.ss-wbox{padding:.85rem .95rem;border-radius:.75rem;background:var(--acc-soft,rgba(198,242,94,.12));display:flex;flex-direction:column;gap:.35rem}' +
+    '.ss-wl{margin:0;font-weight:700;font-size:1.0625rem;line-height:1.5}' +
+    '.ss-wb{margin:0;font-size:.9375rem;line-height:1.6}';
   document.head.appendChild(css);
 
   var cur = null, root = null;
   function link(href, cls, inner, label){ return '<a class="' + cls + '" href="' + esc(href) + '" target="_blank" rel="noopener noreferrer"' + (label ? ' aria-label="' + esc(label) + '"' : '') + '>' + inner + '</a>'; }
+  // "왜 움직였을까요?" — 서버가 만든 한 줄 요약(ai_notes, key=종목코드)이 있을 때만 보여요. 출처 기사와 만든 시각을 함께 붙여요.
+  function ago(iso){ var t = Date.parse(iso); if (isNaN(t)) return ''; var m = Math.round((Date.now() - t) / 60000); return m < 1 ? '방금' : m < 60 ? m + '분 전' : m < 1440 ? Math.round(m / 60) + '시간 전' : Math.round(m / 1440) + '일 전'; }
+  function whyHTML(s){
+    var w = s.why; if (!w || !(w.line || w.body)) return '';
+    var f = w.facts || {}, src = Array.isArray(f.sources) ? f.sources : Array.isArray(f.links) ? f.links : [];
+    src = src.filter(function(x){ return x && (x.url || x.link); }).map(function(x){ return { title: x.title || x.url || x.link, link: x.url || x.link, press: x.press || '' }; });
+    if (!src.length) src = (s.whyNews || []).slice(0, 2);
+    return '<div class="ss-sec ss-why"><p class="ss-label">왜 움직였을까요? <span class="m">' + ago(w.made_at) + '</span></p>' +
+      '<div class="ss-wbox">' + (w.line ? '<p class="ss-wl">' + esc(w.line) + '</p>' : '') + (w.body ? '<p class="ss-wb">' + esc(w.body) + '</p>' : '') + '</div>' +
+      (src.length ? '<p class="ss-label" style="font-size:.8125rem">참고한 기사</p>' + src.slice(0, 3).map(function(n){ return link(n.link, 'ss-item ss-news', '<span class="t">' + esc(n.title) + '</span><span class="m">' + esc(n.press || '') + (n.pub_at ? ' · ' + whenK(n.pub_at) : '') + ' ↗</span>'); }).join('') : '') +
+      '<p class="ss-hint">AI가 기사를 모아 정리한 내용이에요. 틀릴 수 있고, 투자 권유가 아니에요.</p></div>';
+  }
   function draw(){
     if (!cur) return;
     var s = cur, nv = 'https://m.stock.naver.com/domestic/stock/' + s.code;
@@ -69,6 +85,7 @@
     root.innerHTML = '<div class="ss-scrim" data-ss-close><div class="ss-sheet" role="dialog" aria-modal="true" aria-labelledby="ss-title">' +
       '<div class="ss-h"><div><h2 id="ss-title">' + esc(s.name) + '</h2><p class="ss-code">' + s.code + '</p></div><button class="ss-x" data-ss-close aria-label="닫기">×</button></div>' +
       link(nv + '/total', 'ss-main', '네이버 증권에서 시세·차트 보기 ↗') +
+      whyHTML(s) +
       '<div class="ss-sec"><p class="ss-label">최근 뉴스</p>' + news + link(nv + '/news', 'ss-more', '이 종목 뉴스 더 보기 (네이버 증권) ↗') + '</div>' + dis +
       '<p class="ss-hint">새 창으로 열려요. 다 보신 뒤 그 창을 닫으면 이 화면으로 돌아와요.</p></div></div>';
     if (!s.focused) { s.focused = true; var x = root.querySelector('.ss-x'); if (x) x.focus(); }
@@ -81,8 +98,11 @@
     var me = cur;
     Promise.all([
       rest('news?select=title,link,press,pub_at&codes=cs.%7B' + code + '%7D&order=pub_at.desc&limit=1'),
-      rest('disclosures?select=rcept_no,report_nm,rcept_dt&stock_code=eq.' + code + '&order=rcept_dt.desc,rcept_no.desc&limit=3')
+      rest('disclosures?select=rcept_no,report_nm,rcept_dt&stock_code=eq.' + code + '&order=rcept_dt.desc,rcept_no.desc&limit=3'),
+      rest('ai_notes?select=kind,line,body,facts,made_at&key=eq.' + code + '&order=made_at.desc&limit=1'),
+      rest('news?select=title,link,press,pub_at&codes=cs.%7B' + code + '%7D&order=pub_at.desc&limit=3')
     ]).then(function(rs){
+      if (cur === me) { me.why = rs[2] && rs[2].data && rs[2].data[0] || null; me.whyNews = rs[3] && rs[3].data || []; }
       if (cur !== me) return;
       if (rs[0].off || rs[0].err || rs[1].err) { me.ready = false; me.news = []; me.dis = []; }
       else { me.ready = true; me.news = rs[0].data || []; me.dis = rs[1].data || []; }
