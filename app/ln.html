@@ -1865,7 +1865,7 @@ function avatar(x,size){return '<span class="avatar'+(size?' '+size:'')+(x.live?
 function livePill(ch){return '<span class="live-pill">'+(ch?esc(ch)+' 출연 중':'방송 중')+'</span>'}
 function adBanner(copy){return '<div class="ad" role="complementary" aria-label="광고"><span class="ad-label">광고</span><span class="ad-copy">'+copy+'</span></div>'}
 function badge(l){return '<span class="last last-'+l.cls+'">'+l.text+'</span>'}
-function shareBtn(tok,label,cls){var b='<button class="share-btn'+(cls&&cls!=='btn-block'?' '+cls:'')+'" data-a="copyLink" data-v="'+esc(tok)+'">'+IC.link+'<span>링크 복사</span></button>';return cls==='btn-block'?'<div class="share-end">'+b+'</div>':b}
+function shareBtn(tok,label,cls){return ''}/* 공유 버튼은 노출하지 않아요 */
 function kakaoBtn(label){return '<button class="btn btn-kakao btn-block" data-a="joinKakao">'+IC.kakao+(label||'카카오로 3초 만에 시작')+'</button>'}
 function pollHTML(id,mini){
   var p=pollOf(id,P.votes[id]);
@@ -2010,7 +2010,7 @@ function screenHome(){
       '<section class="hw-card" aria-labelledby="hw-h"><span class="hw-badge">'+IC.shield+'가입비·이용료 없는 무료 서비스</span>'+
       '<h1 class="hw-h" id="hw-h">전문가 추천,<br><em>쉽게 보고</em><br>놓치지 않게.</h1>'+
       '<p class="hw-p">구매·판매 알림부터 다른 투자자들의 생각까지, 큰 글씨로 한곳에서 확인하세요.</p>'+
-      '<ul class="hw-list">'+['새 추천이 오면 휴대폰 알림','전문가별 적중률을 그대로 공개','글자 크기는 언제든 크게'].map(function(t){return '<li><span class="hw-ic">'+IC.check+'</span>'+t+'</li>'}).join('')+'</ul>'+
+      '<ul class="hw-list">'+['새 추천이 오면 휴대폰 알림','전문가별 적중률을 그대로 공개','가입 없이 무료로 보기'].map(function(t){return '<li><span class="hw-ic">'+IC.check+'</span>'+t+'</li>'}).join('')+'</ul>'+
       kakaoBtn('카카오로 3초 만에 무료 시작')+
       '<button class="link-btn" data-a="join">네이버 아이디로 로그인·가입</button></section>';
   }else{
@@ -2858,7 +2858,7 @@ function screenMore(){
   h+='<div class="card">'+menu.map(function(m){return '<button class="menu" data-a="view" data-v="'+m[0]+'"><span class="mi">'+m[2]+'</span><span class="mt">'+m[1]+'</span>'+IC.right+'</button>'}).join('')+'</div>';
   if(isAdmin())h+='<button class="btn btn-ink btn-block" data-x="admin">통합 관리자 페이지 열기</button>';
   h+='<section class="group"><h2 class="sech">체험용 · 권한 바꿔 보기</h2><div class="seg" style="grid-template-columns:repeat(4,minmax(0,1fr))" role="group" aria-label="권한">'+['guest','member','expert','admin'].map(function(r){return '<button data-a="asRole" data-v="'+r+'" aria-pressed="'+(role()===r)+'">'+ROLE_NAME[r]+'</button>'}).join('')+'</div><p class="small">실서비스에서는 운영자가 관리자 페이지에서 권한을 줘요. 전문가는 한선생TV 계정으로 체험해요.</p></section>';
-  h+='<section class="group"><h2 class="sech">글자 크기 · 화면 밝기</h2><p class="notice">여기서 바꾸면 리딩 모음·투자 도구·커뮤니티에 한 번에 적용돼요.</p><button class="btn btn-line btn-block" data-x="settings">글자 크기 · 화면 밝기 바꾸기</button></section>';
+  h+='<section class="group"><h2 class="sech">화면 밝기</h2><p class="notice">여기서 바꾸면 리딩 모음·투자 도구·커뮤니티에 한 번에 적용돼요.</p><button class="btn btn-line btn-block" data-x="settings">화면 밝기 바꾸기</button></section>';
   if(P.member)h+='<section class="group"><h2 class="sech">알림</h2><div class="card">'+toggles.map(function(t){var on=!!P.notif[t[0]];return '<div class="trow"><span class="ft"><b>'+t[1]+'</b><span>'+t[2]+'</span></span><button class="toggle" data-a="notif" data-v="'+t[0]+'" aria-pressed="'+on+'" aria-label="'+t[1]+'">'+(on?'켜짐':'꺼짐')+'</button></div>'}).join('')+'</div></section>';
   h+='<section class="group"><h2 class="sech">앱 설치</h2><p class="notice">휴대폰은 앱으로, 컴퓨터는 바탕화면 바로가기로 한 번에 열어요. 쓰시는 기기를 알아서 확인해 드려요.</p>'+(storeLink(DEVICE)?'<a class="store" href="'+esc(storeLink(DEVICE))+'" target="_blank" rel="noopener">'+IC.download+'앱 설치하기</a>':'<button class="btn btn-ink btn-block" data-a="sheet" data-v="install">'+IC.download+'앱 설치하기</button>')+'</section>';
   h+='<section class="group"><h2 class="sech">서비스 안내</h2><p class="notice">리딩노트는 방송·유튜브 등에서 공개된 전문가 추천을 모아 쉽게 정리해 보여주는 서비스예요. 투자 권유가 아니며, 투자 판단과 그 결과의 책임은 본인에게 있어요.</p>'+

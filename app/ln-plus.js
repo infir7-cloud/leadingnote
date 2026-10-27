@@ -712,7 +712,7 @@
     var oEx = w.screenExpert;
     w.screenExpert = function(id){
       var h = oEx.apply(this, arguments), k = h.indexOf('class="t2-basis2"');
-      var add = '<button class="p-btn sub" data-a="pCard" data-v="' + esc(id) + '" style="margin:0 0 .875rem">' + IC.share + '성적표 카드로 공유하기</button>';
+      var add = ''; // 성적표 카드 공유 버튼은 노출하지 않아요
       var t0 = h.indexOf('<div class="t2-st">'); if (t0 > -1) { h = h.slice(0, t0) + oneCard(expertLine(w, id), 'expert', id) + h.slice(t0); k = h.indexOf('class="t2-basis2"'); }
       if (k > -1) { var e = h.indexOf('</section>', k); if (e > -1) h = h.slice(0, e) + add + h.slice(e); }
       h = h.replace(/<button class="t2-share"[^>]*>이 전문가 공유하기<\/button>/, '');

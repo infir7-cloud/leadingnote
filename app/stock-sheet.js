@@ -58,6 +58,50 @@
     '.ss-wb{margin:0;font-size:.9375rem;line-height:1.6}';
   document.head.appendChild(css);
 
+  // ---- 네이버 증권 차트 이미지 (직접 불러오기 · 막히면 네이버 증권 바로가기로 바뀌어요)
+  var NV_P = [['day', '오늘'], ['month3', '3개월'], ['year', '1년'], ['year3', '3년']], nvPer = 'month3';
+  try { var sp = localStorage.getItem('ln.nvchart'); if (sp && NV_P.some(function(p){ return p[0] === sp; })) nvPer = sp; } catch (e) {}
+  function nvImg(code, per){ return 'https://ssl.pstatic.net/imgfinance/chart/item/area/' + per + '/' + code + '.png'; }
+  function nvChart(code, name){
+    code = String(code || '').replace(/\D/g, '').slice(0, 6); if (code.length !== 6) return '';
+    var per = nvPer, lab = (NV_P.filter(function(p){ return p[0] === per; })[0] || NV_P[1])[1];
+    return '<figure class="nv-fig" data-nv-code="' + code + '" data-nv-name="' + esc(name || code) + '">' +
+      '<div class="nv-seg" role="group" aria-label="차트 기간">' + NV_P.map(function(p){ return '<button type="button" data-nv-per="' + p[0] + '" aria-pressed="' + (p[0] === per) + '">' + p[1] + '</button>'; }).join('') + '</div>' +
+      '<div class="nv-box"><img class="nv-img" src="' + nvImg(code, per) + '" alt="' + esc(name || code) + ' ' + lab + ' 주가 차트" loading="lazy" decoding="async" referrerpolicy="no-referrer"></div>' +
+      '<figcaption class="nv-cap">차트 제공: 네이버 증권 · 실시간이 아닐 수 있어요</figcaption></figure>';
+  }
+  function nvFail(img){
+    var fig = img.closest && img.closest('.nv-fig'); if (!fig || fig.getAttribute('data-nv-off')) return;
+    fig.setAttribute('data-nv-off', '1');
+    var code = fig.getAttribute('data-nv-code');
+    fig.innerHTML = '<a class="nv-out" href="https://m.stock.naver.com/domestic/stock/' + code + '/total" target="_blank" rel="noopener noreferrer">차트를 불러오지 못했어요 · 네이버 증권에서 차트 보기 ↗</a>';
+  }
+  // 문서마다 한 번: 이미지 실패 감지 + 기간 버튼
+  function nvWire(d){
+    if (!d || d.__nvWired) return; d.__nvWired = true;
+    d.addEventListener('error', function(e){ var t = e.target; if (t && t.classList && t.classList.contains('nv-img')) nvFail(t); }, true);
+    d.addEventListener('load', function(e){ var t = e.target; if (t && t.classList && t.classList.contains('nv-img') && t.naturalWidth < 60) nvFail(t); }, true);
+    d.addEventListener('click', function(e){
+      var b = e.target.closest && e.target.closest('[data-nv-per]'); if (!b) return;
+      e.preventDefault(); e.stopPropagation();
+      var fig = b.closest('.nv-fig'), per = b.getAttribute('data-nv-per'); if (!fig) return;
+      nvPer = per; try { localStorage.setItem('ln.nvchart', per); } catch (x) {}
+      Array.prototype.forEach.call(fig.querySelectorAll('[data-nv-per]'), function(x){ x.setAttribute('aria-pressed', String(x === b)); });
+      var img = fig.querySelector('.nv-img'), lab = b.textContent;
+      if (img) { img.src = nvImg(fig.getAttribute('data-nv-code'), per); img.alt = fig.getAttribute('data-nv-name') + ' ' + lab + ' 주가 차트'; }
+    }, true);
+  }
+  var NV_CSS = '.nv-fig{margin:0;display:flex;flex-direction:column;gap:.5rem}' +
+    '.nv-seg{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:.25rem;padding:.25rem;border-radius:.75rem;background:var(--raise,#161D25)}' +
+    '.nv-seg button{min-height:2.5rem;border:0;border-radius:.55rem;background:transparent;color:var(--ink2,#8D99A6);font:inherit;font-size:.9375rem;font-weight:600;cursor:pointer}' +
+    '.nv-seg button[aria-pressed="true"]{background:var(--surface,#11171E);color:var(--ink,#EEF2F5);box-shadow:0 1px 3px rgba(0,0,0,.18)}' +
+    '.nv-box{background:#fff;border-radius:.75rem;padding:.4rem;overflow:hidden;min-height:8rem;display:flex;align-items:center;justify-content:center}' +
+    '.nv-img{display:block;width:100%;height:auto;max-width:100%}' +
+    '.nv-cap{font-size:.8125rem;color:var(--ink2,#8D99A6)}' +
+    '.nv-out{display:flex;align-items:center;justify-content:center;text-align:center;min-height:3.25rem;padding:.6rem 1rem;border-radius:.75rem;border:1px solid var(--line,#222B35);background:var(--raise,#161D25);color:var(--ink,#EEF2F5);font-weight:600;text-decoration:none;line-height:1.45}';
+  window.__nvChart = nvChart;
+  css.textContent += NV_CSS;
+
   var cur = null, root = null;
   function link(href, cls, inner, label){ return '<a class="' + cls + '" href="' + esc(href) + '" target="_blank" rel="noopener noreferrer"' + (label ? ' aria-label="' + esc(label) + '"' : '') + '>' + inner + '</a>'; }
   // "왜 움직였을까요?" — 서버가 만든 한 줄 요약(ai_notes, key=종목코드)이 있을 때만 보여요. 출처 기사와 만든 시각을 함께 붙여요.
@@ -84,7 +128,8 @@
       : '<p class="ss-hint">최근 공시가 없어요.</p>') + '</div>';
     root.innerHTML = '<div class="ss-scrim" data-ss-close><div class="ss-sheet" role="dialog" aria-modal="true" aria-labelledby="ss-title">' +
       '<div class="ss-h"><div><h2 id="ss-title">' + esc(s.name) + '</h2><p class="ss-code">' + s.code + '</p></div><button class="ss-x" data-ss-close aria-label="닫기">×</button></div>' +
-      link(nv + '/total', 'ss-main', '네이버 증권에서 시세·차트 보기 ↗') +
+      nvChart(s.code, s.name) +
+      link(nv + '/total', 'ss-main', '네이버 증권에서 지금 가격 보기 ↗') +
       whyHTML(s) +
       '<div class="ss-sec"><p class="ss-label">최근 뉴스</p>' + news + link(nv + '/news', 'ss-more', '이 종목 뉴스 더 보기 (네이버 증권) ↗') + '</div>' + dis +
       '<p class="ss-hint">새 창으로 열려요. 다 보신 뒤 그 창을 닫으면 이 화면으로 돌아와요.</p></div></div>';
@@ -116,6 +161,7 @@
   });
   document.addEventListener('keydown', function(e){ if (e.key === 'Escape' && cur) { e.stopPropagation(); close(); } }, true);
   window.openStock = open;
+  nvWire(document);
 
   // ---- 각 서비스 화면의 종목명을 누를 수 있게 (화면 코드는 고치지 않고 바깥에서 붙여요)
   var CHILD_CSS = 'button.ss-link{all:unset;cursor:pointer;color:inherit;font:inherit;text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:5px;text-decoration-color:var(--accent,#C6F25E)}button.ss-link span{font-size:.8em;color:var(--accent,#C6F25E)}' +
@@ -128,6 +174,7 @@
       }
       if (/(^|\/)ln\.html|리딩 모음/.test(src) && w.S && w.S.stack && w.S.stack.length) {
         var v = w.S.stack[w.S.stack.length - 1]; if (v && v.t === 'q' && w.PX && w.PX.byCode && w.PX.byCode[v.id]) return { code: v.id, name: w.PX.byCode[v.id].n };
+        if (v && v.t === 'stock' && /^\d{6}$/.test(v.id)) { var so = w.STOCKS && w.STOCKS[v.id]; return { code: v.id, name: so && so.name ? so.name : v.id, chart: true }; }
       }
     } catch (e) {}
     return null;
@@ -139,11 +186,13 @@
     if (h1 && !h1.querySelector('.ss-link')) h1.innerHTML = '<button class="ss-link" data-ss-code="' + c.code + '" data-ss-name="' + esc(c.name) + '">' + esc(c.name) + ' <span aria-hidden="true">↗</span></button>';
     var head = d.querySelector('.shead');
     if (head && !head.querySelector('.ss-go')) head.insertAdjacentHTML('beforeend', '<button class="ss-go" data-ss-code="' + c.code + '" data-ss-name="' + esc(c.name) + '">네이버 증권 · 뉴스 · 공시 보기 ↗</button>');
+    // 리딩 모음 '방송 종목' 화면엔 따로 차트가 없어서 네이버 차트를 붙여요
+    if (c.chart && head && !d.querySelector('.nv-fig[data-nv-code="' + c.code + '"]')) head.insertAdjacentHTML('afterend', '<section class="screen gx nv-wrap" style="padding-top:.75rem;padding-bottom:0">' + nvChart(c.code, c.name) + '</section>');
   }
   function hook(f){
     try {
       var d = f.contentDocument; if (!d || !d.body || d.__ssHooked) return; d.__ssHooked = true;
-      var st = d.createElement('style'); st.textContent = CHILD_CSS; d.head.appendChild(st);
+      var st = d.createElement('style'); st.textContent = CHILD_CSS + NV_CSS; d.head.appendChild(st); nvWire(d);
       d.addEventListener('click', function(e){ var b = e.target.closest && e.target.closest('[data-ss-code]'); if (!b) return; e.preventDefault(); e.stopPropagation(); open(b.getAttribute('data-ss-code'), b.getAttribute('data-ss-name')); }, true);
       var t = null; new f.contentWindow.MutationObserver(function(){ if (t) return; t = setTimeout(function(){ t = null; decorate(f); }, 30); }).observe(d.body, { childList: true, subtree: true });
       decorate(f);

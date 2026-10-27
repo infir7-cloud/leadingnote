@@ -340,7 +340,6 @@
       if (tab === 'record') h += done.length ? done.map(w.leadingRow).join('') : '<p class="t2-empty">아직 판매까지 끝난 추천이 없어요.</p>';
       h += '</section>';
       if (tab === 'talk') h += '<div class="t2-talk">' + w.expertTalkHTML(x, st) + '</div>';
-      h += '<button class="t2-share" data-a="share" data-v="x-' + esc(id) + '">이 전문가 공유하기</button>';
       h += '<p class="t2-basis">공개된 추천을 모아 계산했어요 · 투자 권유가 아니에요</p>';
       return h + '</main>';
     };
@@ -530,5 +529,5 @@
   new MutationObserver(scan).observe(document.documentElement, { childList: true, subtree: true });
   scan();
   // 더하기 기능 (공유 카드 · 오늘의 언급 종목 · 표로 보기 · AI 요약): 같은 폴더의 ln-plus.js
-  try { var me = document.currentScript && document.currentScript.src; var ps = document.createElement('script'); ps.src = (me ? new URL('ln-plus.js?v=1', me).href : 'ln-plus.js?v=1'); ps.defer = true; (document.head || document.documentElement).appendChild(ps); } catch (e) {}
+  try { var me = document.currentScript && document.currentScript.src; var ps = document.createElement('script'); ps.src = (me ? new URL('ln-plus.js?v=2', me).href : 'ln-plus.js?v=2'); ps.defer = true; (document.head || document.documentElement).appendChild(ps); } catch (e) {}
 })();

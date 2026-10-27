@@ -182,7 +182,7 @@
     dr = document.createElement('div'); dr.id = 'hx-drawer'; dr.setAttribute('role', 'dialog'); dr.setAttribute('aria-modal', 'true'); dr.setAttribute('aria-label', '전체 메뉴');
     dr.innerHTML = '<div class="hx-scrim" data-hx="close"></div><div class="hx-panel">' +
       '<div class="hx-ph"><span class="hx-mark">' + MARK + '</span><span class="hx-word"><b>리딩노트</b><small>쉬운 무료 투자 정보</small></span><button type="button" class="hx-x" data-hx="close" aria-label="메뉴 닫기">×</button></div>' +
-      '<button type="button" class="hx-set" data-hx="set"><span class="g" aria-hidden="true">가</span>글자 크기 · 밝기<i aria-hidden="true">›</i></button>' +
+      '<button type="button" class="hx-set" data-hx="set"><span class="g" aria-hidden="true">☀</span>화면 밝기<i aria-hidden="true">›</i></button>' +
       Object.keys(MENU).map(function(id){ var n = MENU[id];
         return '<section class="hx-sec" style="--tc:' + n[1] + '"><h2 class="hx-sh"><span class="d" aria-hidden="true"></span>' + n[0] + (id === cur ? '<em>지금 보는 곳</em>' : '') + '</h2><div class="hx-grid">' +
           n[2].map(function(r){ return '<button type="button" class="hx-it" data-hx="go" data-app="' + id + '" data-r="' + r[0] + '">' + r[1] + '</button>'; }).join('') + '</div></section>';
@@ -228,9 +228,7 @@
         '<li><span class="n">2</span><div><b>\'지금 리딩 중\'을 봐요</b><span class="d">지금 추천 중인 종목이 전문가 화면 맨 위에 있어요</span></div></li>' +
         '<li><span class="n">3</span><div><b>관심 전문가로 받아요</b><span class="d">새 추천이 나오면 알려 드려요 · 카카오로 3초 가입</span></div></li>' +
       '</ol>' +
-      '<div><p class="uo-lab">글자 크기</p><div class="uo-seg3" role="group" aria-label="글자 크기">' + sizes.map(function(x){ return '<button data-uo="size" data-v="' + x[0] + '" aria-pressed="' + (C.size === x[0]) + '">' + x[1] + '</button>'; }).join('') + '</div>' +
-        '<p class="uo-sample" style="font-size:' + cur[2] + '">이 크기로 읽어 보세요</p></div>' +
-      '<div class="uo-foot"><button class="uo-main" data-uo="start">시작하기</button><p class="uo-note">이 안내와 글자 크기는 왼쪽 위 <b>메뉴</b>에서 다시 볼 수 있어요.</p></div></div>';
+      '<div class="uo-foot"><button class="uo-main" data-uo="start">시작하기</button><p class="uo-note">이 안내는 왼쪽 위 <b>메뉴</b>에서 다시 볼 수 있어요.</p></div></div>';
   }
   function drawOnb(){ if (!onb) return; onb.innerHTML = onbHTML(); var f = onb.querySelector('[aria-pressed="true"],.uo-goal'); if (f) try { f.focus({ preventScroll: true }); } catch (e) {} }
   function closeOnb(goal){
@@ -350,6 +348,7 @@
   function swap(el, a, b){ eachText(el, function(n){ if (n.nodeValue.indexOf(a) > -1) n.nodeValue = n.nodeValue.split(a).join(b); }); }
 
   function addGa(d){
+    return; // 글자 크기 버튼은 노출하지 않아요
     var top = d.querySelector('.top-in'); if (!top || top.querySelector('.ux-ga')) return;
     var b = d.createElement('button'); b.type = 'button'; b.className = 'ux-ga'; b.setAttribute('aria-label', '글자 크기 · 화면 밝기 바꾸기');
     b.innerHTML = '<span class="g1" aria-hidden="true">가</span><span class="g2" aria-hidden="true">글자</span>';
