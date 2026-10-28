@@ -214,7 +214,7 @@ function start(){
 
 function shell(){
   $('#app').innerHTML='<header><div class="hd"><div class="logo">리딩노트 <small>운영실</small></div><div class="me"><span class="em">'+esc(S.me.email)+'</span><button class="btn s" id="out">로그아웃</button></div></div>'+
-  '<nav id="nav">'+[['review','검수 대기'],['add','기록 올리기'],['ingest','가져온 글'],['experts','전문가'],['bc','방송'],['pub','공개 기록'],['audit','고친 기록'],['set','설정']].map(function(t){return '<button data-t="'+t[0]+'">'+t[1]+(t[0]==='review'?'<span class="badge hide" id="rvn"></span>':t[0]==='ingest'?'<span class="badge hide" id="ign" style="background:var(--acc)"></span>':'')+'</button>'}).join('')+'</nav></header>'+
+  '<nav id="nav">'+[['review','검수 대기'],['add','기록 올리기'],['ingest','가져온 글'],['experts','전문가'],['bc','방송'],['brief','오늘의 5줄'],['pub','공개 기록'],['audit','고친 기록'],['set','설정']].map(function(t){return '<button data-t="'+t[0]+'">'+t[1]+(t[0]==='review'?'<span class="badge hide" id="rvn"></span>':t[0]==='ingest'?'<span class="badge hide" id="ign" style="background:var(--acc)"></span>':'')+'</button>'}).join('')+'</nav></header>'+
   '<div class="wrap"><div id="cwarn" class="msg warn hide" style="margin-top:12px"></div><div id="flash" class="msg hide"></div><div id="main"><div class="empty">불러오는 중…</div></div></div>';
   $('#out').onclick=function(){sb.auth.signOut().then(function(){viewLogin()})};
   $$('#nav button').forEach(function(b){b.onclick=function(){go(b.dataset.t)}});
@@ -234,8 +234,10 @@ function loadAll(){
     sb.from('collector_beat').select('*').eq('id','main').maybeSingle(),
     sb.from('site_config').select('value').eq('key','collect').maybeSingle(),
     sb.from('bc_programs').select('*').order('sort').order('id'),
-    sb.from('bc_episodes').select('*').gte('air_date',kYmd(kNow()-30*864e5)).order('air_date',{ascending:false})
+    sb.from('bc_episodes').select('*').gte('air_date',kYmd(kNow()-30*864e5)).order('air_date',{ascending:false}),
+    sb.from('site_config').select('value').eq('key','daily_brief').maybeSingle()
   ]).then(function(rs){
+    S.brief=(rs[12]&&!rs[12].error&&rs[12].data&&rs[12].data.value)||{cur:null,prev:null};
     S.bcOff=!!rs[10].error;S.bcP=rs[10].error?[]:(rs[10].data||[]);S.bcE=rs[11].error?[]:(rs[11].data||[]);
     rs.slice(0,5).forEach(function(r){if(r.error)throw r.error});
     S.posts=rs[5].error?[]:(rs[5].data||[]);S.sources=rs[6].error?[]:(rs[6].data||[]);S.ingestOff=!!rs[6].error;
@@ -298,7 +300,7 @@ function render(){
   if(cw){var need=S.collect&&S.collect.pc&&(S.sources||[]).some(function(x){return x.kind==='tg_user'&&x.active});
     cw.classList.toggle('hide',!(need&&bt.k==='off'));if(need&&bt.k==='off')cw.innerHTML='<b>PC 수집기 신호가 '+bt.min+'분째 없어요.</b> 서브PC가 켜져 있는지, 수집기 창(LeadingNote Collector)이 떠 있는지 확인해 주세요. <a href="#set" data-goset="1">설정 보기</a>';
     var gl=cw.querySelector('[data-goset]');if(gl)gl.onclick=function(ev){ev.preventDefault();go('set')}}
-  var f={review:vReview,add:vAdd,ingest:vIngest,experts:vExperts,bc:vBc,pub:vPub,audit:vAudit,set:vSet}[S.tab]||vReview;
+  var f={review:vReview,add:vAdd,ingest:vIngest,experts:vExperts,bc:vBc,brief:vBrief,pub:vPub,audit:vAudit,set:vSet}[S.tab]||vReview;
   f($('#main'));
 }
 
@@ -854,6 +856,44 @@ function bindPc(m){
         save({chat_id:cid,expert_id:ex,senders:snd,active:true},r.title+' 연결했어요. 처음엔 고른 사람의 최근 글 5개부터 가져와요.')};
     };
   });
+}
+
+// ── 오늘의 5줄: 평일 저녁 6시, 사이트 홈에 그날 시장 소식 5줄 + 용어 풀이
+var BRIEF_NG=['매수','매도','사세요','사라','파세요','팔아','팔라','사야','목표가','손절','추천','급등 예상','오를 것','떨어질 것','수익 보장','무조건','대박','상한가 간다'];
+function briefNg(txt){return BRIEF_NG.filter(function(w){return txt.indexOf(w)>-1})}
+function vBrief(m){
+  var B=S.brief||{},today=kYmd(kNow()),cur=B.cur,prev=B.prev;
+  var d=S.bd||(S.bd=cur&&cur.day===today?JSON.parse(JSON.stringify(cur)):{day:today,lines:['','','','',''],terms:[{w:'',d:''},{w:'',d:''}]});
+  while(d.lines.length<5)d.lines.push('');d.terms=d.terms||[];while(d.terms.length<2)d.terms.push({w:'',d:''});
+  var hm=new Date(kNow()).toISOString().slice(11,16),st;
+  if(cur&&cur.day===today)st=hm>='18:00'?'<span class="tag" style="color:var(--ok)">사이트에 보이는 중</span>':'<span class="tag">저장됨 · 18:00에 공개돼요</span>';
+  else st='<span class="tag late">오늘 것 아직 없음</span>';
+  var line=function(i){return '<label class="f"><b>'+(i+1)+'줄</b><input type="text" class="bl" data-i="'+i+'" maxlength="70" value="'+esc(d.lines[i]||'')+'" placeholder="'+['예) 코스피는 외국인이 팔면서 1% 내린 2,580에 마쳤어요','예) 미국 금리 발표를 앞두고 지켜보는 분위기였어요','예) 반도체 종목들이 함께 약했어요','예) 원/달러 환율은 1,390원으로 조금 올랐어요','예) 내일은 미국 물가 지표가 나와요'][i]+'"></label>'};
+  var term=function(i){var t=d.terms[i]||{};return '<div class="row"><label class="f" style="flex:0 1 160px"><b>용어 '+(i+1)+'</b><input type="text" class="bw" data-i="'+i+'" maxlength="20" value="'+esc(t.w||'')+'" placeholder="'+(i?'예) 환율':'예) 유상증자')+'"></label><label class="f"><b>쉬운 풀이</b><input type="text" class="bdd" data-i="'+i+'" maxlength="80" value="'+esc(t.d||'')+'" placeholder="'+(i?'예) 우리 돈과 달러를 바꾸는 비율이에요':'예) 회사가 주식을 새로 찍어 돈을 모으는 것')+'"></label></div>'};
+  m.innerHTML='<h2>오늘의 5줄</h2><p class="lead">평일 저녁 6시에 사이트 홈에 올라가요. 6시 전에 저장해 두면 6시에 맞춰 보이고, 그 전까지는 지난 5줄이 보여요. 종목을 사라·팔라는 말이나 전망은 쓰지 않아요.</p>'+
+  '<div class="card"><div class="sw" style="display:flex;align-items:center;gap:8px;margin:0 0 12px"><b>'+esc(today)+'</b>'+st+'</div>'+
+  [0,1,2,3,4].map(line).join('')+
+  '<p class="hint" style="margin:4px 0 8px">한 줄은 70자까지예요. 최소 3줄은 채워 주세요. 어려운 단어는 아래 용어 풀이에 넣어요.</p>'+
+  term(0)+term(1)+
+  '<div class="acts" style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn p" id="bsv">저장하기</button>'+(cur&&cur.day===today?'<button class="btn bad s" id="bdl">오늘 것 내리기</button>':'')+'</div></div>'+
+  (prev||cur&&cur.day!==today?'<h2>지난 5줄</h2><div class="card">'+(function(b){return b?'<b>'+esc(b.day)+'</b><ol style="margin:8px 0 0;padding-left:20px">'+(b.lines||[]).map(function(t){return '<li>'+esc(t)+'</li>'}).join('')+'</ol>':''})(cur&&cur.day!==today?cur:prev)+'</div>':'');
+  $$('.bl',m).forEach(function(x){x.oninput=function(){d.lines[+x.dataset.i]=x.value}});
+  $$('.bw',m).forEach(function(x){x.oninput=function(){d.terms[+x.dataset.i].w=x.value}});
+  $$('.bdd',m).forEach(function(x){x.oninput=function(){d.terms[+x.dataset.i].d=x.value}});
+  var put=function(val,msg){var bt=$('#bsv');if(bt)bt.disabled=true;
+    sb.from('site_config').upsert({key:'daily_brief',value:val,updated_at:new Date().toISOString()},{onConflict:'key'}).then(function(r){if(r.error)throw r.error;S.bd=null;return reload('ok',msg)}).catch(function(e){if(bt)bt.disabled=false;flash('bad','저장하지 못했어요: '+errText(e))})};
+  $('#bsv').onclick=function(){
+    var lines=d.lines.map(function(t){return String(t||'').trim()}).filter(Boolean);
+    var terms=d.terms.map(function(t){return {w:String(t.w||'').trim(),d:String(t.d||'').trim()}}).filter(function(t){return t.w||t.d});
+    if(lines.length<3){flash('warn','최소 3줄은 채워 주세요');return}
+    if(terms.some(function(t){return !t.w||!t.d})){flash('warn','용어와 쉬운 풀이를 둘 다 적어 주세요 (안 쓸 거면 둘 다 비워요)');return}
+    var ng=briefNg(lines.join(' ')+' '+terms.map(function(t){return t.d}).join(' '));
+    if(ng.length&&!confirm('권유나 전망처럼 보일 수 있는 말이 있어요: '+ng.join(', ')+'\n\n리딩노트는 기록·정리 서비스라 이런 표현은 빼는 게 안전해요. 그래도 저장할까요?'))return;
+    var item={day:today,lines:lines,terms:terms,by:S.me.email,at:new Date().toISOString()};
+    var nb={cur:item,prev:cur&&cur.day!==today?cur:(prev||null)};
+    put(nb,hm>='18:00'?'저장했어요. 사이트 홈에 바로 보여요.':'저장했어요. 저녁 6시에 사이트 홈에 보여요.');
+  };
+  var dl=$('#bdl');if(dl)dl.onclick=function(){if(!confirm('오늘의 5줄을 내릴까요? 지난 5줄이 다시 보여요.'))return;put({cur:prev||null,prev:null},'오늘의 5줄을 내렸어요.')};
 }
 
 function vSet(m){
