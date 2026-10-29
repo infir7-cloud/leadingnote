@@ -5,7 +5,7 @@
    ④ AI 요약: 종목 의견 흐름 · 전문가 한눈 요약 · 이야기방 놓친 대화 요약
    ⑤ 한 줄 요약: 홈 · 전문가 목록/상세 · 종목 · 추천 하나하나 · 이야기방 (긴 글 대신 한 줄로 먼저)
    ⑥ 방송 속 고수 종목: 오늘 방송 예고 → 지금 방송 중 → 가장 최근 방송 순 (편성·출연자·종목은 운영실 '방송'에서 고쳐요)
-   ⑦ 오늘의 5줄: 평일 저녁 6시, 그날 시장 소식 5줄 + 용어 풀이 (운영실 '오늘의 5줄'에서 써요 · site_config 'daily_brief')
+   ⑦ 오늘의 5줄: 평일 아침 7:30, AI가 지난 24시간 경제 뉴스로 장 시작 전 핵심 이슈를 한 문장씩 정리 (서버 morning-brief · site_config 'daily_brief')
    요약은 모두 '기록 기준'이고, 사라·팔라는 말이나 전망은 쓰지 않아요. */
 (function(){
   if (window.__lnPlusOn) return; window.__lnPlusOn = true;
@@ -115,6 +115,8 @@
     '.p-term{background:var(--raise);border-radius:1rem;padding:.8rem .95rem;margin:.5rem 0 .25rem}',
     '.p-term>b{display:block;font-size:.875rem;font-weight:800;color:var(--t2-acc-ink);margin-bottom:.15rem}',
     '.p-term p{margin:.35rem 0 0;font-size:.9375rem;line-height:1.6;word-break:keep-all}.p-term p b{font-weight:800}',
+    '.p-5l li .p-src{display:inline-block;margin-left:.35rem;font-size:.75rem;font-weight:700;color:var(--sn);text-decoration:underline;text-underline-offset:2px;white-space:nowrap}',
+    '.p-5sub{font-size:.8125rem;color:var(--ink2);margin:.1rem 0 0}',
     '.p-5wait{font-size:.875rem;color:var(--ink2);background:var(--raise);border-radius:.75rem;padding:.55rem .75rem;margin:.5rem 0 .25rem}',
     '.p-day{font-size:.75rem;font-weight:700;color:var(--ink2);background:var(--sunk);border-radius:.4rem;padding:.1rem .45rem;margin-left:.4rem}',
     '.p-kv{display:flex;gap:.5rem;margin:.75rem 0 .25rem}.p-kv div{flex:1;background:var(--raise);border-radius:1rem;padding:.75rem}',
@@ -459,27 +461,29 @@
       '<p class="p-disc">방송에서 말한 매수가 기준이에요. 사거나 팔라는 권유가 아니에요.</p></section>';
   }
 
-  // ── 오늘의 5줄 (평일 저녁 6시 공개 · 운영실에서 작성)
-  var BRIEF_AT = '18:00';
+  // ── 오늘의 5줄 (평일 아침 7:30 AI 자동 정리 · 장 시작 전 핵심 이슈)
+  var BRIEF_AT = '07:30';
   function briefView(){
     var B = X.brief; if (!B || !B.cur || !(B.cur.lines || []).length) return null;
-    var now = nowK(), today = ymdOf(now), wd = wdOf(today), open = hmK(now) >= BRIEF_AT, cur = B.cur, prev = B.prev && (B.prev.lines || []).length ? B.prev : null;
-    var fresh = function(b){ return b && b.day && kstMs(today) - kstMs(b.day) <= 4 * 864e5 && b.day <= today; };
-    // 오늘 것은 6시 전에는 숨겨요 (매일 같은 시간에 보는 습관)
-    if (cur.day === today && !open) return { b: fresh(prev) ? prev : null, wait: true, wd: wd };
-    if (cur.day > today) return { b: fresh(prev) ? prev : null, wait: false, wd: wd };
-    return fresh(cur) ? { b: cur, wait: false, today: cur.day === today, wd: wd } : null;
+    var now = nowK(), today = ymdOf(now), cur = B.cur;
+    if (!cur.day || cur.day > today || kstMs(today) - kstMs(cur.day) > 4 * 864e5) return null;
+    var isToday = cur.day === today;
+    // 평일 아침, 오늘 것이 아직이면 '곧 올라와요' 안내를 붙여요
+    return { b: cur, today: isToday, wait: !isToday && wdOf(today) <= 5 && hmK(now) < '09:00' };
   }
-  function briefSig(){ var v = briefView(); return v ? (v.b ? v.b.day : '') + (v.wait ? 'w' : '') : ''; }
+  function briefSig(){ var v = briefView(); return v ? v.b.day + (v.b.at || '') + (v.wait ? 'w' : '') : ''; }
   function briefHome(){
     var v = briefView(); X.briefSig = briefSig(); if (!v) return '';
-    var b = v.b, h = '<section class="t2-sec"><div class="t2-h" style="cursor:default">' + (v.today ? '오늘의 5줄' : b ? '지난 5줄' : '오늘의 5줄') + (b ? '<span class="p-day">' + dLbl(b.day) + ' ' + BRIEF_AT + '</span>' : '') + '</div>';
-    if (v.wait) h += b ? '<p class="p-5wait">오늘의 5줄은 저녁 6시에 올라와요. 그 전까지 지난 5줄을 보여 드려요.</p>' : '<div class="p-lock">' + IC.lock + '<b>저녁 6시에 올라와요</b><span>평일 저녁 6시, 오늘 시장 소식을<br>5줄로 쉽게 정리해 드려요</span></div>';
-    if (!b) return h + '</section>';
-    h += '<ol class="p-5l">' + b.lines.slice(0, 5).map(function(t, i){ return '<li><i>' + (i + 1) + '</i><span>' + esc(t) + '</span></li>'; }).join('') + '</ol>';
+    var b = v.b, refs = b.refs || [];
+    var h = '<section class="t2-sec"><div class="t2-h" style="cursor:default">' + (v.today ? '오늘의 5줄' : '지난 5줄') + '<span class="p-day">' + dLbl(b.day) + (b.at ? ' ' + hmK(new Date(b.at).getTime() + 9 * 3600e3) : '') + '</span></div>' +
+      '<p class="p-5sub">장 시작 전에 알아둘 핵심 이슈예요</p>';
+    if (v.wait) h += '<p class="p-5wait">오늘 5줄은 아침 7시 30분에 올라와요. 그 전까지 지난 5줄을 보여 드려요.</p>';
+    h += '<ol class="p-5l">' + b.lines.slice(0, 5).map(function(t, i){
+      var r = (refs[i] || [])[0], src = r && /^https?:\/\//.test(r.u || '') ? '<a class="p-src" href="' + esc(r.u) + '" target="_blank" rel="noopener noreferrer">' + esc(r.p || '기사') + '</a>' : '';
+      return '<li><i>' + (i + 1) + '</i><span>' + esc(t) + src + '</span></li>'; }).join('') + '</ol>';
     var terms = (b.terms || []).filter(function(t){ return t && t.w && t.d; });
     if (terms.length) h += '<div class="p-term"><b>용어 풀이</b>' + terms.slice(0, 2).map(function(t){ return '<p><b>' + esc(t.w) + '</b> · ' + esc(t.d) + '</p>'; }).join('') + '</div>';
-    return h + '<p class="p-disc">그날 시장 소식을 쉬운 말로 정리한 거예요. 사거나 팔라는 권유가 아니에요. 평일 저녁 6시에 새로 올라와요.</p></section>';
+    return h + '<p class="p-disc">AI가 지난 ' + (b.hours || 24) + '시간 경제 뉴스 제목을 모아 정리했어요. 틀린 내용이 있을 수 있으니 원문 기사도 함께 확인해 주세요. 사거나 팔라는 권유가 아니에요.</p></section>';
   }
   var briefPull = 0;
   function refreshBrief(){
@@ -799,10 +803,10 @@
     };
     // 1분마다 시간 확인: 예고 → 방송 중 → 방송 끝 순서가 바뀌면 홈을 다시 그려요
     setInterval(function(){ try { if (!X.bc || w.view() || S.tab !== 'home') return; var sg = bcSig(bcSlots(X.bc, nowK())); if (sg !== X.bcSig) w.render(); } catch (e) {} }, 60000);
-    // 1분마다: 저녁 6시가 되면 오늘의 5줄로 바꿔요 (6~9시 사이엔 5분마다 새 글이 있는지도 봐요)
+    // 1분마다: 평일 아침 7:30~9:30, 오늘 5줄이 아직이면 5분마다 새로 나왔는지 봐요
     setInterval(function(){ try {
       var now = nowK(), hm = hmK(now), B = X.brief;
-      if (hm >= BRIEF_AT && hm < '21:00' && wdOf(ymdOf(now)) <= 5 && !(B && B.cur && B.cur.day === ymdOf(now))) refreshBrief();
+      if (hm >= BRIEF_AT && hm < '09:30' && wdOf(ymdOf(now)) <= 5 && !(B && B.cur && B.cur.day === ymdOf(now))) refreshBrief();
       if (w.view() || S.tab !== 'home') return; if (briefSig() !== X.briefSig) w.render();
     } catch (e) {} }, 60000);
     A.pCard = function(v){ openCard(w, d, v); };
