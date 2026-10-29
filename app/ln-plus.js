@@ -6,6 +6,8 @@
    ⑤ 한 줄 요약: 홈 · 전문가 목록/상세 · 종목 · 추천 하나하나 · 이야기방 (긴 글 대신 한 줄로 먼저)
    ⑥ 방송 속 고수 종목: 오늘 방송 예고 → 지금 방송 중 → 가장 최근 방송 순 (편성·출연자·종목은 운영실 '방송'에서 고쳐요)
    ⑦ 오늘의 5줄: 평일 아침 7:30, AI가 지난 24시간 경제 뉴스로 장 시작 전 핵심 이슈를 한 문장씩 정리 (서버 morning-brief · site_config 'daily_brief')
+   ⑧ 데이터로 본 종목: 거래대금·상승률·거래량 급증·전문가 언급·관심 많은 종목 순위 (숫자 정렬만, AI가 고르지 않아요 · rank_feed)
+   ⑨ ? 설명: 숫자·용어 옆 ? 를 누르거나 마우스를 올리면 짧은 설명 (문구는 운영실 '설명 문구'에서 고쳐요 · site_config 'help')
    요약은 모두 '기록 기준'이고, 사라·팔라는 말이나 전망은 쓰지 않아요. */
 (function(){
   if (window.__lnPlusOn) return; window.__lnPlusOn = true;
@@ -192,14 +194,28 @@
     '.p-ss a{color:var(--t2-acc-ink);text-decoration:underline}',
     '.p-ss-tabs{display:flex;gap:2px;background:var(--raise);padding:0 .5rem;border-top:1px solid var(--line)}',
     '.p-ss-tabs button{border:0;background:none;padding:.55rem .9rem;color:var(--ink2);font:inherit;font-size:.8125rem;font-weight:600;cursor:pointer}',
-    '.p-ss-tabs button.on{background:var(--surface);color:var(--t2-acc-ink);box-shadow:inset 0 -2px 0 var(--accent)}'
+    '.p-ss-tabs button.on{background:var(--surface);color:var(--t2-acc-ink);box-shadow:inset 0 -2px 0 var(--accent)}',
+    // 데이터로 본 종목
+    '.p-rk-tabs{display:flex;gap:.35rem;overflow-x:auto;margin:.5rem 0 .25rem;padding-bottom:.15rem;scrollbar-width:none}.p-rk-tabs::-webkit-scrollbar{display:none}',
+    '.p-rk-tabs button{flex:none;height:2.25rem;padding:0 .8rem;border-radius:999px;border:0;background:var(--raise);color:var(--ink2);font:inherit;font-size:.875rem;font-weight:700;cursor:pointer}',
+    '.p-rk-tabs button[aria-pressed=true]{background:var(--ink);color:var(--surface)}',
+    '.p-rk-row{display:flex;align-items:center;gap:.75rem;padding:.7rem 0;border-bottom:1px solid var(--line)}.p-rk-row:last-of-type{border-bottom:0}',
+    '.p-rk-row .n{flex:1;min-width:0;font-size:1.0625rem;font-weight:700}.p-rk-row .n button,.p-rk-row .n a{border:0;background:none;padding:0;font:inherit;color:inherit;cursor:pointer;text-decoration:none}',
+    '.p-rk-row .v{font-size:.875rem;font-weight:700;color:var(--ink2);white-space:nowrap}.p-rk-row .v.up{color:var(--up)}.p-rk-row .v.down{color:var(--down)}',
+    '.p-rk-desc{font-size:.8125rem;color:var(--ink2);margin:.15rem 0 .25rem;line-height:1.5}',
+    // ? 설명
+    '.p-q{display:inline-flex;align-items:center;justify-content:center;width:1.15rem;height:1.15rem;margin-left:.25rem;border-radius:50%;background:var(--sunk);color:var(--ink2);font-size:.6875rem;font-weight:800;line-height:1;vertical-align:middle;cursor:help;flex:none;user-select:none}',
+    '.p-q:focus-visible{outline:2px solid var(--accent);outline-offset:1px}',
+    '.p-qpop{position:absolute;z-index:9999;max-width:17rem;padding:.65rem .8rem;border-radius:.75rem;background:var(--ink);color:var(--surface);font-size:.875rem;font-weight:500;line-height:1.55;box-shadow:0 6px 20px rgba(0,0,0,.25);word-break:keep-all}'
   ].join('\n');
 
   // ── 서버에서 읽기
   function load(){
     var c = sb(), L = window.__lnLive;
     if (!c || !L || !L.ready) return setTimeout(load, 300);
-    Promise.all([q(c.rpc('mention_feed')), q(c.from('ai_notes').select('kind,key,body,line,by,made_at,facts').in('kind', ['stock', 'expert']).limit(1000)), q(c.rpc('bc_feed')), q(c.from('site_config').select('value').eq('key', 'daily_brief').maybeSingle())]).then(function(rs){
+    Promise.all([q(c.rpc('mention_feed')), q(c.from('ai_notes').select('kind,key,body,line,by,made_at,facts').in('kind', ['stock', 'expert']).limit(1000)), q(c.rpc('bc_feed')), q(c.from('site_config').select('value').eq('key', 'daily_brief').maybeSingle()), q(c.rpc('rank_feed')), q(c.from('site_config').select('value').eq('key', 'help').maybeSingle())]).then(function(rs){
+      if (!rs[4].error && rs[4].data) X.rank = rs[4].data;
+      if (!rs[5].error && rs[5].data && rs[5].data.value) X.help = rs[5].data.value;
       if (!rs[0].error) X.mention = rs[0].data;
       if (!rs[3].error && rs[3].data) X.brief = rs[3].data.value || null;
       if (!rs[2].error && rs[2].data) { X.bc = rs[2].data; var sv = kstMs(X.bc.now); if (sv) X.bcOff = sv - (Date.now() + 9 * 3600e3); }
@@ -475,7 +491,7 @@
   function briefHome(){
     var v = briefView(); X.briefSig = briefSig(); if (!v) return '';
     var b = v.b, refs = b.refs || [];
-    var h = '<section class="t2-sec"><div class="t2-h" style="cursor:default">' + (v.today ? '오늘의 5줄' : '지난 5줄') + '<span class="p-day">' + dLbl(b.day) + (b.at ? ' ' + hmK(new Date(b.at).getTime() + 9 * 3600e3) : '') + '</span></div>' +
+    var h = '<section class="t2-sec"><div class="t2-h" style="cursor:default">' + (v.today ? '오늘의 5줄' : '지난 5줄') + qBtn('오늘의 5줄') + '<span class="p-day">' + dLbl(b.day) + (b.at ? ' ' + hmK(new Date(b.at).getTime() + 9 * 3600e3) : '') + '</span></div>' +
       '<p class="p-5sub">장 시작 전에 알아둘 핵심 이슈예요</p>';
     if (v.wait) h += '<p class="p-5wait">오늘 5줄은 아침 7시 30분에 올라와요. 그 전까지 지난 5줄을 보여 드려요.</p>';
     h += '<ol class="p-5l">' + b.lines.slice(0, 5).map(function(t, i){
@@ -489,6 +505,104 @@
   function refreshBrief(){
     var c = sb(); if (!c || Date.now() - briefPull < 5 * 60000) return; briefPull = Date.now();
     q(c.from('site_config').select('value').eq('key', 'daily_brief').maybeSingle()).then(function(r){ if (!r.error && r.data) { X.brief = r.data.value || null; redraw(); } });
+  }
+
+  // ── ? 설명 문구 (기본값 · 운영실 '설명 문구'에서 바꾼 값이 있으면 그걸 써요)
+  var HELP = {
+    '적중률': '판매로 끝난 추천 중, 구매 가격보다 높게 판매한 비율이에요. 아직 진행 중인 추천은 세지 않아요.',
+    '따라수익': '추천대로 사고팔았다면 얻었을 수익률을 단순히 더한 값이에요(복리 아님).',
+    '주간 성적': '그 주(월~금)에 판매로 끝난 추천만 모아 계산해요. 한 주 성적은 운도 크게 작용하니 통산 성적을 함께 보세요.',
+    '반대지표': '통산 따라수익이 가장 낮은 전문가예요. 재미로 보는 지표예요.',
+    '지금 수익률': '말한 매수 가격과 가장 최근 종가를 비교한 수익률이에요. 아직 팔지 않은 추천이에요.',
+    '매도 수익률': '말한 매수 가격과 매도 가격으로 계산한 수익률이에요.',
+    '방송일 이후 평균': '이 전문가가 방송에서 추천한 종목들의, 방송에서 말한 매수 가격 대비 수익률 평균이에요.',
+    '비공개 종목': '방송에서 종목 이름을 가리고 소개한 종목이에요. 공개되면 종목과 가격을 바로 정리해 드려요.',
+    '오늘의 5줄': 'AI가 평일 아침 7시 30분, 지난 24시간 경제 뉴스 제목을 읽고 장 시작 전에 알아둘 이슈를 한 문장씩 골라요. 틀릴 수 있으니 원문 기사도 함께 확인해 주세요.',
+    '오늘의 언급 종목': '전문가들이 공개 채널·방송에서 그날 말한 종목을 센 순위예요. 장 마감 뒤 15:40에 정리돼요.',
+    '방송 속 고수 종목': 'SBS Biz 본방송에서 전문가가 말한 종목과 가격을 원본 영상과 함께 정리해요.',
+    '데이터로 본 종목': '숫자 기준으로 줄 세운 순위예요. AI나 리딩노트가 고른 종목이 아니고, 사거나 팔라는 뜻도 아니에요.',
+    'rk_value': '전날 하루 동안 사고판 금액(가격 × 거래량)이 큰 순서예요.',
+    'rk_rise': '전날 종가가 그 전날보다 많이 오른 순서예요. 시가총액 500억 원 이상, 거래대금 10억 원 이상인 종목만 셌어요.',
+    'rk_surge': '전날 거래량이 최근 20거래일 평균보다 몇 배 많았는지 순서예요.',
+    'rk_mention': '최근 7일 공개 채널, 14일 방송에서 이 종목을 말한 전문가 수 순서예요.',
+    'rk_watch': '리딩노트 회원이 관심종목에 담은 수 순서예요. 최근 7일에 담은 수를 먼저 봐요.'
+  };
+  X.HELP = HELP;
+  function helpText(k){ var o = X.help || {}; return String(o[k] || HELP[k] || ''); }
+  function qBtn(k){ return helpText(k) ? '<span class="p-q" role="button" tabindex="0" aria-label="' + esc(k.replace(/^rk_/, '')) + ' 설명 보기" data-q="' + esc(k) + '">?</span>' : ''; }
+
+  // ── 데이터로 본 종목 (숫자 기준 순위만)
+  var RK_TABS = [['value', '거래대금'], ['rise', '상승률'], ['surge', '거래량 급증'], ['mention', '전문가 언급'], ['watch', '관심 많은']];
+  function rkVal(k, it, on){
+    if (k === 'mention') return '<span class="v">전문가 ' + it.n + '명</span>';
+    if (k === 'watch') return '<span class="v">' + it.n + '명 담음</span>';
+    if (!on) return '';
+    var r = it.ratio == null ? '' : '<span class="v ' + tone(it.ratio) + '">' + pctS(Number(it.ratio)) + '</span>';
+    if (k === 'value' && it.amt != null) return '<span class="v">' + Number(it.amt).toLocaleString('ko-KR') + '억</span>' + r;
+    if (k === 'surge' && it.x != null) return '<span class="v">평소의 ' + it.x + '배</span>' + r;
+    return r;
+  }
+  function rankHome(w){
+    var R = X.rank; if (!R || !R.lists) return '';
+    var tabs = RK_TABS.filter(function(t){ return (R.lists[t[0]] || []).length; }); if (!tabs.length) return '';
+    var k = tabs.some(function(t){ return t[0] === X.rkTab; }) ? X.rkTab : tabs[0][0], items = R.lists[k] || [], on = !!R.price_on;
+    var mk = k === 'mention' || k === 'watch';
+    var row = function(it){
+      var nm = w && w.STOCKS && w.STOCKS[it.code] ? '<button data-a="stock" data-v="' + esc(it.code) + '">' + esc(it.name) + '</button>'
+        : '<a href="https://finance.naver.com/item/main.naver?code=' + esc(it.code) + '" target="_blank" rel="noopener noreferrer">' + esc(it.name) + '</a>';
+      return '<div class="p-rk-row"><span class="t2-rk">' + it.rk + '</span><span class="n">' + nm + '</span>' + rkVal(k, it, on) + '</div>';
+    };
+    var asOf = R.as_of ? (+String(R.as_of).slice(5, 7)) + '.' + (+String(R.as_of).slice(8, 10)) : '';
+    return '<section class="t2-sec"><div class="t2-h" style="cursor:default">데이터로 본 종목' + qBtn('데이터로 본 종목') + '</div>' +
+      '<div class="p-rk-tabs" role="group" aria-label="순위 기준">' + tabs.map(function(t){ return '<button data-a="pRk" data-v="' + t[0] + '" aria-pressed="' + (t[0] === k) + '">' + t[1] + '</button>'; }).join('') + '</div>' +
+      '<p class="p-rk-desc">' + esc(helpText('rk_' + k)) + '</p>' +
+      items.slice(0, 10).map(row).join('') +
+      '<p class="p-disc">' + (mk ? '리딩노트에 모인 기록을 센 순위예요.' : (asOf ? asOf + ' 종가 기준' : '전날 종가 기준') + (R.source ? ' · 출처 ' + esc(R.source) : '') + (on ? '' : ' · 시세 숫자는 이용 조건을 확인한 뒤 보여 드려요')) +
+      ' 숫자 순서대로 줄 세웠을 뿐, 사거나 팔라는 뜻이 아니에요.</p></section>';
+  }
+
+  // ── ? 붙이기: 화면에 보이는 짧은 이름표(적중률 등) 옆에 자동으로
+  var AUTO_Q = ['적중률', '따라수익', '주간 성적', '반대지표', '지금 수익률', '매도 수익률', '방송일 이후 평균', '비공개 종목', '오늘의 언급 종목', '최근 언급 종목', '방송 속 고수 종목'];
+  function attachQ(d){
+    var els = d.querySelectorAll('span, b, small, dt, h2, .t2-h, .kd');
+    for (var i = 0; i < els.length; i++) {
+      var el = els[i]; if (el.childElementCount || el.closest('.p-q, .p-qpop')) continue;
+      var t = (el.textContent || '').trim(); if (AUTO_Q.indexOf(t) < 0) continue;
+      var key = t === '최근 언급 종목' ? '오늘의 언급 종목' : t;
+      var nx = el.nextElementSibling; if (nx && nx.classList && nx.classList.contains('p-q')) continue;
+      if (el.parentNode && el.parentNode.querySelector(':scope > .p-q[data-q="' + key + '"]')) continue;
+      var h = qBtn(key); if (h) el.insertAdjacentHTML('afterend', h);
+    }
+  }
+  function bindQ(w, d){
+    var pop = null, cur = null, hoverable = w.matchMedia && w.matchMedia('(hover: hover) and (pointer: fine)').matches;
+    function hide(){ if (pop) { pop.remove(); pop = null; cur = null; } }
+    function show(btn){
+      if (cur === btn && pop) return; hide();
+      var t = helpText(btn.getAttribute('data-q')); if (!t) return;
+      pop = d.createElement('div'); pop.className = 'p-qpop'; pop.setAttribute('role', 'tooltip'); pop.textContent = t; d.body.appendChild(pop); cur = btn;
+      var r = btn.getBoundingClientRect(), sx = w.scrollX || 0, sy = w.scrollY || 0, vw = d.documentElement.clientWidth, pw = pop.offsetWidth;
+      var left = Math.max(8, Math.min(vw - pw - 8, r.left + r.width / 2 - pw / 2));
+      var top = r.bottom + 8; if (top + pop.offsetHeight > d.documentElement.clientHeight - 8 && r.top - pop.offsetHeight - 8 > 0) top = r.top - pop.offsetHeight - 8;
+      pop.style.left = (left + sx) + 'px'; pop.style.top = (top + sy) + 'px';
+    }
+    d.addEventListener('click', function(e){
+      var b = e.target.closest && e.target.closest('.p-q');
+      if (b) { e.preventDefault(); e.stopPropagation(); if (cur === b && pop) hide(); else show(b); return; }
+      if (pop) hide();
+    }, true);
+    d.addEventListener('keydown', function(e){
+      var b = e.target.closest && e.target.closest('.p-q');
+      if (b && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); e.stopPropagation(); show(b); }
+      if (e.key === 'Escape') hide();
+    }, true);
+    if (hoverable) {
+      d.addEventListener('mouseover', function(e){ var b = e.target.closest && e.target.closest('.p-q'); if (b) show(b); });
+      d.addEventListener('mouseout', function(e){ var b = e.target.closest && e.target.closest('.p-q'); if (b && !(e.relatedTarget && b.contains(e.relatedTarget))) hide(); });
+    }
+    w.addEventListener('scroll', hide, { passive: true });
+    var tq = null; new w.MutationObserver(function(){ if (tq) return; tq = w.setTimeout(function(){ tq = null; try { attachQ(d); } catch (er) {} }, 60); }).observe(d.body, { childList: true, subtree: true });
+    attachQ(d);
   }
 
   // ── 오늘의 언급 종목
@@ -508,12 +622,12 @@
     var M = X.mention; if (!M) return '';
     var items = M.items || [], isToday = M.day === M.today;
     if (M.weekday && !M.opened) {
-      var h = '<section class="t2-sec"><div class="t2-h" style="cursor:default">오늘의 언급 종목</div><div class="p-lock">' + IC.lock + '<b>장 마감 뒤 15:40에 정리돼요</b><span>장 중에는 따라 사기 신호처럼 보이지 않도록<br>공개하지 않아요</span></div>';
+      var h = '<section class="t2-sec"><div class="t2-h" style="cursor:default">오늘의 언급 종목' + qBtn('오늘의 언급 종목') + '</div><div class="p-lock">' + IC.lock + '<b>장 마감 뒤 15:40에 정리돼요</b><span>장 중에는 따라 사기 신호처럼 보이지 않도록<br>공개하지 않아요</span></div>';
       if (M.day && items.length) h += '<div class="t2-h" style="cursor:default;font-size:1.0625rem;margin-top:.25rem">지난 정리<span class="p-day">' + dayLbl(M.day) + '</span></div>' + rows(items, 3) + LEG;
       return h + '</section>';
     }
     if (!M.day) return '';
-    var head = '<div class="t2-h" style="cursor:default">' + (isToday ? '오늘의 언급 종목' : '최근 언급 종목') + '<span class="p-day">' + dayLbl(M.day) + ' 마감</span></div>';
+    var head = '<div class="t2-h" style="cursor:default">' + (isToday ? '오늘의 언급 종목' : '최근 언급 종목') + qBtn('오늘의 언급 종목') + '<span class="p-day">' + dayLbl(M.day) + ' 마감</span></div>';
     if (!items.length) return '<section class="t2-sec">' + head + '<p class="t2-empty">' + (isToday ? '오늘' : '이날') + '은 정리할 전문가 언급이 없어요.<br>전문가 글이 모이면 장 마감 뒤에 여기서 보여 드릴게요.</p></section>';
     return '<section class="t2-sec">' + head +
       (M.summary && !(isToday && M.opened) ? '<div class="p-ai" style="margin:.5rem 0 .25rem"><div class="p-ai-h"><span class="p-badge' + (M.summary_by === 'ai' ? '' : ' auto') + '">' + (M.summary_by === 'ai' ? IC.spark + 'AI 한 줄' : '한 줄 정리') + '</span></div><p>' + esc(M.summary) + '</p></div>' : '') +
@@ -746,7 +860,7 @@
       var h = oHome.apply(this, arguments), hl = homeLine(w), n0 = h.indexOf('<nav class="t2-sc4"');
       if (hl && n0 > -1) h = h.slice(0, n0) + oneCard(hl, null, null, 'hm') + h.slice(n0);
       var i = h.indexOf('</nav>');
-      if (i > -1) h = h.slice(0, i + 6) + bcHome() + briefHome() + mentionsHome() + h.slice(i + 6);
+      if (i > -1) h = h.slice(0, i + 6) + bcHome() + briefHome() + mentionsHome() + rankHome(w) + h.slice(i + 6);
       var j = h.lastIndexOf('<p class="t2-basis">');
       var go = '<button class="p-go" data-a="pTable"><span>' + IC.grid + '전체 추천 기록 · 표로 보기</span>' + IC.chev + '</button>';
       return j > -1 ? h.slice(0, j) + go + h.slice(j) : h + go;
@@ -810,6 +924,8 @@
       if (w.view() || S.tab !== 'home') return; if (briefSig() !== X.briefSig) w.render();
     } catch (e) {} }, 60000);
     A.pCard = function(v){ openCard(w, d, v); };
+    A.pRk = function(v){ X.rkTab = v; w.render(); };
+    try { bindQ(w, d); } catch (e) {}
     d.addEventListener('change', function(ev){
       var sa = ev.target.closest && ev.target.closest('[data-pba]'); if (sa) { S.pba = S.pba || { pg: '', ex: '' }; S.pba.ex = sa.value; w.render(); return; }
       var s = ev.target.closest && ev.target.closest('[data-pt]'); if (!s) return;
@@ -849,7 +965,7 @@
 
   function scan(){
     Array.prototype.forEach.call(document.querySelectorAll('iframe'), function(f){
-      if (!f.__pLoad) { f.__pLoad = true; f.addEventListener('load', function(){ var n = 0, iv = setInterval(function(){ n++; scan(); var w2; try { w2 = f.contentWindow; } catch (e) {} if ((w2 && w2.__p) || n > 100) clearInterval(iv); }, 150); }); }
+      if (!f.__pLoad) { f.__pLoad = true; f.addEventListener('load', function(){ var n = 0, iv = setInterval(function(){ n++; scan(); var done = n > 100; try { var w2 = f.contentWindow; done = done || !!(w2 && w2.__p); } catch (e) { done = true; } if (done) clearInterval(iv); }, 150); }); }
       var w, d; try { w = f.contentWindow; d = f.contentDocument; } catch (e) { return; }
       if (!w || !d || !d.head) return;
       if (/ln\.html/.test(d.URL || '')) patchLn(w, d);
