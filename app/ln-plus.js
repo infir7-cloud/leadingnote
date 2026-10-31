@@ -109,6 +109,10 @@
     '.p-lock{display:flex;flex-direction:column;align-items:center;text-align:center;gap:.35rem;padding:.75rem .5rem 1.125rem}',
     '.p-lock svg{width:2rem;height:2rem;fill:none;stroke:var(--t2-acc-ink);stroke-width:1.9;stroke-linecap:round}',
     '.p-lock b{font-size:1.0625rem}.p-lock span{font-size:.875rem;color:var(--ink2);line-height:1.5}',
+    // 카카오 가입·알림 버튼은 카카오 노란색 (#FEE500 · 글자 #191600)
+    '.t2-cta[data-a="join"]{background:#FEE500;color:#191600}.t2-cta[data-a="join"] small{color:#4a4520}.t2-cta[data-a="join"] .bell{background:rgba(255,255,255,.6)}.t2-cta[data-a="join"] svg{stroke:#191600}',
+    '.p-btn[data-a="join"],.p-btn.p-kk{background:#FEE500;color:#191600}',
+    '.p-guest button[data-a="join"]{background:#FEE500;color:#191600;border-radius:.6rem;padding:.35rem .75rem}',
     // 오늘의 5줄 (홈 맨 위) · 히어로가 중간으로 내려가면 위 간격
     '.t2-sec+.t2-hello,.t2-sc4+.t2-hello{padding-top:1.25rem}',
     '.p-5l{list-style:none;margin:.5rem 0 .25rem;padding:0}',
@@ -457,7 +461,7 @@
     if (f) return '<p class="p-fol">' + esc(nameOnly(x.name)) + ' 님을 관심 전문가로 받고 있어요 ✓</p>';
     var fans = 0; try { fans = w.fansOf(x); } catch (e) {}
     return '<div class="p-lead"><b>' + esc(nameOnly(x.name)) + ' 님의 다음 방송 정리, 놓치지 않게 받아 볼까요?</b><span>' + (fans > 0 ? fans.toLocaleString('ko-KR') + '명이 받고 있어요 · ' : '') + '방송이 끝나면 이 전문가의 종목과 가격을 정리해 알려 드려요</span>' +
-      '<button class="p-btn" data-a="pBcFollow" data-v="' + esc(x.id) + '">' + (window.__pW && window.__pW.P && window.__pW.P.member ? '관심 전문가로 받기' : '카카오로 3초 가입하고 받기') + '</button></div>';
+      '<button class="p-btn' + (window.__pW && window.__pW.P && window.__pW.P.member ? '' : ' p-kk') + '" data-a="pBcFollow" data-v="' + esc(x.id) + '">' + (window.__pW && window.__pW.P && window.__pW.P.member ? '관심 전문가로 받기' : '카카오로 3초 가입하고 받기') + '</button></div>';
   }
   // 전문가 홈: 방송 추천 종목 모아 보기
   function expertBc(w, id){
