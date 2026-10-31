@@ -397,11 +397,11 @@
     var picks = d.querySelectorAll('.pick');
     if (picks.length && !d.querySelector('.ux-picks-done')) {
       var keep = null;
-      Array.prototype.forEach.call(picks, function(p){ var l = p.querySelector('[data-act="preset"]'); if (l && l.getAttribute('data-v') === 'p2') keep = p; else p.classList.add('ux-hide'); });
-      if (keep) { var h3 = keep.querySelector('h3'); if (h3) swap(h3, '52주 최고가 근처의 큰 회사', '1년 중 가장 비쌌던 가격 근처의 큰 회사'); keep.classList.add('ux-picks-done'); }
+      Array.prototype.forEach.call(picks, function(p){ var l = p.querySelector('[data-act="preset"]'); if (l && l.getAttribute('data-v') === 'p0') keep = p; else p.classList.add('ux-hide'); });
+      if (keep) { var h3 = keep.querySelector('h3');  keep.classList.add('ux-picks-done'); }
       var sec = picks[0].closest('section');
       if (sec) {
-        var h2 = sec.querySelector('.sech'); if (h2) swap(h2, '오늘 조건에 맞은 종목', '오늘 눈여겨볼 큰 회사');
+        var h2 = sec.querySelector('.sech'); 
         var acad = null; Array.prototype.forEach.call(d.querySelectorAll('section.sec'), function(s){ var t = s.querySelector('.sech'); if (t && /아카데미|주식 기본기/.test(t.textContent)) acad = s; });
       }
     }
