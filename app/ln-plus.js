@@ -109,7 +109,8 @@
     '.p-lock{display:flex;flex-direction:column;align-items:center;text-align:center;gap:.35rem;padding:.75rem .5rem 1.125rem}',
     '.p-lock svg{width:2rem;height:2rem;fill:none;stroke:var(--t2-acc-ink);stroke-width:1.9;stroke-linecap:round}',
     '.p-lock b{font-size:1.0625rem}.p-lock span{font-size:.875rem;color:var(--ink2);line-height:1.5}',
-    // 오늘의 5줄
+    // 오늘의 5줄 (홈 맨 위) · 히어로가 중간으로 내려가면 위 간격
+    '.t2-sec+.t2-hello,.t2-sc4+.t2-hello{padding-top:1.25rem}',
     '.p-5l{list-style:none;margin:.5rem 0 .25rem;padding:0}',
     '.p-5l li{display:flex;gap:.6rem;padding:.6rem 0;border-bottom:1px solid var(--line);font-size:1.0625rem;line-height:1.55;word-break:keep-all}',
     '.p-5l li:last-child{border-bottom:0}',
@@ -859,8 +860,11 @@
     w.screenHome = function(){
       var h = oHome.apply(this, arguments), hl = homeLine(w), n0 = h.indexOf('<nav class="t2-sc4"');
       if (hl && n0 > -1) h = h.slice(0, n0) + oneCard(hl, null, null, 'hm') + h.slice(n0);
+      // 순서: 오늘의 5줄 → 바로가기 → 방송 속 고수종목 → 삼전닉스 인사(히어로) → 언급 종목 → 데이터로 본 종목
+      var hs = h.indexOf('<div class="t2-hello">'), n1 = h.indexOf('<nav class="t2-sc4"'), hero = '';
+      if (hs > -1 && n1 > hs) { hero = h.slice(hs, n1); h = h.slice(0, hs) + briefHome() + h.slice(n1); }
       var i = h.indexOf('</nav>');
-      if (i > -1) h = h.slice(0, i + 6) + bcHome() + briefHome() + mentionsHome() + rankHome(w) + h.slice(i + 6);
+      if (i > -1) h = h.slice(0, i + 6) + bcHome() + hero + (hs > -1 && n1 > hs ? '' : briefHome()) + mentionsHome() + rankHome(w) + h.slice(i + 6);
       var j = h.lastIndexOf('<p class="t2-basis">');
       var go = '<button class="p-go" data-a="pTable"><span>' + IC.grid + '전체 추천 기록 · 표로 보기</span>' + IC.chev + '</button>';
       return j > -1 ? h.slice(0, j) + go + h.slice(j) : h + go;

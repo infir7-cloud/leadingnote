@@ -529,5 +529,5 @@
   new MutationObserver(scan).observe(document.documentElement, { childList: true, subtree: true });
   scan();
   // 더하기 기능 (공유 카드 · 오늘의 언급 종목 · 표로 보기 · AI 요약): 같은 폴더의 ln-plus.js
-  try { var me = document.currentScript && document.currentScript.src; var ps = document.createElement('script'); ps.src = (me ? new URL('ln-plus.js?v=5', me).href : 'ln-plus.js?v=5'); ps.defer = true; (document.head || document.documentElement).appendChild(ps); } catch (e) {}
+  try { var me = document.currentScript && document.currentScript.src; var ps = document.createElement('script'); ps.src = (me ? new URL('ln-plus.js?v=6', me).href : 'ln-plus.js?v=6'); ps.defer = true; (document.head || document.documentElement).appendChild(ps); } catch (e) {}
 })();
