@@ -576,7 +576,9 @@
       var key = t === '최근 언급 종목' ? '오늘의 언급 종목' : t;
       var nx = el.nextElementSibling; if (nx && nx.classList && nx.classList.contains('p-q')) continue;
       if (el.parentNode && el.parentNode.querySelector(':scope > .p-q[data-q="' + key + '"]')) continue;
-      var h = qBtn(key); if (h) el.insertAdjacentHTML('afterend', h);
+      // 제목 줄(.t2-h · h2 · dt)은 안쪽 끝에 붙여 한 줄로, 나머지는 바로 뒤에
+      var blk = /^(H2|DT)$/.test(el.tagName) || el.classList.contains('t2-h');
+      var h = qBtn(key); if (h) el.insertAdjacentHTML(blk ? 'beforeend' : 'afterend', h);
     }
   }
   function bindQ(w, d){

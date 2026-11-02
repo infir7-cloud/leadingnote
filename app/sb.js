@@ -3,7 +3,8 @@
    - 관리자 로그인 정보는 같은 사이트 안 모든 화면이 함께 써요 (localStorage 'ln.sb.session'). */
 (function(){
   function findCfg(){var w=window;for(var i=0;i<5;i++){try{if(w.__SB&&w.__SB.projectId)return w.__SB}catch(e){}if(w===w.parent)break;try{w=w.parent}catch(e){break}}return null}
-  var CFG=findCfg(),SKEY='ln.sb.session';
+  // 10/31: 예전 관리자 서버(make-server)는 지웠어요. 관리는 운영실(ops.html)에서 하고, 이 연결은 쓰지 않아요.
+  var CFG=null,SKEY='ln.sb.session';
   var API=CFG?'https://'+CFG.projectId+'.supabase.co/functions/v1/make-server-f59ebbd9':'';
   var AUTH=CFG?'https://'+CFG.projectId+'.supabase.co/auth/v1':'';
   function getSess(){try{return JSON.parse(localStorage.getItem(SKEY))}catch(e){return null}}
