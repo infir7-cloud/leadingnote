@@ -151,7 +151,7 @@
   function scan(){
     var force = Date.now() - t0 > 8000;
     Array.prototype.forEach.call(document.querySelectorAll('iframe'), function(f){
-      if (!f.__mnLoad) { f.__mnLoad = true; f.addEventListener('load', function(){ var n = 0, iv = setInterval(function(){ n++; scan(); var w2 = null; try { w2 = f.contentWindow; } catch (e) {} if (n > 100 || (w2 && w2.__mn)) clearInterval(iv); }, 200); }); }
+      if (!f.__mnLoad) { f.__mnLoad = true; f.addEventListener('load', function(){ var n = 0, iv = setInterval(function(){ n++; scan(); var ok = false; try { ok = !!(f.contentWindow && f.contentWindow.__mn); } catch (e) { ok = true; } if (n > 100 || ok) clearInterval(iv); }, 200); }); }
       var w, d; try { w = f.contentWindow; d = f.contentDocument; } catch (e) { return; }
       if (w && d && d.head && /ln\.html/.test(d.URL || '')) patch(w, d, force);
     });

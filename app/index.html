@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
 <script src="ux-polish.js?v=6"></script>
-<script src="ln-theme.js?v=10"></script>
+<script src="ln-theme.js?v=12"></script>
 <script src="live-data.js?v=3"></script>
 <script src="community-live.js?v=4" data-seed="off"></script>
 
@@ -293,8 +293,8 @@ td.c,th.c{text-align:center}
    top_m 320×50(휴대폰 위) · top_t 728×90(태블릿 위) · rail1 300×250 · rail2 300×600(PC 오른쪽) */
 window.LN_ADS={client:'',slots:{top_m:'',top_t:'',rail1:'',rail2:''},placeholder:true,test:false};
 </script>
-<script src="sb.js?v=1"></script>
-<script>window.APP_URL={ln:"ln.html?v=202610271200",tools:"tools.html?v=202610311700",cm:"community.html?v=202610271200"};</script>
+<script src="sb.js?v=2"></script>
+<script>window.APP_URL={ln:"ln.html?v=202610271200",tools:"tools.html?v=202611021800",cm:"community.html?v=202610271200"};</script>
 <script>
 (function(){
 /* ===== 설정 (세 서비스 공통) ===== */
@@ -407,7 +407,7 @@ function openSettings(){
     '<div class="sheet-h"><h2 id="set-h">화면 밝기</h2><button class="x" data-s="close" aria-label="닫기">×</button></div>'+
     '<div><p class="sl" hidden>화면 밝기</p><div class="seg" role="group" aria-label="화면 밝기"><button data-s="theme" data-v="dark" aria-pressed="'+(C.theme==='dark')+'">어두운 화면</button><button data-s="theme" data-v="light" aria-pressed="'+(C.theme==='light')+'">밝은 화면</button></div>'+
     '<p class="hint" style="margin-top:.5rem">리딩 모음 · 투자 도구 · 커뮤니티에 한 번에 적용돼요. 글씨가 잘 안 보이면 밝은 화면을 써 보세요.</p></div>'+
-    '<div style="border-top:1px solid var(--line);padding-top:1rem;display:flex;flex-direction:column;gap:.4rem"><button class="btn btn-block" data-s="admin">관리자 페이지</button><p class="hint">'+(SB.on?'운영자 전용 화면이에요. 관리자 계정으로 로그인해야 들어갈 수 있어요.':'운영자 전용 화면이에요. 지금은 체험용으로 누구나 열 수 있어요.')+'</p></div>'+
+    '<div style="border-top:1px solid var(--line);padding-top:1rem;display:flex;flex-direction:column;gap:.4rem"><a class="btn btn-block" href="ops.html" target="_blank" rel="noopener" style="text-align:center;text-decoration:none">운영실 (관리자)</a><p class="hint">운영자 전용 화면이에요. 운영자 계정으로 로그인해야 들어갈 수 있어요.</p></div>'+
   '</div></div>';
   var b=$('layer').querySelector('[aria-pressed="true"]');if(b)b.focus();
 }
@@ -742,6 +742,5 @@ window.__shell={C:C,F:F,READY:READY,show:show,openAdmin:openAdmin,closeAdmin:clo
 </script>
 <script src="stock-sheet.js?v=3"></script>
 <script src="bench-plus.js?v=1"></script>
-<script src="market-strip.js?v=1"></script>
 </body>
 </html>

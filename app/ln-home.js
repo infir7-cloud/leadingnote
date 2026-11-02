@@ -665,7 +665,7 @@
   function scan(){
     var force = Date.now() - t0 > 10000;
     Array.prototype.forEach.call(document.querySelectorAll('iframe'), function(f){
-      if (!f.__hmLoad) { f.__hmLoad = true; f.addEventListener('load', function(){ var n = 0, iv = setInterval(function(){ n++; scan(); var w2 = null; try { w2 = f.contentWindow; } catch (e) {} if (n > 150 || (w2 && w2.__hm)) clearInterval(iv); }, 200); }); }
+      if (!f.__hmLoad) { f.__hmLoad = true; f.addEventListener('load', function(){ var n = 0, iv = setInterval(function(){ n++; scan(); var ok = false; try { ok = !!(f.contentWindow && f.contentWindow.__hm); } catch (e) { ok = true; } if (n > 150 || ok) clearInterval(iv); }, 200); }); }
       var w, d; try { w = f.contentWindow; d = f.contentDocument; } catch (e) { return; }
       if (w && d && d.head && /ln\.html/.test(d.URL || '')) patch(w, d, force);
     });

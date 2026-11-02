@@ -928,6 +928,9 @@ window.__site={
   go:function(r){
     if(r.indexOf('s-')===0){var c=r.slice(2);if(BYC[c]){S.view='stock';S.stock=c;render();window.scrollTo(0,0)}}
     else if(['home','calc','search','tp','learn'].indexOf(r)>-1){go(r)}
+    else if(r.indexOf('fee:')===0){var q=r.slice(4).split(','),b=Math.round(+q[0]),sl=Math.round(+q[1]),n=Math.round(+q[2]);
+      if(b>0){P.T.fmode='trade';P.T.buy=b;P.T.sell=sl>0?sl:b;if(n>0)P.T.qty=n;if(q[3]==='K'||q[3]==='Q')P.T.mkt=q[3];save()}
+      go('calc','fee');if(b>0)try{toast('방송 종목 가격을 넣어 두었어요')}catch(e){}}
   }
 };
 window.__site.apply(siteCfg());
