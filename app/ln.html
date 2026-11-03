@@ -1909,7 +1909,7 @@ function lnCrumb(){
   var v=view();
   if(!v&&S.tab==='home')return '';
   if(v&&(v.t==='room'||v.t==='share'))return '';
-  var it=[{t:'리딩 모음',attr:'data-a="tab" data-v="home"'}];
+  var it=[{t:'정보',attr:'data-a="tab" data-v="home"'}];
   if(S.tab!=='home')it.push({t:TAB_NAME[S.tab],attr:'data-a="crumb" data-v="0"'});
   S.stack.forEach(function(x,i){it.push({t:viewTitle(x),attr:'data-a="crumb" data-v="'+(i+1)+'"'})});
   return crumbHTML(it);
@@ -1920,7 +1920,7 @@ function topBar(){
     var right=v.t==='room'?'<span class="top-sub" style="margin-left:auto">추천 알림방</span>':v.t==='alerts'?'':bellBtn();
     return '<header class="top"><div class="top-in gx">'+backBtn+'<h1 class="top-title">'+esc(viewTitle(v))+'</h1>'+right+'</div>'+cr+'</header>';
   }
-  if(S.tab==='home')return '<header class="top"><div class="top-in gx"><span class="hm"><span class="hm-logo" aria-hidden="true">'+HOME_LOGO+'</span><span class="hm-t"><b>리딩 모음</b><small>'+todayLabel()+' · 전문가 추천 모아보기</small></span></span><button class="top-q" data-a="view" data-v="quotes" aria-label="시세 조회">'+IC.search+'</button>'+bellBtn()+'</div></header>';
+  if(S.tab==='home')return '<header class="top"><div class="top-in gx"><span class="hm"><span class="hm-logo" aria-hidden="true">'+HOME_LOGO+'</span><span class="hm-t"><b>정보</b><small>'+todayLabel()+' · 전문가 추천 모아보기</small></span></span><button class="top-q" data-a="view" data-v="quotes" aria-label="시세 조회">'+IC.search+'</button>'+bellBtn()+'</div></header>';
   return '<header class="top"><div class="top-in gx">'+backBtn+'<h1 class="top-title">'+TAB_NAME[S.tab]+'</h1>'+(S.tab!=='alerts'?bellBtn():'')+'</div>'+cr+'</header>';
 }
 function navBar(){
@@ -2493,7 +2493,7 @@ function screenQuote(c){
     '<div class="kv" style="margin-top:0"><div><span>시작 가격</span><b>'+(halt?'-':won(q.open))+'</b></div><div><span>거래량</span><b>'+q.vol.toLocaleString('ko-KR')+'주</b></div>'+
     '<div><span>가장 높은 가격</span><b class="up">'+(halt?'-':won(q.high))+'</b></div><div><span>가장 낮은 가격</span><b class="down">'+(halt?'-':won(q.low))+'</b></div>'+
     '<div style="grid-column:1/-1"><span>회사 크기 (시가총액)</span><b>'+capText(q.cap)+'</b></div></div>'+
-    '<button class="btn btn-line btn-block" data-x="go:tools:s-'+c+'">이 종목 진단 · 목표가 계산 (투자 도구) ›</button>'+
+    '<button class="btn btn-line btn-block" data-x="go:tools:s-'+c+'">이 종목 진단 · 목표가 계산 (도구) ›</button>'+
     '<p class="small">자료: '+esc(PX.src||'한국거래소')+' · 실서비스에서는 매일 장 마감 뒤 자동으로 새 가격이 들어와요 · 투자 권유가 아니에요</p></section>';
   return h+'</main>';
 }
@@ -2617,7 +2617,7 @@ function screenAcademy(){
     var st=lessonState(l.d,done),lab=st==='done'?'<span class="dstate done">다 들었어요</span>':st==='now'?'<span class="dstate now">들을 차례</span>':'<span class="dstate lock">앞 수업 먼저</span>';
     return '<button class="drow '+st+'" data-a="lesson" data-v="'+l.d+'"'+(st==='lock'?' aria-disabled="true"':'')+'><span class="dnum">'+(st==='done'?IC.check:'<small>DAY</small><b>'+l.d+'</b>')+'</span><span class="dt"><b>'+esc(l.title)+'</b><span>영상 '+l.min+'분 · 글</span></span>'+lab+'</button>';
   }).join('')+'</div></section>';
-  h+='<section class="group"><h2 class="sech">다 들었다면</h2><button class="menu card" data-x="go:tools:learn"><span class="mi">'+IC.book+'</span><span class="mt">주식 기본기 10편 · 투자 도구에서 읽기</span>'+IC.right+'</button></section>';
+  h+='<section class="group"><h2 class="sech">다 들었다면</h2><button class="menu card" data-x="go:tools:learn"><span class="mi">'+IC.book+'</span><span class="mt">주식 기본기 10편 · 도구 탭에서 읽기</span>'+IC.right+'</button></section>';
   return h+'</main>';
 }
 function screenLesson(d){
@@ -2858,7 +2858,7 @@ function screenMore(){
   h+='<div class="card">'+menu.map(function(m){return '<button class="menu" data-a="view" data-v="'+m[0]+'"><span class="mi">'+m[2]+'</span><span class="mt">'+m[1]+'</span>'+IC.right+'</button>'}).join('')+'</div>';
   if(isAdmin())h+='<button class="btn btn-ink btn-block" data-x="admin">통합 관리자 페이지 열기</button>';
   h+='<section class="group"><h2 class="sech">체험용 · 권한 바꿔 보기</h2><div class="seg" style="grid-template-columns:repeat(4,minmax(0,1fr))" role="group" aria-label="권한">'+['guest','member','expert','admin'].map(function(r){return '<button data-a="asRole" data-v="'+r+'" aria-pressed="'+(role()===r)+'">'+ROLE_NAME[r]+'</button>'}).join('')+'</div><p class="small">실서비스에서는 운영자가 관리자 페이지에서 권한을 줘요. 전문가는 한선생TV 계정으로 체험해요.</p></section>';
-  h+='<section class="group"><h2 class="sech">화면 밝기</h2><p class="notice">여기서 바꾸면 리딩 모음·투자 도구·커뮤니티에 한 번에 적용돼요.</p><button class="btn btn-line btn-block" data-x="settings">화면 밝기 바꾸기</button></section>';
+  h+='<section class="group"><h2 class="sech">화면 밝기</h2><p class="notice">여기서 바꾸면 정보·도구·커뮤니티에 한 번에 적용돼요.</p><button class="btn btn-line btn-block" data-x="settings">화면 밝기 바꾸기</button></section>';
   if(P.member)h+='<section class="group"><h2 class="sech">알림</h2><div class="card">'+toggles.map(function(t){var on=!!P.notif[t[0]];return '<div class="trow"><span class="ft"><b>'+t[1]+'</b><span>'+t[2]+'</span></span><button class="toggle" data-a="notif" data-v="'+t[0]+'" aria-pressed="'+on+'" aria-label="'+t[1]+'">'+(on?'켜짐':'꺼짐')+'</button></div>'}).join('')+'</div></section>';
   h+='<section class="group"><h2 class="sech">앱 설치</h2><p class="notice">휴대폰은 앱으로, 컴퓨터는 바탕화면 바로가기로 한 번에 열어요. 쓰시는 기기를 알아서 확인해 드려요.</p>'+(storeLink(DEVICE)?'<a class="store" href="'+esc(storeLink(DEVICE))+'" target="_blank" rel="noopener">'+IC.download+'앱 설치하기</a>':'<button class="btn btn-ink btn-block" data-a="sheet" data-v="install">'+IC.download+'앱 설치하기</button>')+'</section>';
   h+='<section class="group"><h2 class="sech">서비스 안내</h2><p class="notice">리딩노트는 방송·유튜브 등에서 공개된 전문가 추천을 모아 쉽게 정리해 보여주는 서비스예요. 투자 권유가 아니며, 투자 판단과 그 결과의 책임은 본인에게 있어요.</p>'+

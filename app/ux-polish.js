@@ -165,8 +165,8 @@
   // ---- 맨 위 머리: 로고를 누르면 전체 메뉴(서랍)가 열려요
   var MARK = '<svg viewBox="0 0 28 28" aria-hidden="true"><rect x="5" y="6" width="11" height="4" rx="2" fill="var(--t-ln)"/><rect x="5" y="12" width="15" height="4" rx="2" fill="var(--t-tools)"/><rect x="5" y="18" width="18" height="4" rx="2" fill="var(--t-cm)"/></svg>';
   var MENU = {
-    ln: ['리딩 모음', 'var(--t-ln)', [['home', '홈'], ['experts', '전문가 찾기'], ['watch', '관심종목'], ['academy', '7일 첫걸음'], ['alerts', '알림'], ['more', '더보기']]],
-    tools: ['투자 도구', 'var(--t-tools)', [['home', '홈'], ['search', '종목 검색'], ['calc', '계산기'], ['learn', '주식 기본기']]],
+    ln: ['정보', 'var(--t-ln)', [['home', '홈'], ['experts', '전문가 찾기'], ['watch', '관심종목'], ['academy', '7일 첫걸음'], ['alerts', '알림'], ['more', '더보기']]],
+    tools: ['도구', 'var(--t-tools)', [['home', '홈'], ['search', '종목 검색'], ['calc', '계산기'], ['learn', '주식 기본기']]],
     cm: ['커뮤니티', 'var(--t-cm)', [['home', '홈'], ['agendas', '토론 목록'], ['chat', '실시간 토론'], ['me', '내 활동']]]
   };
   function placeLogo(){
@@ -342,7 +342,7 @@
   };
   function appOf(f){
     var s = (f.getAttribute('src') || '') + ' ' + (f.title || '');
-    return /tools|투자 도구/.test(s) ? 'tools' : /community|커뮤니티/.test(s) ? 'cm' : /ln\.html|리딩 모음/.test(s) ? 'ln' : null;
+    return /tools|투자 도구|^도구/.test(s) ? 'tools' : /community|커뮤니티/.test(s) ? 'cm' : /ln\.html|리딩 모음|^정보/.test(s) ? 'ln' : null;
   }
   function eachText(el, fn){ var w = el.ownerDocument.createTreeWalker(el, NodeFilter.SHOW_TEXT), n, list = []; while ((n = w.nextNode())) list.push(n); list.forEach(fn); }
   function swap(el, a, b){ eachText(el, function(n){ if (n.nodeValue.indexOf(a) > -1) n.nodeValue = n.nodeValue.split(a).join(b); }); }

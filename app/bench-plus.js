@@ -62,8 +62,8 @@
   // ---- 서비스 화면 찾기
   function kindOf(f){
     var s = (f.getAttribute('src') || '') + ' ' + (f.title || '');
-    if (/tools\.html|투자 도구/.test(s)) return 'tools';
-    if (/(^|\/)ln\.html|리딩 모음/.test(s)) return 'ln';
+    if (/tools\.html|투자 도구|^도구/.test(s)) return 'tools';
+    if (/(^|\/)ln\.html|리딩 모음|^정보/.test(s)) return 'ln';
     if (/community|커뮤니티/.test(s)) return 'cm';
     return '';
   }
@@ -451,7 +451,7 @@
       sw('zebra', '줄마다 배경 번갈아', '긴 목록에서 줄을 놓치지 않게') +
       sw('spark', '작은 흐름선 보이기', '종목 이름 옆 60일 가격선') +
       sw('mono', '숫자 줄 맞춤', '가격 자릿수를 세로로 가지런히') +
-      '<p class="bp-gh">차트 <small>투자 도구 → 종목 화면</small></p>' +
+      '<p class="bp-gh">차트 <small>도구 → 종목 화면</small></p>' +
       seg('chartDays', [[20, '20일'], [40, '40일'], [60, '60일']], '보는 기간') +
       seg('chartW', [[1.2, '얇게'], [2, '보통'], [3, '굵게']], '선 두께') +
       sw('chartCross', '누르면 그날 가격 보기', '십자선과 값 표시') +
@@ -463,7 +463,6 @@
       '<p class="bp-gh">맨 위 띠 · 토론 창</p>' +
       sw('roll', '많이 리딩된 종목 띠') +
       (A.roll ? seg('rollSec', [[0, '멈춤'], [5, '5초'], [10, '10초']], '넘어가는 간격') : '') +
-      sw('talkBtn', '토론 창 버튼 보이기', 'PC는 떼어 내는 창, 휴대폰은 아래 창') +
       (WIDE.matches ? sw('dock', '토론 창 오른쪽에 붙이기') : '') +
       '<button type="button" class="bp-reset" data-bp="reset">고급 설정 처음대로</button></div>';
   }
@@ -564,20 +563,8 @@
   ].join('\n');
   document.head.appendChild(css);
 
-  function drawFab(){
-    var b = $('bp-talk');
-    if (!b) {
-      b = document.createElement('button'); b.id = 'bp-talk'; b.type = 'button'; b.setAttribute('aria-haspopup', 'dialog'); b.setAttribute('aria-expanded', 'false');
-      b.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/></svg><span>토론 창</span>';
-      b.setAttribute('aria-label', '실시간 토론 창 열기');
-      b.addEventListener('click', function(){ if (FL.open) closeFloat(); else openFloat(); });
-      document.body.appendChild(b);
-    }
-    var app = document.documentElement.getAttribute('data-app');
-    var admin = $('admin'); var adminOn = admin && !admin.hidden;
-    var layer = $('layer'), sheetOn = layer && layer.innerHTML !== '', ss = document.getElementById('ss-root'), stockOn = ss && ss.innerHTML !== '';
-    b.hidden = !A.talkBtn || app === 'cm' || adminOn || sheetOn || stockOn || (FL.open && !WIDE.matches);
-  }
+  // 토론 창 떠 있는 버튼은 없앴어요 (커뮤니티 탭에서 토론해요)
+  function drawFab(){ var b = $('bp-talk'); if (b) b.remove(); }
 
   // ===================== 연결 =====================
   function applyEverywhere(){

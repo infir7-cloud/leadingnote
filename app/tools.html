@@ -1,4 +1,4 @@
-<!doctype html><html lang="ko"><head><meta name="robots" content="noindex"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>[hidden]{display:none!important}</style></head><body><script src="tools-data.js?v=202610200807"></script><title>투자 도구</title>
+<!doctype html><html lang="ko"><head><meta name="robots" content="noindex"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>[hidden]{display:none!important}</style></head><body><script src="tools-data.js?v=202610200807"></script><title>도구</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&amp;family=IBM+Plex+Sans+KR:wght@400;500;600;700&amp;display=swap">
 <style>
@@ -770,7 +770,7 @@ var LESSONS=[
 ];
 function viewLearn(){
   var d=P.done.length,h='<div class="pagehead"><h2 class="sech">주식 기본기</h2><p>하루 한 편, 3~4분이면 읽어요. 그림과 퀴즈로 쉽게 익혀요.</p></div>'+
-    '<button class="xlink" data-x="go:ln:academy"><span class="small">주식이 처음이라면 먼저</span><b>7일 첫걸음 · 계좌 만들기부터 주문까지</b><span class="small">리딩 모음 › 첫걸음에서 들어요 ›</span></button>';
+    '<button class="xlink" data-x="go:ln:academy"><span class="small">주식이 처음이라면 먼저</span><b>7일 첫걸음 · 계좌 만들기부터 주문까지</b><span class="small">정보 › 첫걸음에서 들어요 ›</span></button>';
   h+='<div class="sec"><div style="display:flex;justify-content:space-between;font-size:.9375rem"><span>'+d+' / '+LESSONS.length+'편 읽음</span><span class="mono">'+Math.round(d/LESSONS.length*100)+'%</span></div><div class="prog"><span style="width:'+(d/LESSONS.length*100)+'%"></span></div></div>';
   h+='<div class="lessons">'+LESSONS.map(function(l,i){var done=P.done.indexOf(i)>-1;return '<button class="lrow'+(done?' done':'')+'" data-lesson="'+i+'"><span class="lnum">'+(done?'✓':(i+1))+'</span><span class="lt"><b>'+l.t+'</b><span>'+l.s+' · '+l.min+'분</span></span></button>'}).join('')+'</div>';
   return h;
@@ -834,7 +834,7 @@ function crumbHTML(items){
 }
 function toolsCrumb(){
   var t=P.tab,v=S.view;if(t==='home'&&!v)return '';
-  var it=[{t:'투자 도구',attr:'data-tab="home"'}];
+  var it=[{t:'도구',attr:'data-tab="home"'}];
   if(t!=='home')it.push({t:TITLES[t],attr:'data-tab="'+t+'"'});
   if(v==='stock'){var o=BYC[S.stock];it.push({t:o?o.n:'종목'})}
   else if(v==='lesson'){if(t!=='learn')it.push({t:TITLES.learn,attr:'data-tab="learn"'});it.push({t:'주식 기본기 '+(S.lesson+1)+'편'})}
@@ -848,7 +848,7 @@ function render(){
   if(v==='stock'){var o=BYC[S.stock];top='<button class="back" data-act="back" aria-label="뒤로">'+IC.back+'</button><h1 class="top-title">'+esc(o?o.n:'종목')+'</h1>'+sizeBtn;main=viewStock()}
   else if(v==='lesson'){top='<button class="back" data-act="back" aria-label="뒤로">'+IC.back+'</button><h1 class="top-title">주식 기본기 '+(S.lesson+1)+'편</h1>'+sizeBtn;main=viewLesson()}
   else{
-    top=t==='home'?'<span class="hm"><span class="hm-logo" aria-hidden="true">'+IC.calc+'</span><span class="hm-t"><b>투자 도구</b><small>종목 검색 · 계산기 · 아카데미</small></span></span>'+sizeBtn:'<h1 class="top-title">'+TITLES[t]+'</h1>'+sizeBtn;
+    top=t==='home'?'<span class="hm"><span class="hm-logo" aria-hidden="true">'+IC.calc+'</span><span class="hm-t"><b>도구</b><small>종목 검색 · 계산기 · 아카데미</small></span></span>'+sizeBtn:'<h1 class="top-title">'+TITLES[t]+'</h1>'+sizeBtn;
     if(t==='home')main=viewHome();
     else if(t==='calc')main=calcTabs(P.sub.calc)+({sim:viewSim,fee:viewFee,tp:viewTP,avg:viewAvg}[P.sub.calc]||viewSim)();
     else if(t==='search')main=viewSearch();

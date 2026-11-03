@@ -169,10 +169,10 @@
   function where(f){
     var w = f.contentWindow, src = (f.getAttribute('src') || '') + ' ' + (f.title || '');
     try {
-      if (/tools|투자 도구/.test(src) && w.S && w.S.view === 'stock' && w.S.stock) {
+      if (/tools|투자 도구|^도구/.test(src) && w.S && w.S.view === 'stock' && w.S.stock) {
         var o = w.BYC && w.BYC[w.S.stock]; return { code: w.S.stock, name: o ? o.n : w.S.stock };
       }
-      if (/(^|\/)ln\.html|리딩 모음/.test(src) && w.S && w.S.stack && w.S.stack.length) {
+      if (/(^|\/)ln\.html|리딩 모음|^정보/.test(src) && w.S && w.S.stack && w.S.stack.length) {
         var v = w.S.stack[w.S.stack.length - 1]; if (v && v.t === 'q' && w.PX && w.PX.byCode && w.PX.byCode[v.id]) return { code: v.id, name: w.PX.byCode[v.id].n };
         if (v && v.t === 'stock' && /^\d{6}$/.test(v.id)) { var so = w.STOCKS && w.STOCKS[v.id]; return { code: v.id, name: so && so.name ? so.name : v.id, chart: true }; }
       }
