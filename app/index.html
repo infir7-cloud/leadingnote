@@ -2,7 +2,8 @@
 <html lang="ko">
 <head>
 <script src="ux-polish.js?v=7"></script>
-<script src="ln-theme.js?v=15"></script>
+<script>window.__bnHash0=location.hash;</script>
+<script src="ln-theme.js?v=17"></script>
 <script src="live-data.js?v=4"></script>
 <script src="community-live.js?v=4" data-seed="off"></script>
 
@@ -302,7 +303,7 @@ var KEY='site.v1';
 var APPS=[['ln','정보'],['tools','도구'],['cm','커뮤니티']];
 var NAME={ln:'정보',tools:'도구',cm:'커뮤니티'};
 var DEF={size:'m',theme:'dark',tab:'ln',
-  notice:{on:true,text:'세 서비스가 한곳에 모였어요. 맨 위 탭으로 골라 보세요.',where:'all',to:'',v:1},
+  notice:{on:true,text:'홈 · 방송종목 · 도구 · 커뮤니티 · MY 메뉴로 원하는 곳에 바로 갈 수 있어요.',where:'all',to:'',v:1},
   noticeClosed:0,hideP:{},picks:[],hiddenChat:{}};
 function load(){try{return JSON.parse(localStorage.getItem(KEY))}catch(e){return null}}
 var C=(function(){var l=load()||{},o=JSON.parse(JSON.stringify(DEF));Object.keys(l).forEach(function(k){o[k]=l[k]});o.notice=Object.assign({},DEF.notice,l.notice||{});o.hideP=o.hideP||{};o.picks=o.picks||[];o.hiddenChat=o.hiddenChat||{};return o})();
@@ -742,6 +743,7 @@ window.__shell={C:C,F:F,READY:READY,show:show,openAdmin:openAdmin,closeAdmin:clo
 </script>
 <script src="stock-sheet.js?v=4"></script>
 <script src="bench-plus.js?v=2"></script>
-<script src="ui-unify.js?v=1"></script>
+<script src="ui-unify.js?v=2"></script>
+<script src="shell-b.js?v=2"></script>
 </body>
 </html>
