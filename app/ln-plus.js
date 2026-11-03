@@ -72,6 +72,14 @@
     '.p-bc-top.live .p-bc-st{background:var(--live,#F04452);color:#fff}',
     '.p-bc-top b{display:block;font-size:1.125rem;margin-top:.4rem}.p-bc-top span.s{display:block;font-size:.875rem;color:var(--ink2);margin-top:.15rem}',
     '.p-bc{padding:.8rem 0;border-bottom:1px solid var(--line)}',
+    '.p-rp{border-radius:1.125rem;padding:1rem;margin:.25rem 0 .5rem;background:var(--accent-soft);box-shadow:inset 0 0 0 1.5px var(--accent)}',
+    '.p-rp-st{display:inline-flex;align-items:center;gap:.3rem;font-size:.75rem;font-weight:800;border-radius:.4rem;padding:.15rem .5rem;background:var(--accent);color:var(--on-accent)}.p-rp-st svg{width:.7rem;height:.7rem;fill:currentColor}',
+    '.p-rp b.t{display:block;font-size:1.1875rem;margin-top:.45rem}.p-rp span.s{display:block;font-size:.875rem;color:var(--ink2);margin-top:.15rem}',
+    '.p-rp .pk{display:flex;flex-wrap:wrap;gap:.3rem;margin-top:.55rem}.p-rp .pk span{font-size:.8125rem;font-weight:700;background:var(--surface);border-radius:.5rem;padding:.2rem .5rem}.p-rp .pk span.lk{color:var(--sn)}',
+    '.p-rp .sum{display:block;font-size:.8125rem;color:var(--ink2);margin-top:.4rem}.p-rp .sum b.up{color:var(--up)}.p-rp .sum b.down{color:var(--down)}',
+    '.p-rp-act{display:flex;gap:.4rem;margin-top:.75rem}',
+    '.p-rp-play{flex:1;display:inline-flex;align-items:center;justify-content:center;gap:.35rem;height:2.75rem;border-radius:.75rem;border:0;background:var(--accent);color:var(--on-accent);font:inherit;font-size:1rem;font-weight:800;text-decoration:none;cursor:pointer}.p-rp-play svg{width:.95rem;height:.95rem;fill:currentColor}.p-rp-play:disabled{opacity:.5;cursor:default}',
+    '.p-rp-sub{flex:none;height:2.75rem;padding:0 .9rem;border-radius:.75rem;border:0;background:var(--surface);color:var(--ink);font:inherit;font-size:.9375rem;font-weight:800;cursor:pointer}',
     '.p-bc .sum{display:block;font-size:.8125rem;color:var(--ink2);margin-top:.4rem}.p-bc .sum b.up{color:var(--up)}.p-bc .sum b.down{color:var(--down)}',
     '.p-bc .pk span.lk{background:var(--sunk);color:var(--sn)}',
     '.p-lu{display:flex;flex-wrap:wrap;gap:.35rem;margin-top:.5rem}.p-lu button,.p-lu>span{display:inline-flex;align-items:center;gap:.3rem;height:2.25rem;padding:0 .7rem;border-radius:999px;border:0;background:var(--raise);color:var(--ink);font:inherit;font-size:.875rem;font-weight:700}',
@@ -369,11 +377,25 @@
     return '<div class="p-bc"><button class="p-bc-main" data-a="pBc" data-v="' + esc(sl.key) + '"><span class="h"><b>' + esc(sl.p.name) + '</b><small>' + dLbl(sl.date) + ' ' + hmK(sl.start) + '</small></span>' +
       (who ? '<span class="who">' + esc(who) + '</span>' : '') + chipsH + sum + '</button>' + bcBtns(sl, false) + '</div>';
   }
+  // 홈 '방송 속 고수 종목' 맨 위: 오늘 방송 예고는 위 '오늘밤' 카드가 이미 보여 주니, 여기선 가장 최근 방송 재방송을 크게 보여 줘요
+  function bcReplayCard(sl, now){
+    if (!sl) return '';
+    var ep = sl.ep, pk = ep && ep.published ? ep.picks || [] : [], who = lineup(sl), st = epStat(ep);
+    var today = ymdOf(now), yday = ymdOf(kstMs(today) - 864e5);
+    var when = sl.date === today ? '오늘 방송' : sl.date === yday ? '어제 방송' : dLbl(sl.date) + ' 방송';
+    var vu = ep && ep.published ? ep.video_url : '';
+    var chipsH = pk.length ? '<span class="pk">' + pk.slice(0, 4).map(function(k){ return k.kind === 'secret' && !k.revealed ? '<span class="lk">비공개</span>' : '<span>' + esc(k.stock_name) + '</span>'; }).join('') + (pk.length > 4 ? '<span>+' + (pk.length - 4) + '</span>' : '') + '</span>' : '';
+    var sum = st.avg != null ? '<span class="sum">추천 ' + st.nr + '종목 평균 <b class="' + tone(st.avg) + '">' + pctS(st.avg) + '</b></span>' : '';
+    var play = vu ? '<a class="p-rp-play" href="' + esc(vu) + '" target="_blank" rel="noopener noreferrer">' + PLAY + '재방송 보기</a>' : '<button class="p-rp-play" disabled>재방송 영상 준비 중이에요</button>';
+    return '<div class="p-rp"><button class="p-bc-main" data-a="pBc" data-v="' + esc(sl.key) + '"><span class="p-rp-st">' + PLAY + when + ' 다시 보기</span>' +
+      '<b class="t">' + esc(sl.p.channel || '') + ' ' + esc(sl.p.name) + '</b><span class="s">' + dLbl(sl.date) + ' ' + hmK(sl.start) + ' 본방송' + (who ? ' · ' + esc(who) : '') + '</span>' + chipsH + sum + '</button>' +
+      '<div class="p-rp-act">' + play + '<button class="p-rp-sub" data-a="pBc" data-v="' + esc(sl.key) + '">추천 종목</button></div></div>';
+  }
   function bcHome(){
     if (!X.bc || !(X.bc.programs || []).length) return '';
     var now = nowK(), r = bcSlots(X.bc, now); X.bcSig = bcSig(r);
-    if (!r.top && !r.past.length) return '';
-    return '<section class="t2-sec"><div class="t2-h" style="cursor:default">방송 속 고수 종목</div>' + bcTopCard(r.top, now) + r.past.slice(0, 5).map(bcRow).join('') +
+    if (!r.past.length) return '';
+    return '<section class="t2-sec"><div class="t2-h" style="cursor:default">방송 속 고수 종목</div>' + bcReplayCard(r.past[0], now) + r.past.slice(1, 5).map(bcRow).join('') +
       '<button class="p-go" data-a="pBcAll" style="margin:.5rem 0 0;background:var(--raise)"><span>지난 방송 · 출연 전문가 · 추천 종목 모두 보기</span>' + IC.chev + '</button>' +
       '<p class="p-disc">SBS Biz 본방송에서 전문가가 직접 한 말과 가격을 원본 영상과 함께 정리해요. 수익률은 방송에서 말한 매수가 기준이에요. 사거나 팔라는 권유가 아니에요.</p></section>';
   }

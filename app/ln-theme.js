@@ -529,7 +529,7 @@
   new MutationObserver(scan).observe(document.documentElement, { childList: true, subtree: true });
   scan();
   // 더하기 기능 (공유 카드 · 오늘의 언급 종목 · 표로 보기 · AI 요약): 같은 폴더의 ln-plus.js
-  try { var me = document.currentScript && document.currentScript.src; var ps = document.createElement('script'); ps.src = (me ? new URL('ln-plus.js?v=8', me).href : 'ln-plus.js?v=8'); ps.defer = true; (document.head || document.documentElement).appendChild(ps); } catch (e) {}
+  try { var me = document.currentScript && document.currentScript.src; var ps = document.createElement('script'); ps.src = (me ? new URL('ln-plus.js?v=9', me).href : 'ln-plus.js?v=9'); ps.defer = true; (document.head || document.documentElement).appendChild(ps); } catch (e) {}
   // 오늘의 재료 뉴스 (리딩 모음 홈 · #ln/news): 같은 폴더의 ln-news.js
   try { var me2 = document.currentScript && document.currentScript.src; var ns = document.createElement('script'); ns.src = (me2 ? new URL('ln-news.js?v=3', me2).href : 'ln-news.js?v=3'); ns.defer = true; (document.head || document.documentElement).appendChild(ns); } catch (e) {}
   // 회원: 약관 동의 · 마이페이지(닉네임·내 활동·탈퇴): 같은 폴더의 ln-member.js
