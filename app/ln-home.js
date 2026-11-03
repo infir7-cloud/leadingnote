@@ -11,7 +11,7 @@
    - 사라·팔라는 말은 쓰지 않아요. 투표는 회원 의견일 뿐 추천이 아니라고 함께 적어요. */
 (function(){
   if (window.__lnHomeOn) return; window.__lnHomeOn = true;
-  var H = window.__lnHome = { bc: null, px: null, talk: null, votes: {}, mine: {}, per: '1m', ch: 60, at: 0, off: 0, err: null };
+  var H = window.__lnHome = { op: {}, bc: null, px: null, talk: null, votes: {}, mine: {}, per: '1m', ch: 60, at: 0, off: 0, err: null };
   try { H.mine = JSON.parse(localStorage.getItem('ln.votes') || '{}') || {}; } catch (e) {}
 
   // ── 작은 도구
@@ -159,7 +159,31 @@
     '.hm-ez{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.5rem;margin:.5rem 0 0}',
     '.hm-ez div{background:var(--raise);border-radius:.875rem;padding:.8rem;display:flex;flex-direction:column;gap:.2rem}',
     '.hm-ez small{font-size:.75rem;color:var(--ink2);font-weight:700}.hm-ez b{font-size:1.0625rem}.hm-ez span{font-size:.75rem;color:var(--sn)}',
-    '.hm-sec{padding-bottom:.25rem}'
+    '.hm-sec{padding-bottom:.25rem}',
+    // 전문가 의견
+    '.hm-gauge{display:block;width:100%;max-width:16rem;height:auto;margin:.25rem auto 0}',
+    '.hm-glab{text-align:center;font-size:1.125rem;font-weight:800;margin:.1rem 0 .1rem}.hm-gsub{text-align:center;font-size:.8125rem;color:var(--ink2);margin:0 0 .75rem}',
+    '.hm-ob{display:grid;grid-template-columns:3.5rem minmax(0,1fr) 2.5rem;align-items:center;gap:.5rem;font-size:.9375rem;font-weight:700;margin:.45rem 0}',
+    '.hm-ob .t{height:.75rem;border-radius:.375rem;background:var(--sunk);overflow:hidden}.hm-ob .t i{display:block;height:100%;border-radius:.375rem}.hm-ob .v{text-align:right;font-weight:800}',
+    '.hm-exl{display:flex;flex-wrap:wrap;gap:.4rem;margin:.75rem 0 .25rem}',
+    '.hm-exc{display:inline-flex;align-items:center;gap:.35rem;font-size:.875rem;font-weight:700;background:var(--raise);border-radius:999px;padding:.35rem .7rem}',
+    '.hm-sp{font-size:.75rem;font-weight:800;border-radius:.35rem;padding:.08rem .4rem;color:#fff}',
+    '.hm-chatbox{position:relative;height:15.5rem;overflow:hidden;border-radius:1.125rem;background:var(--raise);margin:.75rem 0 .25rem;padding:0 .75rem;outline:none}',
+    '.hm-chatbox:before,.hm-chatbox:after{content:"";position:absolute;left:0;right:0;height:1.75rem;z-index:1;pointer-events:none}',
+    '.hm-chatbox:before{top:0;background:linear-gradient(var(--raise),transparent)}.hm-chatbox:after{bottom:0;background:linear-gradient(transparent,var(--raise))}',
+    '.hm-chatrun{padding:.75rem 0}.hm-chatrun.go{animation:hmUp var(--dur,30s) linear infinite}',
+    '.hm-chatbox:hover .hm-chatrun,.hm-chatbox:focus .hm-chatrun,.hm-chatbox:active .hm-chatrun{animation-play-state:paused}',
+    '@keyframes hmUp{from{transform:translateY(0)}to{transform:translateY(-50%)}}',
+    '@media (prefers-reduced-motion:reduce){.hm-chatbox{overflow:auto}.hm-chatrun.go{animation:none}.hm-chatrun .dup{display:none}}',
+    '.hm-qa{display:flex;flex-direction:column;gap:.35rem;margin:0 0 .9rem}',
+    '.hm-q,.hm-a{max-width:86%;padding:.6rem .8rem;border-radius:1rem;font-size:.9375rem;line-height:1.45;word-break:keep-all}',
+    '.hm-q{align-self:flex-start;background:var(--surface);border-top-left-radius:.25rem}',
+    '.hm-a{align-self:flex-end;background:var(--sa-soft,#EEEBFF);border-top-right-radius:.25rem}',
+    '.hm-q small,.hm-a small{display:flex;align-items:center;gap:.3rem;font-size:.75rem;color:var(--sn);margin-bottom:.15rem}',
+    '.hm-trend{display:flex;align-items:flex-end;gap:.3rem;height:3.5rem;margin:.5rem 0 .2rem}',
+    '.hm-trend i{flex:1;border-radius:.3rem .3rem 0 0;background:var(--up);opacity:.8;min-height:.2rem}',
+    '.hm-trl{display:flex;justify-content:space-between;font-size:.6875rem;color:var(--sn)}',
+    '.hm-oq{border-left:3px solid var(--line);padding:.1rem 0 .1rem .7rem;margin:.6rem 0;font-size:.9375rem;line-height:1.5}.hm-oq small{display:block;font-size:.75rem;color:var(--sn);margin-top:.15rem}'
   ].join('\n');
 
   // ── 서버
@@ -192,6 +216,51 @@
     eps().forEach(function(e){ (e.picks || []).forEach(function(k){ if (k.stock_code) s[k.stock_code] = 1; }); });
     Object.keys(extra).forEach(function(k){ s[k] = 1; });
     return Object.keys(s).slice(0, 80);
+  }
+  // 종목별 전문가 의견 (stock_opinion: 승인된 의견 + 공개 추천 + 방송 종목 · 최근 30일 · 전문가당 마지막 1개)
+  function needOp(code){
+    if (!code || H.op[code]) return; H.op[code] = { loading: true }; var c = client(); if (!c) return;
+    q(c.rpc('stock_opinion', { p_code: code })).then(function(r){ H.op[code] = r && r.data ? r.data : { n: 0, err: true }; redraw(); });
+  }
+  var SP = { buy: ['매수', '#F04452'], add: ['추가매수', '#F04452'], hold: ['보유', '#F59F00'], watch: ['관망', '#8B95A1'], reduce: ['비중축소', '#3182F6'], sell: ['매도', '#3182F6'] };
+  function spTag(k){ var x = SP[k] || ['의견', '#8B95A1']; return '<span class="hm-sp" style="background:' + x[1] + '">' + x[0] + '</span>'; }
+  function gaugeSVG(score){
+    var segs = ['#3182F6', '#7DB3FF', '#C9CDD2', '#FF9AA2', '#F04452'], h = '';
+    for (var i = 0; i < 5; i++) { var a0 = Math.PI * (1 - i / 5), a1 = Math.PI * (1 - (i + 1) / 5) + 0.02;
+      h += '<path d="M' + (100 + 80 * Math.cos(a0)).toFixed(1) + ' ' + (100 - 80 * Math.sin(a0)).toFixed(1) + ' A80 80 0 0 1 ' + (100 + 80 * Math.cos(a1)).toFixed(1) + ' ' + (100 - 80 * Math.sin(a1)).toFixed(1) + '" stroke="' + segs[i] + '" stroke-width="16" fill="none"/>'; }
+    var th = Math.PI * (1 - (Math.max(-1, Math.min(1, score)) + 1) / 2), x = 100 + 62 * Math.cos(th), y = 100 - 62 * Math.sin(th);
+    return '<svg class="hm-gauge" viewBox="0 0 200 118" role="img" aria-label="전문가 의견 계기판">' + h +
+      '<line x1="100" y1="100" x2="' + x.toFixed(1) + '" y2="' + y.toFixed(1) + '" stroke="currentColor" stroke-width="5" stroke-linecap="round"/><circle cx="100" cy="100" r="8" fill="currentColor"/>' +
+      '<text x="14" y="116" font-size="12" font-weight="700" fill="#3182F6">매도</text><text x="186" y="116" text-anchor="end" font-size="12" font-weight="700" fill="#F04452">매수</text></svg>';
+  }
+  function opinionHTML(code){
+    var O = H.op[code]; if (!O || O.loading || O.err) return '';
+    var n = O.n || 0, d = O.dist || {}, talk = O.talk || [];
+    if (!n && !talk.length) return '';
+    var h = '<section class="t2-sec hm-sec"><div class="hm-sh"><div><h2>전문가 의견</h2><small>최근 30일 · 전문가 ' + n + '명 · 한 사람당 마지막 의견 1개</small></div></div>';
+    if (n >= 3 && O.score != null) {
+      var sc = Number(O.score), lab = sc >= 0.6 ? '매수 의견이 많아요' : sc >= 0.2 ? '보유·매수 쪽 의견이 많아요' : sc > -0.2 ? '의견이 갈려요' : sc > -0.6 ? '조심하자는 의견이 많아요' : '매도 의견이 많아요';
+      h += '<div style="color:var(--ink)">' + gaugeSVG(sc) + '</div><p class="hm-glab">' + lab + '</p><p class="hm-gsub">전문가 ' + n + '명의 가장 최근 의견을 모았어요</p>';
+    } else if (n) h += '<p class="hm-note" style="font-size:.875rem">의견을 낸 전문가가 3명 이상이면 계기판으로 보여 드려요.</p>';
+    if (n) {
+      var B = [['매수', d.buy || 0, '#F04452'], ['보유', d.hold || 0, '#F59F00'], ['관망', d.watch || 0, '#8B95A1'], ['매도', d.sell || 0, '#3182F6']];
+      h += B.map(function(b){ return '<div class="hm-ob"><span>' + b[0] + '</span><span class="t"><i style="width:' + (n ? b[1] / n * 100 : 0).toFixed(0) + '%;background:' + b[2] + '"></i></span><span class="v">' + b[1] + '명</span></div>'; }).join('');
+      h += '<div class="hm-exl">' + (O.experts || []).slice(0, 8).map(function(x){ return '<span class="hm-exc">' + esc(x.name) + ' ' + spTag(x.stance) + '<small style="color:var(--sn);font-weight:600">' + md(String(x.at).slice(0, 10)) + '</small></span>'; }).join('') + '</div>';
+    }
+    if (talk.length) {
+      var one = function(t){ return '<div class="hm-qa">' + (t.q ? '<div class="hm-q"><small>회원 · ' + md(String(t.qa || t.at).slice(0, 10)) + '</small>' + esc(t.q) + '</div>' : '') +
+        '<div class="hm-a"><small>' + esc(t.name) + ' ' + spTag(t.stance) + '</small>' + esc(t.a || '') + '</div></div>'; };
+      var list = talk.slice(0, 12).map(one).join(''), go = talk.length >= 3;
+      h += '<p style="font-size:.9375rem;font-weight:800;margin:1rem 0 0">회원 질문에 전문가는 이렇게 답했어요</p>' +
+        '<div class="hm-chatbox" tabindex="0" aria-label="회원 질문과 전문가 답 · 누르면 멈춰요"><div class="hm-chatrun' + (go ? ' go' : '') + '" style="--dur:' + Math.max(18, Math.min(talk.length, 12) * 5) + 's">' + list + (go ? '<div class="dup" aria-hidden="true">' + list + '</div>' : '') + '</div></div>' +
+        '<p class="hm-note" style="margin-top:.25rem">회원 닉네임은 보여 드리지 않아요 · 누르거나 손가락을 대면 멈춰요</p>';
+    }
+    var tr = O.trend || [];
+    if (tr.length >= 2) h += '<p style="font-size:.9375rem;font-weight:800;margin:1rem 0 0">주별 의견 흐름 <small style="font-weight:600;color:var(--ink2)">매수·보유 의견 비율</small></p><div class="hm-trend">' +
+      tr.map(function(w){ return '<i style="height:' + Math.max(4, Math.round(Number(w.pos) * 100)) + '%" title="' + md(w.wk) + ' 주 · ' + Math.round(Number(w.pos) * 100) + '% · ' + w.n + '건"></i>'; }).join('') + '</div><div class="hm-trl"><span>' + md(tr[0].wk) + ' 주</span><span>' + md(tr[tr.length - 1].wk) + ' 주</span></div>';
+    var qs = (O.experts || []).filter(function(x){ return x.quote; }).slice(0, 2);
+    if (qs.length) h += qs.map(function(x){ return '<div class="hm-oq">"' + esc(x.quote) + '"<small>' + esc(x.name) + ' · ' + md(String(x.at).slice(0, 10)) + ' · ' + esc(x.src || '') + (x.url ? ' · <a href="' + esc(x.url) + '" target="_blank" rel="noopener noreferrer">원문 ↗</a>' : '') + '</small></div>'; }).join('');
+    return h + '<p class="hm-note">전문가가 방송·공개 채널·공개 대화방에서 한 말을 모은 거예요. 의견 분포일 뿐 사거나 팔라는 권유가 아니에요.</p></section>';
   }
   function needCode(code){
     if (!code || !/^[0-9A-Z]{6}$/.test(code) || extra[code]) return;
@@ -628,11 +697,25 @@
       var base = ps.length ? info(ps[0].k, ps[0].e.air_date).base : null;
       h += floorsHTML(px, base);
     }
+    needOp(code); h += opinionHTML(code);
     h += voteHTML(code, (px && px.n) || (ps[0] && ps[0].k.stock_name) || '이 종목', '');
     if (px && on) h += easyHTML(px);
     return h;
   }
 
+  function plainStock(code){
+    var px = pxOf(code); if (!px) needCode(code);
+    var nm = (px && px.n) || (H.names && H.names[code]) || code, on = priceOn();
+    var mk = px && px.m ? (px.m === 'K' ? '코스피' : px.m === 'Q' ? '코스닥' : px.m) : '';
+    var price = on && px && px.c ? '<p style="margin:.35rem 0 0;font-size:1.75rem;font-weight:800;letter-spacing:-.02em">' + won(px.c) + '원' +
+      (px.r != null ? ' <span style="font-size:1rem" class="hm-' + tone(Number(px.r)) + '">' + pct(Number(px.r), 2) + '</span>' : '') + '</p><p class="hm-note" style="margin:.1rem 0 .5rem">' + md(px.asof) + ' 종가 · 금융위원회(공공데이터포털)</p>' : '';
+    var h = '<main class="t2" style="padding-top:.25rem"><section class="t2-sec"><div class="t2-h" style="cursor:default">' + esc(nm) + '</div>' +
+      '<p class="hm-note" style="margin:.1rem 0 0">' + esc(code) + (mk ? ' · ' + esc(mk) : '') + '</p>' + price +
+      '<p style="font-size:.9375rem;line-height:1.55;color:var(--ink2);margin:.6rem 0 .75rem">아직 리딩노트에 기록된 전문가 추천이 없는 종목이에요. 아래에서 전문가 의견과 다른 회원의 생각을 볼 수 있어요.</p>' +
+      '<a class="p-go" style="text-decoration:none;margin:0 0 .75rem;background:var(--raise)" href="https://m.stock.naver.com/domestic/stock/' + esc(code) + '/total" target="_blank" rel="noopener noreferrer"><span>네이버 증권에서 지금 가격 보기 ↗</span></a></section>' +
+      '<div class="t2" style="padding:.75rem 0 0">' + stockExtra(code) + '</div><p class="t2-basis">공개된 정보를 모아 보여 드려요 · 사거나 팔라는 권유가 아니에요</p></main>';
+    return h;
+  }
   // ── 붙이기 (ln-news.js가 붙은 뒤 마지막에 감싸요 · 10초 지나면 그냥 붙여요)
   function redraw(){ var w = lnWin(); try { if (w && w.__hm) { var v = w.view(); if (!v || v.t === 'stock') w.render(); } } catch (e) {} }
   function patch(w, d, force){
@@ -646,10 +729,14 @@
     if (w.screenStock) {
       var oSt = w.screenStock;
       w.screenStock = function(id){
+        // 리딩노트에 추천 기록이 없는 종목(재료 뉴스 '종목 보기' 등)은 기본 화면이 없어서 여기서 만들어요
+        var known = false; try { known = !!(w.STOCKS && w.STOCKS[id]); } catch (x) {}
+        if (!known && /^[0-9A-Z]{6}$/.test(String(id))) { try { return plainStock(String(id)); } catch (x) { return '<main class="t2"><section class="t2-sec"><p>종목 정보를 불러오지 못했어요.</p></section></main>'; } }
         var h = oSt.apply(this, arguments);
         try { var add = stockExtra(stockCode(w, id)); if (!add) return h; var e = h.indexOf('</section>'); return e > -1 ? h.slice(0, e + 10) + '<div class="t2" style="padding:.75rem 0 0">' + add + '</div>' + h.slice(e + 10) : h + add; } catch (x) { return h; }
       };
     }
+    if (w.viewTitle) { var oVT = w.viewTitle; w.viewTitle = function(v){ try { if (v && v.t === 'stock' && !(w.STOCKS && w.STOCKS[v.id])) { var px = pxOf(v.id); return (px && px.n) || (H.names && H.names[v.id]) || '종목'; } } catch (x) {} return oVT.apply(this, arguments); }; }
     w.A.hmPer = function(v){ H.per = v || '1m'; w.render(); };
     w.A.hmCh = function(v){ H.ch = +v || 60; w.render(); };
     w.A.hmCalc = function(v){ var p = String(v || '').split(','); openCalc(+p[0] || 0, +p[1] || 0, p[2] || ''); };

@@ -130,7 +130,8 @@ input[type=date],input[type=time]{width:100%;padding:11px 12px;border:1px solid 
 details summary{cursor:pointer;color:var(--acc);font-weight:600;font-size:14px}
 @media (max-width:600px){.hd{padding:10px 16px}.me .em{display:none}}
 </style>
-<script src="ops-kakao.js?v=1"></script>
+<script src="ops-kakao.js?v=3"></script>
+<script src="ops-opinion.js?v=1"></script>
 </head>
 <body>
 <div id="app"></div>
@@ -215,7 +216,7 @@ function start(){
 
 function shell(){
   $('#app').innerHTML='<header><div class="hd"><div class="logo">리딩노트 <small>운영실</small></div><div class="me"><span class="em">'+esc(S.me.email)+'</span><button class="btn s" id="out">로그아웃</button></div></div>'+
-  '<nav id="nav">'+[['review','검수 대기'],['add','기록 올리기'],['ingest','가져온 글'],['experts','전문가'],['bc','방송'],['bcai','방송 AI'],['brief','오늘의 5줄'],['help','설명 문구'],['pub','공개 기록'],['audit','고친 기록'],['set','설정']].map(function(t){return '<button data-t="'+t[0]+'">'+t[1]+(t[0]==='review'?'<span class="badge hide" id="rvn"></span>':t[0]==='ingest'?'<span class="badge hide" id="ign" style="background:var(--acc)"></span>':'')+'</button>'}).join('')+'</nav></header>'+
+  '<nav id="nav">'+[['review','검수 대기'],['add','기록 올리기'],['ingest','가져온 글'],['experts','전문가'],['bc','방송'],['bcai','방송 AI'],['brief','오늘의 5줄'],['help','설명 문구'],['pub','공개 기록'],['audit','고친 기록'],['op','전문가 의견'],['set','설정']].map(function(t){return '<button data-t="'+t[0]+'">'+t[1]+(t[0]==='review'?'<span class="badge hide" id="rvn"></span>':t[0]==='ingest'?'<span class="badge hide" id="ign" style="background:var(--acc)"></span>':'')+'</button>'}).join('')+'</nav></header>'+
   '<div class="wrap"><div id="cwarn" class="msg warn hide" style="margin-top:12px"></div><div id="flash" class="msg hide"></div><div id="main"><div class="empty">불러오는 중…</div></div></div>';
   $('#out').onclick=function(){sb.auth.signOut().then(function(){viewLogin()})};
   $$('#nav button').forEach(function(b){b.onclick=function(){go(b.dataset.t)}});
@@ -307,7 +308,7 @@ function render(){
   if(cw){var need=S.collect&&S.collect.pc&&(S.sources||[]).some(function(x){return x.kind==='tg_user'&&x.active});
     cw.classList.toggle('hide',!(need&&bt.k==='off'));if(need&&bt.k==='off')cw.innerHTML='<b>PC 수집기 신호가 '+bt.min+'분째 없어요.</b> 서브PC가 켜져 있는지, 수집기 창(LeadingNote Collector)이 떠 있는지 확인해 주세요. <a href="#set" data-goset="1">설정 보기</a>';
     var gl=cw.querySelector('[data-goset]');if(gl)gl.onclick=function(ev){ev.preventDefault();go('set')}}
-  var f={review:vReview,add:vAdd,ingest:vIngest,experts:vExperts,bc:vBc,bcai:vBcai,brief:vBrief,help:vHelp,pub:vPub,audit:vAudit,set:vSet}[S.tab]||vReview;
+  var f={review:vReview,add:vAdd,ingest:vIngest,op:function(m){if(window.vOpinion)vOpinion(m,{sb:sb,S:S,flash:flash,exName:exName});else m.innerHTML='<div class="msg warn">ops-opinion.js 파일이 아직 없어요.</div>'},experts:vExperts,bc:vBc,bcai:vBcai,brief:vBrief,help:vHelp,pub:vPub,audit:vAudit,set:vSet}[S.tab]||vReview;
   f($('#main'));
 }
 
@@ -395,16 +396,18 @@ function vAdd(m){
     var box=$('#ast2');
     if(!st){box.classList.add('hide');return}
     box.classList.remove('hide');
-    box.innerHTML=st.st==='holding'?'<b>지금: 가지고 있는 중</b> · 구매 '+won(st.buy)+' · 목표 '+won(st.target)+' · 손해 막는 '+won(st.stop)+' <span style="color:var(--sub)">(검수 대기 포함)</span>':
+    box.innerHTML=st.st==='holding'?'<b>지금: 가지고 있는 중</b> · 구매 '+won(st.buy)+' · 목표 '+(won(st.target)||'없음')+' · 손해 막는 '+(won(st.stop)||'없음')+' <span style="color:var(--sub)">(검수 대기 포함)</span>':
       st.st==='watch'?'<b>지금: 지켜보는 중</b> · 구매 추천이 나오면 "구매"를 올려요':'<b>지금: 이 전문가의 진행 중인 추천이 없어요</b> · "구매"나 "지켜보기"로 시작해요';
     fields();
   }
   function fields(){
     var t=($('#aty input:checked')||{}).value,px=$('#apx');
     $('#atd').textContent=t?TDESC[t]:'종목을 먼저 고르면 쓸 수 있는 종류가 켜져요.';
-    var pf=function(id,l,req){return '<label class="f"><b>'+l+(req?'':' <span style="color:var(--sub);font-weight:400">(바뀐 것만)</span>')+'</b><input type="text" inputmode="numeric" id="'+id+'" placeholder="원"></label>'};
-    px.innerHTML=t==='buy'?pf('pb','구매 가격',1)+pf('pt','목표 가격',1)+pf('ps','손해 막는 가격',1):t==='revise'?pf('pb','구매 가격')+pf('pt','목표 가격')+pf('ps','손해 막는 가격'):t==='sell'?pf('pl','판매 가격',1):'';
-    $$('input[inputmode=numeric]',px).forEach(function(i){i.oninput=function(){var n=num(i.value);i.value=n==null?'':n.toLocaleString('ko-KR')}});
+    var pf=function(id,l,req,pc){var tag=req===1?'<span style="color:var(--bad)">*</span>':req==='opt'?' <span style="color:var(--sub);font-weight:400">(선택'+(pc?' · 원 또는 %':'')+')</span>':' <span style="color:var(--sub);font-weight:400">(바뀐 것만'+(pc?' · 원 또는 %':'')+')</span>';
+      return '<label class="f"><b>'+l+tag+'</b><input type="text" inputmode="'+(pc?'text':'numeric')+'" data-px="1" id="'+id+'" placeholder="'+(pc?'원 또는 3%':'원')+'"></label>'};
+    px.innerHTML=t==='buy'?pf('pb','구매(매수) 가격',1)+pf('pt','목표 가격','opt',1)+pf('ps','손해 막는 가격','opt',1):t==='revise'?pf('pb','구매 가격')+pf('pt','목표 가격',0,1)+pf('ps','손해 막는 가격',0,1):t==='sell'?pf('pl','판매 가격',1):'';
+    if(t==='buy'||t==='revise')px.insertAdjacentHTML('beforeend','<p class="hint" style="flex-basis:100%;margin:0 0 6px">목표·손절은 없으면 비워 두세요. "3%"처럼 적으면 매수가 기준 가격으로 바꿔 저장해요 (목표 +3%, 손절 −3%).</p>');
+    $$('input[data-px]',px).forEach(function(i){i.oninput=function(){if(/%/.test(i.value))return;var n=num(i.value);i.value=n==null?'':n.toLocaleString('ko-KR')}});
   }
   stInp.oninput=function(){pick=null;setTypes();clearTimeout(tm);var q=stInp.value.trim();if(!q){sg.classList.add('hide');return}
     tm=setTimeout(function(){
@@ -434,7 +437,14 @@ function vAdd(m){
     if(!pick){flash('warn','종목을 검색해서 골라 주세요');return}
     if(!t){flash('warn','기록 종류를 골라 주세요');return}
     var p={t:t,expert_id:$('#aex').value,stock_code:pick.code,at:toIso($('#aat').value),text:$('#atx').value.trim(),src_kind:$('#ask').value,src_channel:$('#asc').value.trim(),src_title:$('#asi').value.trim(),src_url:$('#asu').value.trim()};
-    if($('#pb'))p.buy=num($('#pb').value);if($('#pt'))p.target=num($('#pt').value);if($('#ps'))p.stop=num($('#ps').value);if($('#pl'))p.sell=num($('#pl').value);
+    if($('#pb'))p.buy=num($('#pb').value);if($('#pl'))p.sell=num($('#pl').value);
+    var stB=null;try{var s0=stateOf(p.expert_id,pick.code);stB=s0&&(s0.buy||(s0.cur&&s0.cur.buy))||null}catch(x){}
+    var pv=function(id,sign){var el=$('#'+id);if(!el)return undefined;var v=String(el.value||'').trim();if(!v)return null;
+      if(/%/.test(v)){var r=parseFloat(v.replace(/[^0-9.]/g,''));var base=p.buy||stB;if(!(r>0)||!base)return NaN;return Math.round(base*(1+sign*r/100))}return num(v)};
+    var tv=pv('pt',1),sv=pv('ps',-1);
+    if((tv!==tv)||(sv!==sv)){flash('warn','% 로 적으려면 구매(매수) 가격을 먼저 적어 주세요');return}
+    if(tv!==undefined)p.target=tv;if(sv!==undefined)p.stop=sv;
+    if(t==='buy'&&!(p.buy>0)){flash('warn','구매(매수) 가격은 꼭 적어 주세요');return}
     var b=$('#asb');b.disabled=true;
     sb.rpc('ops_add_event',{p:p}).then(function(r){if(r.error)throw r.error;
       var ing=d.ingest;S.addDraft={ex:p.expert_id,sk:p.src_kind,sc:p.src_channel};

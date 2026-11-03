@@ -1431,7 +1431,7 @@ function analyze(L){
     else if(e.t==='revise'){['buy','target','stop'].forEach(function(k){if(e[k]!=null)cur[k]=e[k];});}
     var s = {e:e,L:L,i:i,tok:'r-'+L.id+'-'+i,prev:prev,cur:{buy:cur.buy,target:cur.target,stop:cur.stop},ret:null,hit:null,changed:[]};
     if(e.t==='revise'){['buy','target','stop'].forEach(function(k){if(e[k]!=null)s.changed.push({k:k,from:prev[k],to:e[k]});});}
-    if(e.t==='sell'){s.ret=(e.sell-cur.buy)/cur.buy*100;s.hit=e.sell>=cur.target;}
+    if(e.t==='sell'){s.ret=(e.sell-cur.buy)/cur.buy*100;s.hit=cur.target!=null?e.sell>=cur.target:e.sell>cur.buy;}
     return s;
   });
   var sell=null,hasBuy=false,lastLead=null;
@@ -1456,7 +1456,7 @@ function lastLeadLabel(a){
 }
 function plainMsg(s){
   var e=s.e,n=STOCKS[s.L.stock].name;
-  if(e.t==='buy')return n+' '+won(e.buy)+'에 구매 추천이에요. 목표 가격은 '+won(e.target)+', '+won(e.stop)+' 아래로 내려가면 판매하세요.';
+  if(e.t==='buy')return n+' '+won(e.buy)+'에 구매 추천이에요. '+(e.target!=null?'목표 가격은 '+won(e.target)+'. ':'목표 가격은 정하지 않았어요. ')+(e.stop!=null?won(e.stop)+' 아래로 내려가면 판매하세요.':'손해 막는 가격도 정하지 않았어요.');
   if(e.t==='sell')return n+' '+won(e.sell)+'에 판매 추천이에요. 구매 가격 '+won(s.cur.buy)+' 대비 '+pct(s.ret)+'예요.';
   if(e.t==='revise')return n+' '+s.changed.map(function(c){return FIELD_LABEL[c.k]+'을 '+won(c.from)+'에서 '+won(c.to)+'으로'}).join(', ')+' 바꿨어요.';
   if(e.t==='watch')return josa(n,'은','는')+' 아직 구매하지 말고 지켜보세요. '+e.text;
@@ -1595,7 +1595,7 @@ function weekLabel(ws){var a=parseAt(ws),b=parseAt(addDays(ws,4));return a.m+'�
 function weekShort(ws){var a=parseAt(ws),b=parseAt(addDays(ws,4));return a.m+'/'+a.d+'~'+b.m+'/'+b.d}
 function isPhone(v){return /^01[016789]-?\d{3,4}-?\d{4}$/.test(v.replace(/\s/g,''))}
 function maskPhone(v){var d=v.replace(/\D/g,'');return d.slice(0,3)+'-****-'+d.slice(-4)}
-function won(n){return n.toLocaleString('ko-KR')+'원'}
+function won(n){return n==null||n===''||isNaN(n)?'없음':Number(n).toLocaleString('ko-KR')+'원'}
 function r1(x){return Math.round(x*10)/10}
 function pct(x){var r=r1(x);return (r>0?'+':r<0?'-':'')+Math.abs(r).toFixed(1)+'%'}
 function tone(x){var r=r1(x);return r>0?'up':r<0?'down':'flat'}
@@ -2156,7 +2156,7 @@ function readPost(){
 }
 function previewText(r){
   var e=r.ev,n=STOCKS[r.s].name,ps=pairState(r.e,r.s);
-  if(e.t==='buy')return n+' '+won(e.buy)+'에 구매 추천이에요. 목표 가격은 '+won(e.target)+', '+won(e.stop)+' 아래로 내려가면 판매하세요.';
+  if(e.t==='buy')return n+' '+won(e.buy)+'에 구매 추천이에요. '+(e.target!=null?'목표 가격은 '+won(e.target)+'. ':'목표 가격은 정하지 않았어요. ')+(e.stop!=null?won(e.stop)+' 아래로 내려가면 판매하세요.':'손해 막는 가격도 정하지 않았어요.');
   if(e.t==='sell'){if(ps.st!=='holding')return null;var ret=(e.sell-ps.a.cur.buy)/ps.a.cur.buy*100;
     return n+' '+won(e.sell)+'에 판매 추천이에요. 구매 가격 '+won(ps.a.cur.buy)+' 대비 '+pct(ret)+'예요. (성적표에 '+(ret>0?'적중':'실패')+'으로 들어가요)';}
   if(e.t==='revise'){if(ps.st!=='holding')return null;var f=['buy','target','stop'].filter(function(k){return e[k]!=null})[0];
@@ -2175,7 +2175,7 @@ function postCalcHTML(){
       if(t>b&&l>0&&l<b)out.push(['손익비 1 : '+((t-b)/(b-l)).toFixed(1),false]);
       var gap=(b-cur)/cur*100;if(Math.abs(gap)>=15)out.push(['지금 가격과 '+pct(gap)+' 차이',true]);
     }}
-  else if(k==='sell'&&ps.st==='holding'){var v=numOf('p-sell');if(v>0){var r=(v-ps.a.cur.buy)/ps.a.cur.buy*100;out.push(['구매 가격 '+won(ps.a.cur.buy)+' 대비 '+pct(r),false]);out.push([v>=ps.a.cur.target?'목표 가격 도달':'목표 가격 '+won(ps.a.cur.target)+' 전',false])}}
+  else if(k==='sell'&&ps.st==='holding'){var v=numOf('p-sell');if(v>0){var r=(v-ps.a.cur.buy)/ps.a.cur.buy*100;out.push(['구매 가격 '+won(ps.a.cur.buy)+' 대비 '+pct(r),false]);out.push([ps.a.cur.target==null?'목표 가격 없음':v>=ps.a.cur.target?'목표 가격 도달':'목표 가격 '+won(ps.a.cur.target)+' 전',false])}}
   else if(k==='revise'&&ps.st==='holding'){var f=valOf('p-field')||'buy',nv=numOf('p-val');if(nv>0)out.push([FIELD_LABEL[f]+' '+won(ps.a.cur[f])+' → '+won(nv),false])}
   return out.map(function(o){return '<span'+(o[1]?' class="warn"':'')+'>'+o[0]+'</span>'}).join('');
 }
@@ -2756,7 +2756,7 @@ function leadingRow(a){
 function summaryHTML(a){
   if(a.status==='done')return '<div class="result"><span class="rl">추천 결과 · '+fmtDate(a.endAt)+' 끝</span><span class="big '+tone(a.ret)+'">'+pct(a.ret)+'</span>'+
       '<span class="rline">'+won(a.cur.buy)+'에 구매 → '+won(a.sell)+'에 판매</span>'+
-      (a.hit?'<span class="pill pill-hit">목표 가격 '+won(a.cur.target)+' 도달</span>':'<span class="pill pill-miss">목표 가격 '+won(a.cur.target)+'에는 못 미침</span>')+'</div>';
+      (a.cur.target==null?(a.hit?'<span class="pill pill-hit">구매 가격보다 비싸게 판매</span>':'<span class="pill pill-miss">구매 가격보다 싸게 판매</span>'):a.hit?'<span class="pill pill-hit">목표 가격 '+won(a.cur.target)+' 도달</span>':'<span class="pill pill-miss">목표 가격 '+won(a.cur.target)+'에는 못 미침</span>')+'</div>';
   if(a.status==='holding')return '<div class="result"><span class="rl">가지고 있는 중 · 구매 가격 대비</span><span class="big '+tone(a.unreal)+'">'+pct(a.unreal)+'</span>'+
       '<span class="rline">'+won(a.cur.buy)+'에 구매 · 지금 '+won(a.stock.price)+'</span>'+
       '<div class="kv"><div><span>목표 가격</span><b>'+won(a.cur.target)+'</b></div><div><span>손해 막는 가격</span><b>'+won(a.cur.stop)+'</b></div></div></div>';

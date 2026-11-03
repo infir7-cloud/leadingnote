@@ -2,7 +2,7 @@
    - 리딩 모음 홈 '오늘의 5줄' 바로 아래에 재료 뉴스 4건 + '전체 보기'
    - 전체 화면(#ln/news): 특징주 · 공시 · 시황 · 이번주 칩으로 골라 보기
    - 데이터: Supabase material_news (평일 예약 작업이 골라 저장 · 가장 최근 날짜만 보여줘요)
-   - 종목명 / 종목 보기 → 네이버증권, # 테마 → 네이버 '관련주' 검색, 기사 원문 → 언론사
+   - 종목명 → 네이버증권 · '종목 보기' → 리딩노트 종목 화면(지수는 네이버), # 테마 → 네이버 '관련주' 검색, 기사 원문 → 언론사
    - 사라·팔라는 말은 쓰지 않아요. 요약은 기사 내용을 짧게 옮긴 것이에요. */
 (function(){
   if (window.__lnNewsOn) return; window.__lnNewsOn = true;
@@ -44,9 +44,11 @@
     '.mn-th::before{content:"# ";color:var(--t2-acc-ink,var(--accent))}',
     '.mn-cta{display:flex;justify-content:flex-end;gap:.4rem}',
     '.mn-cta a{display:inline-flex;align-items:center;gap:.2rem;font-size:.8125rem;font-weight:700;text-decoration:none;border-radius:.45rem;padding:.3rem .65rem;white-space:nowrap}',
+    '.mn-cta button{display:inline-flex;align-items:center;font:inherit;font-size:.8125rem;font-weight:700;border-radius:.45rem;padding:.3rem .65rem;white-space:nowrap;background:none;cursor:pointer}',
     '.mn-cta a svg{width:.85rem;height:.85rem;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}',
     '.mn-cta .s{color:#03A94D;border:1px solid #03A94D}',
     'html.lite .mn-cta .s{color:#018A3E;border-color:#018A3E}',
+    '.mn-cta button.s,html.lite .mn-cta button.s{color:var(--t2-acc-ink,#5B4CF0);border:1px solid currentColor}',
     '.mn-cta .o{color:var(--ink2);border:1px solid var(--line)}',
     '.mn-all{display:flex;align-items:center;justify-content:space-between;width:100%;padding:.85rem 0 1rem;border:0;border-top:1px solid var(--line);background:none;color:var(--ink);font:inherit;font-weight:700;font-size:.9375rem;cursor:pointer}',
     '.mn-all svg{width:1.15rem;height:1.15rem;fill:none;stroke:var(--sn);stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}',
@@ -91,7 +93,8 @@
     var chg = r.chg != null && r.chg !== '' ? '<span class="mn-c ' + (Number(r.chg) >= 0 ? 'up' : 'down') + '">' + fmt(r.chg) + '</span>' : '';
     var th = (r.themes || []).map(function(t){ return '<a class="mn-th" href="' + esc(search(t + ' 관련주')) + '" target="_blank" rel="noopener noreferrer">' + esc(t) + '</a>'; }).join('');
     var main = st[0];
-    var cta = (main ? '<a class="s" href="' + esc(stockUrl(main)) + '" target="_blank" rel="noopener noreferrer">' + (main.idx ? '지수 보기' : '종목 보기') + '</a>' : '') +
+    var cta = (main ? (main.c && !main.idx ? '<button type="button" class="s" data-a="mnStock" data-v="' + esc(main.c) + '|' + esc(main.n || '') + '">종목 보기</button>'
+        : '<a class="s" href="' + esc(stockUrl(main)) + '" target="_blank" rel="noopener noreferrer">' + (main.idx ? '지수 보기' : '종목 보기') + '</a>') : '') +
       '<a class="o" href="' + esc(r.url) + '" target="_blank" rel="noopener noreferrer">기사 원문' + IC.out + '</a>';
     return '<article class="mn-it">' +
       '<h3 class="mn-hd"><span class="mn-k">' + esc(r.kind) + '</span>' + esc(r.headline) + '</h3>' +
@@ -142,6 +145,9 @@
     w.screenExperts = function(){ var v = w.view(); if (v && v.t === 'mnews') return screen(); return oXs.apply(this, arguments); };
     var top0 = function(){ try { w.scrollTo(0, 0); } catch (e) {} };
     w.A.mnOpen = function(){ w.pushView('mnews', ''); w.render(); top0(); if (Date.now() - N.at > 5 * 60e3) load(); };
+    w.A.mnStock = function(v){ var p = String(v || '').split('|'), c = p[0]; if (!/^[0-9A-Z]{6}$/.test(c)) return;
+      try { var H = window.__lnHome; if (H) { H.names = H.names || {}; H.names[c] = p.slice(1).join('|'); } } catch (e) {}
+      w.A.stock(c); top0(); };
     w.A.mnKind = function(v){ N.kind = v || '전체'; w.render(); };
     var ogo = w.__site && w.__site.go;
     if (ogo) w.__site.go = function(r){ if (r === 'news') { w.S.stack = [{ t: 'mnews', id: '' }]; w.S.sheet = null; w.S.tab = 'home'; w.render(); top0(); return; } return ogo.apply(this, arguments); };

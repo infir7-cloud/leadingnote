@@ -57,6 +57,24 @@
     return { room: room, msgs: msgs, fmt: fmt || '알 수 없음' };
   }
   // 같은 사람이 2분 안에 이어 보낸 메시지는 한 글로 합쳐요
+  // 회원 질문: 전문가 답 바로 앞(10분 안) 질문을 짝지어요. 닉네임은 버리고, 전화번호·계좌번호·링크·@호출만 지워요 (금액은 그대로)
+  var QRE = /\?|？|어떻|어때|어떤가|보시나|보세요|봐야|될까|할까|팔까|살까|사도|팔아야|들고|홀딩|물렸|손절해야|전망|괜찮|가능할까|오를까|갈까|버틸|기다려|정리할/;
+  function clean(q){
+    return String(q || '').replace(/@\S+/g, '').replace(/https?:\/\/\S+/g, '')
+      .replace(/01[016789][-\s.]?\d{3,4}[-\s.]?\d{4}/g, '').replace(/\d[\d-]{9,}\d/g, '')
+      .replace(/\s+/g, ' ').trim().slice(0, 120);
+  }
+  function pair(posts, msgs, who){
+    var qs = msgs.filter(function(m){ return m.who !== who && QRE.test(m.text) && !JUNK.test(m.text.trim()) && m.text.trim().length >= 4; });
+    var used = {}, j = 0;
+    posts.forEach(function(p){
+      var t0 = Date.parse(p.at), best = -1;
+      while (j < qs.length && Date.parse(qs[j].at) <= t0) j++;
+      for (var i = j - 1; i >= 0; i--) { var tq = Date.parse(qs[i].at); if (t0 - tq > 600e3) break; if (!used[i]) { best = i; break; } }
+      if (best > -1) { used[best] = 1; var c = clean(qs[best].text); if (c.length >= 4) { p.q = c; p.qa = qs[best].at; } }
+    });
+    return posts;
+  }
   function merge(list){
     var out = [];
     list.forEach(function(x){
@@ -88,11 +106,12 @@
           '<p class="hint" style="margin:2px 0 8px">기록을 공개하려면 다시 볼 수 있는 출처 주소(https://)가 꼭 있어야 해요. 주소가 없으면 \'가져온 글\'에서 채울 때 직접 넣어야 해요.</p>';
         if (st.who) {
           var mine = D.msgs.filter(function(x){ var d = x.at.slice(0, 10); return x.who === st.who && d >= (st.from || d0) && d <= (st.to || d1) && !JUNK.test(x.text.trim()); });
-          var posts = merge(mine), keep = posts.filter(function(p){ return worth(p.text); });
+          var posts = pair(merge(mine), D.msgs, st.who), keep = posts.filter(function(p){ return worth(p.text) || (p.q && p.text.replace(/\s/g, '').length >= 4); });
+          var nq = keep.filter(function(p){ return p.q; }).length;
           st.keep = keep;
-          h += '<div class="card" style="background:var(--bg);margin:10px 0"><b>' + esc(st.who) + '</b> 메시지 ' + mine.length.toLocaleString() + '개 → 이어 보낸 것을 합쳐 ' + posts.length.toLocaleString() + '개 → <b style="color:var(--acc)">종목·가격 이야기로 보이는 글 ' + keep.length.toLocaleString() + '개</b>' +
+          h += '<div class="card" style="background:var(--bg);margin:10px 0"><b>' + esc(st.who) + '</b> 메시지 ' + mine.length.toLocaleString() + '개 → 이어 보낸 것을 합쳐 ' + posts.length.toLocaleString() + '개 → <b style="color:var(--acc)">종목·가격 이야기로 보이는 글 ' + keep.length.toLocaleString() + '개</b>' + (nq ? ' (회원 질문에 답한 글 ' + nq.toLocaleString() + '개 포함 · 질문은 닉네임 없이 보내요)' : '') +
             (keep.length > 1500 ? '<div class="msg warn" style="margin:8px 0 0">글이 많아요. AI가 5분마다 40개씩 읽어서 다 읽는 데 약 ' + Math.ceil(keep.length / 40 * 5 / 60) + '시간 걸려요. 시험이라면 기간을 1~2주로 줄여 보세요.</div>' : keep.length ? '<p class="hint" style="margin:6px 0 0">AI가 다 읽는 데 약 ' + Math.max(5, Math.ceil(keep.length / 40) * 5) + '분 걸려요.</p>' : '') +
-            keep.slice(0, 5).map(function(p){ return '<div class="quote" style="white-space:pre-wrap;max-height:6em;overflow:hidden;margin-top:8px"><span class="src">' + p.at.slice(0, 16).replace('T', ' ') + '</span>\n' + esc(p.text.slice(0, 240)) + '</div>'; }).join('') +
+            keep.slice(0, 5).map(function(p){ return '<div class="quote" style="white-space:pre-wrap;max-height:8em;overflow:hidden;margin-top:8px"><span class="src">' + p.at.slice(0, 16).replace('T', ' ') + '</span>' + (p.q ? '\n<span class="src">회원 질문: ' + esc(p.q) + '</span>' : '') + '\n' + esc(p.text.slice(0, 240)) + '</div>'; }).join('') +
             (keep.length > 5 ? '<p class="hint" style="margin:6px 0 0">… 외 ' + (keep.length - 5).toLocaleString() + '개</p>' : '') + '</div>' +
             '<div class="acts"><button class="btn p" id="kks" type="button"' + (keep.length ? '' : ' disabled') + '>가져온 글로 보내기 (' + keep.length.toLocaleString() + '개)</button><span class="hint" id="kkm" style="margin:0;align-self:center"></span></div>';
         }
@@ -123,7 +142,7 @@
         if (!st.ex) { C.flash('warn', '연결할 전문가를 골라 주세요'); return; }
         if (!st.room) { C.flash('warn', '대화방 이름을 적어 주세요'); return; }
         if (st.link && !/^https:\/\//.test(st.link)) { C.flash('warn', '대화방 주소는 https:// 로 시작해야 해요'); return; }
-        var rows = (st.keep || []).map(function(p){ return { at: p.at, b: p.text.slice(0, 6000), k: p.at.slice(0, 16) + '-' + hash(p.text) }; });
+        var rows = (st.keep || []).map(function(p){ var r = { at: p.at, b: p.text.slice(0, 6000), k: p.at.slice(0, 16) + '-' + hash(p.text) }; if (p.q) { r.q = p.q; r.qa = p.qa; } return r; });
         var parts = []; for (var i = 0; i < rows.length; i += 400) parts.push(rows.slice(i, i + 400));
         var added = 0, done = 0, msg = el.querySelector('#kkm'); sb2.disabled = true;
         parts.reduce(function(pr, part){ return pr.then(function(){
@@ -136,5 +155,5 @@
     }
     draw();
   };
-  window.kkParse = parse; window.kkMerge = merge; window.kkWorth = worth; // 점검용
+  window.kkParse = parse; window.kkMerge = merge; window.kkWorth = worth; window.kkPair = pair; window.kkClean = clean; // 점검용
 })();
