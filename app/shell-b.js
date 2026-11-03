@@ -89,22 +89,23 @@
     /* 왼쪽 메뉴 (PC) */
     '@media (min-width:1024px){',
     '  #bn-tab{display:none!important}',
-    '  #shell .body{grid-template-columns:240px minmax(0,1fr)}',
-    '  #bn-side{display:flex;grid-column:1;grid-row:1/3;flex-direction:column;gap:6px;min-height:0;overflow-y:auto;padding:20px 16px 20px;border-right:1px solid var(--line);background:var(--bg);scrollbar-width:thin}',
-    '  #bn-seg,#shell #frames{grid-column:2;justify-self:center}',
-    '  #shell #frames{max-width:760px!important}',
-    '  #bn-seg{width:100%;max-width:560px;padding:16px 16px 8px}',
+    /* 여백 줄이기: 전체 폭을 1200px 안에 모으고, 가운데 화면은 칸을 꽉 채워요 (화면 안 내용은 최대 720px) */
+    '  #shell .body{grid-template-columns:232px minmax(0,1fr);max-width:1200px!important;margin:0 auto!important}',
+    '  #bn-side{display:flex;grid-column:1;grid-row:1/3;flex-direction:column;gap:6px;min-height:0;overflow-y:auto;padding:14px 12px 14px;border-right:1px solid var(--line);background:var(--bg);scrollbar-width:thin}',
+    '  #bn-seg,#shell #frames{grid-column:2}',
+    '  #shell #frames{max-width:none!important;width:100%}',
+    '  #bn-seg{width:100%;max-width:720px;justify-self:center;padding:12px 16px 4px}',
     '}',
-    '.bn-logo{display:flex;align-items:center;gap:10px;min-height:52px;margin:0 0 14px;padding:0 6px;border:0;background:transparent;color:var(--ink);font:inherit;text-align:left;cursor:pointer;border-radius:14px}',
+    '.bn-logo{display:flex;align-items:center;gap:10px;min-height:48px;margin:0 0 8px;padding:0 6px;border:0;background:transparent;color:var(--ink);font:inherit;text-align:left;cursor:pointer;border-radius:14px}',
     '.bn-logo i{flex:none;width:40px;height:40px;border-radius:12px;background:var(--accent);display:flex;align-items:center;justify-content:center}',
     '.bn-logo i svg{width:26px;height:26px}',
     '.bn-logo b{display:block;font-size:19px;font-weight:800;letter-spacing:-.03em;line-height:1.2}.bn-logo small{display:block;font-size:13px;font-weight:600;color:var(--ink2)}',
-    '.bn-mi{display:flex;align-items:center;gap:12px;width:100%;min-height:52px;padding:0 14px;border:0;border-radius:14px;background:transparent;color:var(--ink2);font:inherit;font-size:17px;font-weight:700;letter-spacing:-.02em;text-align:left;cursor:pointer}',
+    '.bn-mi{display:flex;align-items:center;gap:12px;width:100%;min-height:48px;padding:0 12px;border:0;border-radius:14px;background:transparent;color:var(--ink2);font:inherit;font-size:17px;font-weight:700;letter-spacing:-.02em;text-align:left;cursor:pointer}',
     '.bn-mi svg{width:24px;height:24px;flex:none}',
     '.bn-mi:hover{background:var(--surface);color:var(--ink)}',
     '.bn-mi[aria-current="page"]{background:var(--accent-soft,var(--acc-soft));color:var(--t2-acc-ink,var(--accent));font-weight:800}',
     '.bn-mi:focus-visible,.bn-logo:focus-visible{outline:3px solid var(--accent);outline-offset:-3px}',
-    '.bn-join{margin-top:14px;display:flex;flex-direction:column;gap:6px;padding:18px;border-radius:20px;background:var(--surface);box-shadow:0 0 0 1px var(--line) inset}',
+    '.bn-join{margin-top:10px;display:flex;flex-direction:column;gap:6px;padding:16px;border-radius:20px;background:var(--surface);box-shadow:0 0 0 1px var(--line) inset}',
     '.bn-join[hidden]{display:none!important}',
     '.bn-join b{font-size:17px;font-weight:800;letter-spacing:-.02em;line-height:1.35}.bn-join span{font-size:14px;color:var(--ink2);line-height:1.45}',
     '.bn-kk{margin-top:8px;min-height:48px;border:0;border-radius:12px;background:#FEE500;color:#191600;font:inherit;font-size:16px;font-weight:800;cursor:pointer}',
@@ -112,10 +113,10 @@
     '.bn-foot .bn-mi{font-size:15px;min-height:48px}',
     /* 오른쪽 칸 (PC 홈) */
     '@media (min-width:1280px){',
-    '  html.bn-home #shell .body{grid-template-columns:240px minmax(0,1fr) 320px}',
-    '  html.bn-home #bn-panel{display:flex;grid-column:3;grid-row:1/3;flex-direction:column;gap:16px;min-height:0;overflow-y:auto;padding:20px 16px 24px;border-left:1px solid var(--line);background:var(--bg);scrollbar-width:thin}',
+    '  html.bn-home #shell .body{grid-template-columns:232px minmax(0,1fr) 304px}',
+    '  html.bn-home #bn-panel{display:flex;grid-column:3;grid-row:1/3;flex-direction:column;gap:12px;min-height:0;overflow-y:auto;padding:14px 12px 20px;border-left:1px solid var(--line);background:var(--bg);scrollbar-width:thin}',
     '}',
-    '.bn-card{display:flex;flex-direction:column;gap:10px;padding:18px;border-radius:20px;background:var(--surface)}',
+    '.bn-card{display:flex;flex-direction:column;gap:8px;padding:16px;border-radius:20px;background:var(--surface)}',
     '.bn-card h2{margin:0;font-size:17px;font-weight:800;letter-spacing:-.02em;display:flex;align-items:center;gap:6px}',
     '.bn-card h2 small{margin-left:auto;font-size:12px;font-weight:600;color:var(--ink2)}',
     '.bn-sub{margin:-4px 0 0;font-size:13px;color:var(--ink2)}',
@@ -205,6 +206,7 @@
 
   // ---- 각 서비스 화면: 안쪽 아래 메뉴 숨기기
   var FRAME_CSS = 'html body nav.nav,html body nav#nav{display:none!important}:root,html:root{--nav-h:0px!important}' +
+    '@media (min-width:640px){html[data-wide] .app{max-width:720px!important}html[data-wide] .joinbar,html[data-wide] .sheet,html[data-wide] .push,html[data-wide] .composer{max-width:720px!important}}' +
     '.bn-ltop{height:6px}' +
     '.bn-my{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0 4px}' +
     '.bn-my button{display:flex;align-items:center;gap:10px;min-height:56px;padding:0 14px;border:0;border-radius:16px;background:var(--surface);color:var(--ink);font:inherit;font-size:16px;font-weight:700;text-align:left;cursor:pointer}' +

@@ -610,7 +610,7 @@ function xPicks(box,x){
   if(!L.length&&!R.length)h+='<p class="hint" style="margin:0">아직 이 전문가의 종목이 없어요. 방송 종목은 \'방송\' 탭 회차에서, 그 밖의 추천은 \'기록 올리기\'에서 넣어요.</p>';
   if(L.length){h+='<p class="hint" style="margin:0 0 6px">방송 종목 (지난 1년) · 고치면 그 방송 회차에 바로 저장돼요</p>';
     h+=L.map(function(o,j){var k=o.k,sec=k.kind==='secret';
-      var nm=k.stock_name||(sec?'(비공개 · 종목 미정)':'-');
+      var nm=k.stock_name||(sec?'(히든주 · 종목 미정)':'-');
       var px=[k.buy?'매수 '+won(k.buy):'',k.target?'목표 '+won(k.target):'',k.stop?'손절 '+won(k.stop):'',k.sell?'매도 '+won(k.sell):''].filter(Boolean).join(' · ');
       return '<div class="room xpr" data-j="'+j+'"><div style="display:flex;gap:8px;align-items:baseline;flex-wrap:wrap"><b>'+esc(nm)+'</b>'+(k.stock_code?'<small class="src">'+esc(k.stock_code)+'</small>':'')+
         '<span class="tag">'+esc(pkLbl(k,o.ep.program_id))+(sec&&k.revealed?' · 공개됨':'')+'</span>'+(o.ep.published?'':'<span class="tag">사이트 미공개 회차</span>')+
@@ -622,8 +622,8 @@ function xPicks(box,x){
   box.innerHTML=h;
   $$('.xpr',box).forEach(function(row){var o=L[+row.dataset.j];
     $('.pe',row).onclick=function(){var f=$('.pfx',row);if(f.innerHTML){f.innerHTML='';return}pickEdit(f,o,x)};
-    $('.pdl',row).onclick=function(){if(!confirm((o.k.stock_name||'비공개 종목')+'을(를) '+pgName(o.ep.program_id)+' '+bcLbl(o.ep.air_date)+' 회차에서 뺄까요?'))return;
-      var ps=(o.ep.picks||[]).slice();ps.splice(o.i,1);epSave(o.ep,ps,'뺐어요: '+(o.k.stock_name||'비공개 종목'))}});
+    $('.pdl',row).onclick=function(){if(!confirm((o.k.stock_name||'히든주')+'을(를) '+pgName(o.ep.program_id)+' '+bcLbl(o.ep.air_date)+' 회차에서 뺄까요?'))return;
+      var ps=(o.ep.picks||[]).slice();ps.splice(o.i,1);epSave(o.ep,ps,'뺐어요: '+(o.k.stock_name||'히든주'))}});
   $$('.card[data-id]',box).forEach(function(c){var e=S.events.find(function(z){return z.id===c.dataset.id});
     $('.re',c).onclick=function(){editForm($('.ed',c),e,e.status==='published'?'pub':'draft')}});
 }
@@ -654,12 +654,12 @@ function pickEdit(f,o,x){
     var n={expert_id:x.id,expert_name:k.expert_name||x.name,kind:kind,revealed:rev,stock_code:pk?pk.code:(nm===k.stock_name?(k.stock_code||''):''),stock_name:nm,pick_date:$('.kd2',f).value,
       buy:num($('.kb',f).value),target:num($('.kg',f).value),stop:num($('.kl',f).value),sell:num($('.ke',f).value),sell_date:$('.kse',f).value,quote:$('.kq',f).value.trim(),ts:$('.kt',f).value.trim(),label:$('.klb',f).value.trim()};
     if(!nm&&!(kind==='secret'&&!rev)){flash('warn','종목 이름을 넣어 주세요');return}
-    if(kind==='secret'&&rev&&!nm){flash('warn','공개된 비공개 종목은 종목 이름을 넣어 주세요');return}
+    if(kind==='secret'&&rev&&!nm){flash('warn','공개된 히든주는 종목 이름을 넣어 주세요');return}
     if(n.ts&&!/^\d{1,2}:[0-5]\d(:[0-5]\d)?$/.test(n.ts)){flash('warn','영상 시각은 12:34 처럼 써 주세요');return}
     if(n.buy&&n.target&&n.target<=n.buy){flash('warn','목표가는 매수가보다 높아야 해요');return}
     if(n.buy&&n.stop&&n.stop>=n.buy){flash('warn','손절가는 매수가보다 낮아야 해요');return}
     if(n.sell&&!n.buy){flash('warn','매도가를 넣으려면 매수가도 넣어 주세요');return}
-    var ps=(o.ep.picks||[]).slice();ps[o.i]=n;this.disabled=true;epSave(o.ep,ps,'고쳤어요: '+(nm||'비공개 종목'));
+    var ps=(o.ep.picks||[]).slice();ps[o.i]=n;this.disabled=true;epSave(o.ep,ps,'고쳤어요: '+(nm||'히든주'));
   };
 }
 function xDelete(c,x){
@@ -750,8 +750,8 @@ function kYmd(ms){return new Date(ms).toISOString().slice(0,10)}
 function kWd(ymd){var d=new Date(kMs(ymd)).getUTCDay();return d===0?7:d}
 function kHm(ms){var d=new Date(ms);return ('0'+d.getUTCHours()).slice(-2)+':'+('0'+d.getUTCMinutes()).slice(-2)}
 function kNow(){return Date.now()+9*3600e3}
-// 프로그램별 종목 이름 (예: 고수외전 관심종목·히든관심주) · 비워 두면 공개 종목·비공개 종목
-function pgLabels(pid){var p=(S.bcP||[]).filter(function(z){return z.id===pid})[0]||{};return {open:p.open_label||'공개 종목',secret:p.secret_label||'비공개 종목'}}
+// 프로그램별 종목 이름 (예: 고수외전 관심종목·히든관심주) · 비워 두면 공개 종목·히든주 (사이트 좁은 칸엔 늘 [히든주])
+function pgLabels(pid){var p=(S.bcP||[]).filter(function(z){return z.id===pid})[0]||{};return {open:p.open_label||'공개 종목',secret:p.secret_label||'히든주'}}
 function pkLbl(k,pid){var L=pgLabels(pid);return k.label||(k.kind==='secret'?L.secret:L.open)}
 // 몇 주마다 하는 방송(예: 이슈가 머니 3주마다)과, 그날 같은 시간을 내주는 매주 방송 (사이트와 같은 규칙)
 function progOn(p,ymd,all){
@@ -801,7 +801,7 @@ function vBc(m){
   h+=r.past.slice(0,5).map(function(sl,i){return bcSlotRow(sl,(r.top?i+2:i+1)+'번째')}).join('');
   if(!r.top&&!r.past.length)h+='<p class="hint" style="padding:12px 0;margin:0">편성표에 사용 중인 프로그램이 없어요.</p>';
   h+='</div>';
-  h+='<h2>다가오는 방송</h2><p class="lead">출연자와 종목을 미리 넣어 두면 사이트의 방송 정보 화면에 바로 보여요(공개 체크 없이도). 비공개 종목은 공개여부를 체크하기 전까지 이름·가격이 가려져요. 결방이면 회차를 열어 "결방"을 체크해요.</p><div class="card" style="padding:4px 16px">'+(r.next.length?r.next.slice(0,7).map(function(sl){return bcSlotRow(sl)}).join(''):'<p class="hint" style="padding:12px 0;margin:0">다가오는 방송이 없어요.</p>')+'</div>';
+  h+='<h2>다가오는 방송</h2><p class="lead">출연자와 종목을 미리 넣어 두면 사이트의 방송 정보 화면에 바로 보여요(공개 체크 없이도). 히든주는 공개여부를 체크하기 전까지 이름·가격이 가려져요. 결방이면 회차를 열어 "결방"을 체크해요.</p><div class="card" style="padding:4px 16px">'+(r.next.length?r.next.slice(0,7).map(function(sl){return bcSlotRow(sl)}).join(''):'<p class="hint" style="padding:12px 0;margin:0">다가오는 방송이 없어요.</p>')+'</div>';
   h+='<h2>다른 날짜 회차 열기</h2><p class="lead">특집·편성 변경처럼 원래 요일이 아닌 날의 방송도 여기서 넣어요.</p><div class="card"><div class="row"><label class="f"><b>프로그램</b><select id="bop">'+S.bcP.map(function(p){return '<option value="'+esc(p.id)+'">'+esc(p.name)+'</option>'}).join('')+'</select></label>'+
     '<label class="f"><b>방송 날짜</b><input type="date" id="bod" value="'+kYmd(now)+'"></label></div><button class="btn p s" id="boo">회차 열기</button><div class="bcx" id="box1" style="margin-top:12px"></div></div>';
   h+='<h2>편성표<span class="cnt">'+S.bcP.length+'개</span></h2><p class="lead">요일·시간·방송 길이를 바꾸면 사이트 순서가 바로 그 기준으로 바뀌어요. 재방송은 넣지 않아요.</p><div class="card" style="padding:4px 16px">'+
@@ -821,7 +821,7 @@ function bcProgRow(p){
     '<div class="row"><label class="f"><b>방송 주기</b><select class="pew">'+[1,2,3,4].map(function(w){return '<option value="'+w+'"'+(ew===w?' selected':'')+'>'+(w===1?'매주':w+'주마다')+'</option>'}).join('')+'</select></label>'+
       '<label class="f psd-w'+(ew>1?'':' hide')+'"><b>첫 방송 날짜</b><input type="date" class="psd" value="'+esc(p.start_date||'')+'"><i>이날부터 주기마다 방송해요. 같은 요일·시간의 매주 방송은 그날 쉬는 걸로 봐요</i></label></div>'+
     '<div class="row"><label class="f"><b>공개 종목 이름</b><input type="text" class="pol" maxlength="20" value="'+esc(p.open_label||'')+'" placeholder="비우면 \'공개 종목\' · 예: 관심종목"></label>'+
-      '<label class="f"><b>비공개 종목 이름</b><input type="text" class="psl" maxlength="20" value="'+esc(p.secret_label||'')+'" placeholder="비우면 \'비공개 종목\' · 예: 히든관심주"></label></div>'+
+      '<label class="f"><b>히든주 이름 (방송 용어)</b><input type="text" class="psl" maxlength="20" value="'+esc(p.secret_label||'')+'" placeholder="비우면 \'히든주\' · 예: 히든관심주"></label></div>'+
     '<p class="hint" style="margin:-4px 0 10px">방송에서 종목을 부르는 이름이에요. 앱의 방송 종목 카드에 이 이름으로 나와요. 방송 AI가 영상에서 찾으면 빈칸에 자동으로 채워요.</p>'+
     '<label class="f"><b>출연 방식 메모</b><input type="text" class="pl" value="'+esc(p.lineup_note||'')+'" placeholder="예: 전문가 8명 로테이션"><i>출연자를 넣지 않은 회차의 예고에 이 문구가 나와요</i></label>'+
     '<label class="f"><b>본방송 보기 주소</b><input type="url" class="pu" value="'+esc(p.live_url||'')+'" placeholder="https://… (SBS Biz 온에어·라이브 페이지)"><i>앱의 \'본방송\' 단추가 이 주소로 열려요</i></label>'+
@@ -906,7 +906,7 @@ function openEp(box,key){
         buy:num($('.kb',d).value),target:num($('.kg',d).value),stop:num($('.kl',d).value),sell:num($('.ke',d).value),sell_date:$('.kse',d).value,quote:$('.kq',d).value.trim(),ts:$('.kt',d).value.trim(),label:$('.klb',d).value.trim()};
       if(!o.stock_name&&!(kind==='secret'&&!o.revealed))return null;
       if(!o.expert_name)bad=bad||'종목마다 말한 전문가를 골라 주세요';
-      if(kind==='secret'&&o.revealed&&!o.stock_name)bad=bad||'공개된 비공개 종목은 종목 이름을 넣어 주세요';
+      if(kind==='secret'&&o.revealed&&!o.stock_name)bad=bad||'공개된 히든주는 종목 이름을 넣어 주세요';
       if(o.ts&&!/^\d{1,2}:[0-5]\d(:[0-5]\d)?$/.test(o.ts))bad=bad||'영상 시각은 12:34 처럼 써 주세요';
       if(o.buy&&o.target&&o.target<=o.buy)bad=bad||(nm+' 목표가는 매수가보다 높아야 해요');
       if(o.buy&&o.stop&&o.stop>=o.buy)bad=bad||(nm+' 손절가는 매수가보다 낮아야 해요');
@@ -1020,7 +1020,7 @@ function vBcai(m){
     if(j.status==='done'||j.status==='applied'){
       h+='<div class="hint" style="margin:8px 0 4px">출연: '+esc((res.experts||[]).map(function(x){return x.name}).join(', ')||'-')+(res.note?' · 메모: '+esc(res.note):'')+'</div>';
       h+=picks.length?'<div style="overflow-x:auto"><table><thead><tr><th style="white-space:nowrap">전문가</th><th>종목</th><th>매수</th><th>매도</th><th>목표</th><th>장면</th></tr></thead><tbody>'+picks.map(function(p){
-        var stk=(p.label?'<span class="tag">'+esc(p.label)+'</span> ':'')+(p.kind==='secret'&&!p.revealed?'<span class="tag">비공개</span>'+(p.guess?' 추정 <b>'+esc(p.guess)+'</b>'+(p.guess_code?' <span class="hint" style="margin:0">'+esc(p.guess_code)+'</span>':'')+(p.guess_reason?'<div class="src">근거: '+esc(p.guess_reason)+'</div>':''):''):esc(p.stock_name||'-')+(p.stock_code?' <span class="hint" style="margin:0">'+esc(p.stock_code)+'</span>':' <span class="tag late">코드 확인</span>'+((p.candidates||[]).length?'<div class="src">후보: '+p.candidates.map(function(c){return esc(c.name)+' '+esc(c.code)}).join(', ')+'</div>':'')));
+        var stk=(p.label?'<span class="tag">'+esc(p.label)+'</span> ':'')+(p.kind==='secret'&&!p.revealed?'<span class="tag">히든주</span>'+(p.guess?' 추정 <b>'+esc(p.guess)+'</b>'+(p.guess_code?' <span class="hint" style="margin:0">'+esc(p.guess_code)+'</span>':'')+(p.guess_reason?'<div class="src">근거: '+esc(p.guess_reason)+'</div>':''):''):esc(p.stock_name||'-')+(p.stock_code?' <span class="hint" style="margin:0">'+esc(p.stock_code)+'</span>':' <span class="tag late">코드 확인</span>'+((p.candidates||[]).length?'<div class="src">후보: '+p.candidates.map(function(c){return esc(c.name)+' '+esc(c.code)}).join(', ')+'</div>':'')));
         return '<tr><td style="white-space:nowrap">'+esc(p.expert_name)+'</td><td>'+stk+((p.desc||p.quote)?'<div class="src">'+esc(p.desc||p.quote)+'</div>':'')+'</td><td>'+wonT(p.buy)+'</td><td>'+wonT(p.sell)+'</td><td>'+wonT(p.target)+'</td><td>'+(p.ts?'<a href="'+esc(tsUrl(j.video_url,p.ts))+'" target="_blank" rel="noopener noreferrer">'+esc(p.ts)+' ↗</a>':'-')+'</td></tr>'}).join('')+'</tbody></table></div>':'<p class="hint">뽑힌 종목이 없어요.</p>';
     }
     h+='<div class="acts" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">'+
@@ -1070,7 +1070,7 @@ var HELP_DEF=[
   ['지금 수익률','말한 매수 가격과 가장 최근 종가를 비교한 수익률이에요. 아직 팔지 않은 추천이에요.'],
   ['매도 수익률','말한 매수 가격과 매도 가격으로 계산한 수익률이에요.'],
   ['방송일 이후 평균','이 전문가가 방송에서 추천한 종목들의, 방송에서 말한 매수 가격 대비 수익률 평균이에요.'],
-  ['비공개 종목','방송에서 종목 이름을 가리고 소개한 종목이에요. 공개되면 종목과 가격을 바로 정리해 드려요.'],
+  ['히든주','방송에서 종목 이름을 가리고 소개한 종목이에요(고수외전 히든관심주 · 투자앵글 시선고정주 등). 공개되면 종목과 가격을 바로 정리해 드려요.'],
   ['오늘의 5줄','AI가 평일 아침 7시 30분, 지난 24시간 경제 뉴스 제목을 읽고 장 시작 전에 알아둘 이슈를 한 문장씩 골라요. 틀릴 수 있으니 원문 기사도 함께 확인해 주세요.'],
   ['오늘의 언급 종목','전문가들이 공개 채널·방송에서 그날 말한 종목을 센 순위예요. 장 마감 뒤 15:40에 정리돼요.'],
   ['방송 속 고수 종목','SBS Biz 본방송에서 전문가가 말한 종목과 가격을 원본 영상과 함께 정리해요.'],

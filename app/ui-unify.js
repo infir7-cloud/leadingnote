@@ -50,6 +50,9 @@
     P + '.link{min-height:44px}',
     P + 'input:not([type=checkbox]):not([type=radio]):not([type=range]),' + P + 'select{border-radius:12px}',
 
+    /* ── 전문가 이름 앞 첫 글자 동그라미(사진 자리)는 빼고 이름만 */
+    P + '.p-xh .av,' + P + '.hm-av,' + P + '.hm-avs>span,' + P + '.story .av{display:none!important}',
+    P + '.hm-avs em{margin-left:0!important}',
     /* ── 손가락으로 누르기 쉽게: 너무 작은 버튼 막기 */
     P + 'button.sm,' + P + '.btn-sm{min-height:44px!important}'
   ].join('\n');

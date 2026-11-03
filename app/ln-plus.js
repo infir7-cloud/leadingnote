@@ -321,9 +321,10 @@
   function ymdOf(ms){ return new Date(ms).toISOString().slice(0, 10); }
   function wdOf(ymd){ var d = new Date(kstMs(ymd)).getUTCDay(); return d === 0 ? 7 : d; }
   function nowK(){ return Date.now() + 9 * 3600e3 + (X.bcOff || 0); }
-  // 프로그램별 종목 이름: 종목에 적힌 이름 → 프로그램 기본 이름 → '공개 종목'·'비공개 종목'
+  // 프로그램별 종목 이름: 종목에 적힌 이름 → 프로그램 기본 이름 → '공개 종목'·'히든주'
+  // 좁은 칸(방송 목록 칩 · 카드 이름표)은 늘 3글자 '[히든주]'로 줄여요
   function bcProg(pid){ var L = (X.bc && X.bc.programs) || []; for (var i = 0; i < L.length; i++) if (L[i].id === pid) return L[i]; return null; }
-  function pkLabel(k, pid){ var p = bcProg(pid) || {}; return String(k.label || (k.kind === 'secret' ? p.secret_label : p.open_label) || (k.kind === 'secret' ? '비공개 종목' : '공개 종목')); }
+  function pkLabel(k, pid){ var p = bcProg(pid) || {}; return String(k.label || (k.kind === 'secret' ? p.secret_label : p.open_label) || (k.kind === 'secret' ? '히든주' : '공개 종목')); }
   function secretFirst(L){ return L.slice().sort(function(a, b){ return (b.kind === 'secret' ? 1 : 0) - (a.kind === 'secret' ? 1 : 0); }); }
   // 몇 주마다 하는 방송(이슈가 머니 3주마다)과, 그날 같은 시간을 내주는 매주 방송
   function progOn(p, ymd, all){
@@ -393,7 +394,7 @@
   }
   function bcRow(sl){
     var ep = sl.ep, pk = ep && ep.published ? ep.picks || [] : [], who = lineup(sl), st = epStat(ep);
-    var chipsH = pk.length ? '<span class="pk">' + secretFirst(pk).slice(0, 4).map(function(k){ return k.kind === 'secret' ? '<span class="hd">' + IC.lock + esc(pkLabel(k, sl.p.id)) + (k.revealed ? ' · ' + esc(k.stock_name) : '') + '</span>' : '<span>' + esc(k.stock_name) + '</span>'; }).join('') + (pk.length > 4 ? '<span>+' + (pk.length - 4) + '</span>' : '') + '</span>' : '<span class="wait">' + (ep && ep.published ? '이 회차에 정리된 종목이 없어요' : '방송에서 나온 종목을 정리하는 중이에요') + '</span>';
+    var chipsH = pk.length ? '<span class="pk">' + secretFirst(pk).slice(0, 4).map(function(k){ return k.kind === 'secret' ? '<span class="hd">[히든주]' + (k.revealed && k.stock_name ? ' ' + esc(k.stock_name) : '') + '</span>' : '<span>' + esc(k.stock_name) + '</span>'; }).join('') + (pk.length > 4 ? '<span>+' + (pk.length - 4) + '</span>' : '') + '</span>' : '<span class="wait">' + (ep && ep.published ? '이 회차에 정리된 종목이 없어요' : '방송에서 나온 종목을 정리하는 중이에요') + '</span>';
     var sum = st.avg != null ? '<span class="sum">추천 ' + st.nr + '종목 평균 <b class="' + tone(st.avg) + '">' + pctS(st.avg) + '</b></span>' : '';
     return '<div class="p-bc"><button class="p-bc-main" data-a="pBc" data-v="' + esc(sl.key) + '"><span class="h"><b>' + esc(sl.p.name) + '</b><small>' + dLbl(sl.date) + ' ' + hmK(sl.start) + '</small></span>' +
       (who ? '<span class="who">' + esc(who) + '</span>' : '') + chipsH + sum + '</button>' + bcBtns(sl, false) + '</div>';
@@ -405,7 +406,7 @@
     var today = ymdOf(now), yday = ymdOf(kstMs(today) - 864e5);
     var when = sl.date === today ? '오늘 방송' : sl.date === yday ? '어제 방송' : dLbl(sl.date) + ' 방송';
     var vu = ep && ep.published ? ep.video_url : '';
-    var chipsH = pk.length ? '<span class="pk">' + secretFirst(pk).slice(0, 4).map(function(k){ return k.kind === 'secret' ? '<span class="hd">' + IC.lock + esc(pkLabel(k, sl.p.id)) + (k.revealed ? ' · ' + esc(k.stock_name) : '') + '</span>' : '<span>' + esc(k.stock_name) + '</span>'; }).join('') + (pk.length > 4 ? '<span>+' + (pk.length - 4) + '</span>' : '') + '</span>' : '';
+    var chipsH = pk.length ? '<span class="pk">' + secretFirst(pk).slice(0, 4).map(function(k){ return k.kind === 'secret' ? '<span class="hd">[히든주]' + (k.revealed && k.stock_name ? ' ' + esc(k.stock_name) : '') + '</span>' : '<span>' + esc(k.stock_name) + '</span>'; }).join('') + (pk.length > 4 ? '<span>+' + (pk.length - 4) + '</span>' : '') + '</span>' : '';
     var sum = st.avg != null ? '<span class="sum">추천 ' + st.nr + '종목 평균 <b class="' + tone(st.avg) + '">' + pctS(st.avg) + '</b></span>' : '';
     var play = vu ? '<a class="p-rp-play" href="' + esc(vu) + '" target="_blank" rel="noopener noreferrer">' + PLAY + '재방송 보기</a>' : '<button class="p-rp-play" disabled>재방송 영상 준비 중이에요</button>';
     return '<div class="p-rp"><button class="p-bc-main" data-a="pBc" data-v="' + esc(sl.key) + '"><span class="p-rp-st">' + PLAY + when + ' 다시 보기</span>' +
@@ -429,7 +430,7 @@
     var lbl = pkLabel(k, ep && ep.program_id);
     if (k.kind === 'secret' && !k.revealed) {
       var x0 = bcX(w, k.expert_id, k.expert_name);
-      return '<div class="p-pick lock hid">' + who + '<span class="kd hd">' + IC.lock + esc(lbl) + '</span><b class="stk">' + IC.lock + ' 방송에서 아직 공개 전이에요</b><p>공개되면 종목과 매수·목표 가격을 바로 정리해 드려요.</p>' +
+      return '<div class="p-pick lock hid">' + who + '<span class="kd hd">' + IC.lock + '히든주</span><b class="stk">' + IC.lock + ' 방송에서 아직 공개 전이에요</b><p>공개되면 종목과 매수·목표 가격을 바로 정리해 드려요.</p>' +
         (x0 ? '<button class="p-btn" data-a="pBcFollow" data-v="' + esc(x0.id) + '" style="margin-top:.5rem">' + esc(nameOnly(x0.name)) + ' 방송 정리 받기</button>' : '') + '</div>';
     }
     var hasS = k.stock_code && w && w.STOCKS && w.STOCKS[k.stock_code], r = pickRet(k);
@@ -440,7 +441,7 @@
     if (k.stop) px.push('<span>손절 <b>' + wonP(k.stop) + '</b>' + (k.buy ? ' <em class="down">' + pctS((k.stop / k.buy - 1) * 100) + '</em>' : '') + '</span>');
     if (k.sell) px.push('<span>매도 <b>' + wonP(k.sell) + '</b></span>');
     var badge = r ? '<span class="rt ' + tone(r.v) + '"><small>' + (r.done ? '매도 수익률' : '지금 수익률') + '</small>' + pctS(r.v) + '</span>' : '';
-    return '<div class="p-pick' + (k.kind === 'secret' ? ' hid' : '') + '">' + who + '<div class="top"><span class="kd' + (k.kind === 'secret' ? ' hd' : '') + '">' + (k.kind === 'secret' ? IC.lock + esc(lbl) + ' · 방송에서 공개' : esc(lbl)) + '</span>' + badge + '</div>' +
+    return '<div class="p-pick' + (k.kind === 'secret' ? ' hid' : '') + '">' + who + '<div class="top"><span class="kd' + (k.kind === 'secret' ? ' hd' : '') + '">' + (k.kind === 'secret' ? IC.lock + '히든주' : esc(lbl)) + '</span>' + badge + '</div>' +
       '<b class="stk">' + stock + '</b>' + (px.length ? '<div class="px">' + px.join('') + '</div>' : '') +
       '<small class="dt">' + (k.pick_date ? (+String(k.pick_date).slice(5, 7)) + '.' + (+String(k.pick_date).slice(8, 10)) + ' 방송 추천' : '') + (k.sell && k.sell_date ? ' · ' + (+String(k.sell_date).slice(5, 7)) + '.' + (+String(k.sell_date).slice(8, 10)) + ' 매도' : '') + (r && !r.done && r.asOf ? ' · ' + (+String(r.asOf).slice(5, 7)) + '.' + (+String(r.asOf).slice(8, 10)) + ' 종가 기준' : '') + '</small>' +
       (k.quote ? '<q>"' + esc(k.quote) + '"</q>' : '') +
@@ -568,7 +569,7 @@
     '지금 수익률': '말한 매수 가격과 가장 최근 종가를 비교한 수익률이에요. 아직 팔지 않은 추천이에요.',
     '매도 수익률': '말한 매수 가격과 매도 가격으로 계산한 수익률이에요.',
     '방송일 이후 평균': '이 전문가가 방송에서 추천한 종목들의, 방송에서 말한 매수 가격 대비 수익률 평균이에요.',
-    '비공개 종목': '방송에서 종목 이름을 가리고 소개한 종목이에요. 공개되면 종목과 가격을 바로 정리해 드려요.',
+    '히든주': '방송에서 종목 이름을 가리고 소개한 종목이에요(고수외전 히든관심주 · 투자앵글 시선고정주 등). 공개되면 종목과 가격을 바로 정리해 드려요.',
     '오늘의 5줄': 'AI가 평일 아침 7시 30분, 지난 24시간 경제 뉴스 제목을 읽고 장 시작 전에 알아둘 이슈를 한 문장씩 골라요. 틀릴 수 있으니 원문 기사도 함께 확인해 주세요.',
     '오늘의 언급 종목': '전문가들이 공개 채널·방송에서 그날 말한 종목을 센 순위예요. 장 마감 뒤 15:40에 정리돼요.',
     '방송 속 고수 종목': 'SBS Biz 본방송에서 전문가가 말한 종목과 가격을 원본 영상과 함께 정리해요.',
@@ -614,7 +615,7 @@
   }
 
   // ── ? 붙이기: 화면에 보이는 짧은 이름표(적중률 등) 옆에 자동으로
-  var AUTO_Q = ['적중률', '따라수익', '주간 성적', '반대지표', '지금 수익률', '매도 수익률', '방송일 이후 평균', '비공개 종목', '오늘의 언급 종목', '최근 언급 종목', '방송 속 고수 종목'];
+  var AUTO_Q = ['적중률', '따라수익', '주간 성적', '반대지표', '지금 수익률', '매도 수익률', '방송일 이후 평균', '히든주', '오늘의 언급 종목', '최근 언급 종목', '방송 속 고수 종목'];
   function attachQ(d){
     var els = d.querySelectorAll('span, b, small, dt, h2, .t2-h, .kd');
     for (var i = 0; i < els.length; i++) {
