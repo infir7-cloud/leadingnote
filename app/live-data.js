@@ -280,7 +280,7 @@
       var b = '<div class="mhead"><h2>무료로 시작하기</h2><button class="jx" data-a="closeSheet" aria-label="닫기">' + w.IC.close + '</button></div>' +
         (S.joinReason ? '<p class="landing-tag">' + escH(S.joinReason) + '</p>' : '') +
         w.kakaoBtn('카카오로 시작하기') +
-        '<p class="ln-kakao-note">카카오 계정의 <b>닉네임</b>만 받아요. 비밀번호를 따로 만들 필요가 없고, 가입비·이용료도 없어요.<br>시작하면 <a href="' + new URL('terms.html', d.URL).href + '" target="_blank" rel="noopener">이용약관</a>과 <a href="' + new URL('privacy.html', d.URL).href + '" target="_blank" rel="noopener">개인정보 처리방침</a>에 동의하는 것으로 봐요.</p>';
+        '<p class="ln-kakao-note">카카오 계정의 <b>닉네임</b>만 받아요. 비밀번호를 따로 만들 필요가 없고, 가입비·이용료도 없어요.<br>처음 시작할 때 <a href="' + new URL('terms.html', d.URL).href + '" target="_blank" rel="noopener">이용약관</a>과 <a href="' + new URL('privacy.html', d.URL).href + '" target="_blank" rel="noopener">개인정보 처리방침</a> 동의를 받아요.</p>';
       return '<div class="scrim center" data-a="closeSheet" data-self="1"><div class="modal" role="dialog" aria-modal="true" aria-label="로그인 또는 회원가입">' + b + '</div></div>';
     };
     A.asRole = function(){};
