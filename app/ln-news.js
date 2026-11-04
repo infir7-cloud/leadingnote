@@ -57,7 +57,8 @@
     '.mn-chip{flex:none;font:inherit;font-size:.875rem;font-weight:700;color:var(--ink);background:var(--sunk);border:0;border-radius:999px;padding:.45rem .85rem;cursor:pointer}',
     '.mn-chip[aria-pressed="true"]{background:var(--accent);color:var(--on-accent)}',
     '.mn-disc{font-size:.75rem;color:var(--sn);padding:.6rem 0 .9rem;border-top:1px solid var(--line);line-height:1.5;margin:0}',
-    '.mn-empty{font-size:.9375rem;color:var(--ink2);padding:.75rem 0 1rem}'
+    '.mn-empty{font-size:.9375rem;color:var(--ink2);padding:.75rem 0 1rem}',
+    '.mn-old{margin:0 0 .5rem;padding:.5rem .75rem;border-radius:12px;background:var(--t2-ys,#FFF4DB);color:var(--warn,#B25E00);font-size:.875rem;font-weight:700}'
   ].join('\n');
 
   // ── 데이터
@@ -105,12 +106,20 @@
   }
   var DISC = '<p class="mn-disc">개인투자자가 눈여겨볼 기사를 골라 짧게 옮겼어요. 등락률은 기사 작성 시점 기준이라 지금 시세와 다를 수 있어요. 사거나 팔라는 권유가 아니에요.</p>';
 
+  // 오늘(한국 시간) 기사가 아직 없으면 '지난 기사'라고 분명히 알려요 (평일 09:47 · 15:47에 올라와요)
+  function todayK(){ return new Date(Date.now() + 9 * 3600e3).toISOString().slice(0, 10); }
+  function staleNote(){
+    if (!N.day || N.day >= todayK()) return '';
+    var d = new Date(Date.now() + 9 * 3600e3), wd = d.getUTCDay(), hm = d.getUTCHours() * 60 + d.getUTCMinutes();
+    var when = wd === 0 || wd === 6 ? '주말이라 마지막 평일 기사예요' : hm < 9 * 60 + 50 ? '오늘 기사는 오전 10시쯤 올라와요' : '오늘 기사를 정리하는 중이에요';
+    return '<p class="mn-old">' + esc(dayLbl(N.day)) + ' 기사예요 · ' + when + '</p>';
+  }
   function homeSec(){
     if (!N.rows || !N.rows.length) return '';
     var top = N.rows.filter(function(r){ return r.kind !== '시황'; }).slice(0, HOME_N);
     if (!top.length) top = N.rows.slice(0, HOME_N);
     return '<section class="t2-sec mn-home"><div class="t2-h" style="cursor:default">오늘의 재료 뉴스<span class="mn-day">' + esc(dayLbl(N.day)) + '</span></div>' +
-      '<p class="mn-sub">개인투자자가 눈여겨볼 기사만 골랐어요</p>' +
+      '<p class="mn-sub">개인투자자가 눈여겨볼 기사만 골랐어요</p>' + staleNote() +
       '<div class="mn-list">' + top.map(item).join('') + '</div>' +
       '<button class="mn-all" data-a="mnOpen"><span>재료 뉴스 전체 ' + N.rows.length + '건 보기</span>' + IC.chev + '</button></section>';
   }
@@ -121,7 +130,7 @@
     var chips = KINDS.map(function(k){ var n = k === '전체' ? N.rows.length : N.rows.filter(function(r){ return r.kind === k; }).length; if (!n) return '';
       return '<button class="mn-chip" data-a="mnKind" data-v="' + k + '" aria-pressed="' + (k === N.kind) + '">' + k + ' ' + n + '</button>'; }).join('');
     return '<main class="t2"><section class="t2-sec"><div class="t2-h" style="cursor:default">' + esc(dayLbl(N.day)) + ' 재료 뉴스</div>' +
-      '<p class="mn-sub">종목 이름을 누르면 네이버증권, # 테마를 누르면 관련주 검색으로 가요</p>' +
+      '<p class="mn-sub">종목 이름을 누르면 네이버증권, # 테마를 누르면 관련주 검색으로 가요</p>' + staleNote() +
       '<div class="mn-chips" role="group" aria-label="분류">' + chips + '</div>' +
       '<div class="mn-list">' + (list.length ? list.map(item).join('') : '<p class="mn-empty">이 분류의 기사가 없어요.</p>') + '</div>' + DISC + '</section></main>';
   }
@@ -168,4 +177,7 @@
   // 처음 한 번 + 10분마다 새로 받아요 (아침 · 장마감 갱신 반영)
   function boot(){ if (client() || cfg()) load(); else setTimeout(boot, 500); }
   boot(); setInterval(load, 10 * 60e3);
+  // 휴대폰에서 화면을 다시 켰을 때 예전 기사가 남아 있지 않게 바로 새로 읽어요
+  function again(){ if (document.visibilityState === 'hidden') return; if (Date.now() - N.at > 2 * 60e3 || (N.day && N.day < todayK())) load(); }
+  document.addEventListener('visibilitychange', again); window.addEventListener('focus', again); window.addEventListener('pageshow', again);
 })();

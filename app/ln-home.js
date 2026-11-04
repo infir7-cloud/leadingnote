@@ -53,6 +53,7 @@
     '.hm-dot{width:.6rem;height:.6rem;border-radius:50%;background:#fff;box-shadow:0 0 0 .25rem rgba(255,255,255,.3);flex:none}',
     '.hm-h1{font-size:1.5625rem;font-weight:800;line-height:1.36;letter-spacing:-.03em;margin:.5rem 0 0;word-break:keep-all}',
     '.hm-h1 em{font-style:normal;color:#FFD43B}',
+    '.hm-xl{border:0;background:none;padding:0;font:inherit;font-weight:800;color:var(--t2-acc-ink,var(--accent));text-decoration:underline;text-underline-offset:3px;text-decoration-thickness:1.5px;cursor:pointer}.hm-xl:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}',
     '.hm-h1s{display:block;font-size:1rem;font-weight:600;opacity:.88;letter-spacing:-.01em;margin-bottom:.15rem}.hm-h1b{display:block;font-size:1.625rem;font-weight:900;letter-spacing:-.035em}',
     '.hm-p{font-size:.9375rem;margin:.4rem 0 0;opacity:.85;line-height:1.5}',
     '.hm-chips{display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.875rem}',
@@ -283,7 +284,19 @@
   function lastEp(pid, before){ return pubEps().filter(function(e){ return e.program_id === pid && e.air_date < before; })[0] || null; }
   function openPicks(e){ return ((e && e.picks) || []).filter(function(k){ return k.stock_code && !(k.kind === 'secret' && !k.revealed); }); }
   function wdNum(date){ var d = new Date(kms(date)).getUTCDay(); return d === 0 ? 7 : d; }
-  function progOnDate(date){ var w = wdNum(date); return progs().filter(function(p){ return +p.weekday === w; })[0] || null; }
+  function progOnDate(date){
+    var A = window.__lnPlus && window.__lnPlus.api, L = progs();
+    if (A && A.progOn) return L.filter(function(p){ return A.progOn(p, date, L); })[0] || null;   // 몇 주마다 하는 방송(이슈가 머니)도 맞춰요
+    var w = wdNum(date); return L.filter(function(p){ return +p.weekday === w && !((+p.every_weeks || 1) > 1); })[0] || null;
+  }
+  // 전문가 이름 → 전문가 홈 링크 (등록된 전문가만, 아니면 글자만)
+  function xOf(id, name){
+    var w = lnWin(); if (!w || !w.EXPERTS) return null;
+    var x = id && w.expertById ? w.expertById(id) : null; if (x) return x;
+    var k = String(name || '').replace(/\s+/g, ''); if (!k) return null;
+    return w.EXPERTS.filter(function(e){ return String(e.name || '').replace(/\s+/g, '') === k; })[0] || null;
+  }
+  function xLink(id, name){ var x = xOf(id, name); return x ? '<button class="hm-xl" data-a="expert" data-v="' + esc(x.id) + '">' + esc(name || x.name) + '</button>' : esc(name || ''); }
   function exName(e){ return ((e && e.experts) || []).map(function(x){ return x.name; }); }
   function lineupOf(e, p){ var n = exName(e); if (n.length) return n; return String((p && p.lineup_note) || '').split(/[,·、]/).map(function(x){ return x.trim(); }).filter(function(x){ return x && x.length <= 6; }); }
 
@@ -680,10 +693,10 @@
     var ps = stockPicks(code), on = priceOn(), h = '';
     if (ps.length) {
       var p0 = ps[0], o = info(p0.k, p0.e.air_date), pg = prog(p0.e.program_id);
-      h += '<section class="t2-sec hm-sec"><div class="hm-sh"><div><h2>방송가에서 얼마나 왔을까?</h2><small>' + esc(pg ? pg.name : '') + ' ' + md(p0.e.air_date) + ' · ' + esc(p0.k.expert_name || '') + '</small></div></div>' +
+      h += '<section class="t2-sec hm-sec"><div class="hm-sh"><div><h2>방송 추천 후 얼마나 움직였을까?</h2><small>' + esc(pg ? pg.name : '') + ' ' + md(p0.e.air_date) + ' · ' + xLink(p0.k.expert_id, p0.k.expert_name) + '</small></div></div>' +
         (on ? posbar(o, true) + stHTML(statusOf(o)) : '<p class="hm-note" style="font-size:.9375rem">' + esc(p0.k.quote || '') + '</p>') +
         (ps.length > 1 ? '<div style="margin-top:.75rem">' + ps.slice(0, 5).map(function(x){ var oo = info(x.k, x.e.air_date), g = prog(x.e.program_id);
-          return '<div class="hm-row" style="cursor:default"><span class="hm-av">' + esc((x.k.expert_name || '?').charAt(0)) + '</span><span class="hm-mid"><b>' + esc(x.k.expert_name || '') + ' · ' + esc(g ? g.name : '') + '</b><span>' + md(x.e.air_date) + (x.k.target ? ' · 목표 ' + won(x.k.target) + '원' : '') + '</span></span>' + (on && oo.ret != null ? '<span class="hm-v hm-' + tone(oo.ret) + '">' + pct(oo.ret) + '</span>' : '') + '</div>'; }).join('') + '</div>' : '') +
+          return '<div class="hm-row" style="cursor:default"><span class="hm-mid"><b>' + xLink(x.k.expert_id, x.k.expert_name) + ' · ' + esc(g ? g.name : '') + '</b><span>' + md(x.e.air_date) + (x.k.target ? ' · 목표 ' + won(x.k.target) + '원' : '') + '</span></span>' + (on && oo.ret != null ? '<span class="hm-v hm-' + tone(oo.ret) + '">' + pct(oo.ret) + '</span>' : '') + '</div>'; }).join('') + '</div>' : '') +
         (on ? pxNote() : '<p class="hm-note">방송에서 전문가가 한 말이에요 · 사거나 팔라는 권유가 아니에요</p>') + '</section>';
       if (p0.k.target || p0.k.buy || (on && o.base)) {
         var b = p0.k.buy || o.base, s = p0.k.target || o.cur || b;
