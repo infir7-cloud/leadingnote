@@ -1,4 +1,5 @@
-<!doctype html><html lang="ko"><head><meta name="robots" content="noindex"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>[hidden]{display:none!important}.stories,.stage-track,.hscroll,.table-wrap{position:relative}</style></head><body><script src="ln-data.js?v=202610200807"></script><title>리딩노트</title>
+<!doctype html><html lang="ko"><head><meta name="robots" content="noindex"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>[hidden]{display:none!important}.stories,.stage-track,.hscroll,.table-wrap{position:relative}.xnm{display:inline-flex;align-items:baseline;gap:.28em;min-width:0;max-width:100%}.xnm .xtl{font-size:.72em;font-weight:600;color:var(--ink2);letter-spacing:0;white-space:nowrap}h2 .xnm .xtl,h1 .xnm .xtl{font-size:.6em}
+</style></head><body><script src="ln-data.js?v=202610200807"></script><title>리딩노트</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&amp;family=IBM+Plex+Sans+KR:wght@400;500;600;700&amp;display=swap">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
@@ -1496,6 +1497,10 @@ function shareText(tok,link){
   return link;
 }
 function expertOf(id){for(var i=0;i<EXPERTS.length;i++)if(EXPERTS[i].id===id)return EXPERTS[i];return null}
+/* 전문가 호칭: 이름 혼자 보일 때 '이름 + 작은 호칭(자문역·전문가)' — 방송 출연자로 보일 때는 이름만 (운영실 '전문가'에서 정해요, 기본 자문역) */
+var XT=window.XT||{};
+function xTitle(x){var m=window.XT||XT||{},id=x&&x.id;return (id&&m[id])||'자문역'}
+function xN(x){if(!x)return '';return '<span class="xnm">'+esc(x.name)+'<small class="xtl">'+esc(xTitle(x))+'</small></span>'}
 function oneLiner(stockId){
   var best=null;
   LEADINGS.forEach(function(L){if(L.stock!==stockId)return;var a=analyze(L);if(a.lastLead&&(!best||a.lastLead.e.at>best.s.e.at))best={a:a,s:a.lastLead};});
@@ -1975,7 +1980,7 @@ function stageCard(x,solo){
   return '<button class="stage'+(live?' on-air':'')+(solo?' solo':'')+'" data-a="expert" data-v="'+x.id+'" aria-label="'+esc(x.name)+(live?', '+esc(x.live.ch)+' 방송 중':'')+', 자세히 보기">'+
     '<span class="st-top">'+top+'</span>'+
     '<span class="st-title">'+title+'</span>'+
-    '<span class="st-who">'+avatar(x)+'<span class="st-name"><b>'+esc(x.name)+'</b><span>팔로워 '+fansOf(x).toLocaleString('ko-KR')+'명</span></span>'+
+    '<span class="st-who">'+avatar(x)+'<span class="st-name"><b>'+xN(x)+'</b><span>팔로워 '+fansOf(x).toLocaleString('ko-KR')+'명</span></span>'+
       '<span class="st-hit"><b>'+(st.hitRate==null?'-':Math.round(st.hitRate)+'%')+'</b><span>적중률</span></span></span>'+
     (c?'<span class="st-lower"><span class="st-lt">최근<br>추천</span><span class="st-lx"><b>'+c.html+'</b><span>'+fmtWhen(c.s.e.at)+'</span></span>'+IC.right+'</span>':'')+
   '</button>';
@@ -1991,7 +1996,7 @@ function heroHTML(){
   h+='<div class="stories" role="group" aria-label="전문가 바로가기">'+ord.map(function(o){
     var x=o.x,live=!!x.live,f=isFollow(x.id);
     return '<button class="story'+(live?' live':f?' fav':'')+'" data-a="expert" data-v="'+x.id+'"><span class="av" aria-hidden="true">'+esc(x.name.charAt(0))+
-      (live?'<span class="on">방송</span>':'')+(f?'<span class="star">'+IC.starOn+'</span>':'')+'</span><b>'+esc(x.name)+'</b><span class="vh">'+(live?'방송 중':'')+(f?' 관심 전문가':'')+'</span></button>';
+      (live?'<span class="on">방송</span>':'')+(f?'<span class="star">'+IC.starOn+'</span>':'')+'</span><b>'+xN(x)+'</b><span class="vh">'+(live?'방송 중':'')+(f?' 관심 전문가':'')+'</span></button>';
   }).join('')+'<button class="story all" data-a="view" data-v="experts"><span class="av" aria-hidden="true">'+IC.search+'</span><b>전체 보기</b></button></div>';
   return h+'</section>';
 }
@@ -2053,7 +2058,7 @@ function screenShare(tok){
   var a=o.a,s=o.s,x=expertById(a.L.expert),f=isFollow(x.id);
   var h='<main class="screen gx">';
   if(S.landing)h+='<p class="landing-tag">'+IC.chat+'카카오톡에서 보신 추천이에요</p>';
-  h+='<div class="who-line">'+avatar(x)+'<span class="wt"><b>'+esc(x.name)+'</b><span>팔로워 '+fansOf(x).toLocaleString('ko-KR')+'명 · '+fmtDT(s.e.at)+'</span></span></div>';
+  h+='<div class="who-line">'+avatar(x)+'<span class="wt"><b>'+xN(x)+'</b><span>팔로워 '+fansOf(x).toLocaleString('ko-KR')+'명 · '+fmtDT(s.e.at)+'</span></span></div>';
   h+='<div class="big-card">'+(SIGNAL_TYPES[s.e.t]?kcard(s,true):'<div class="kbub" style="max-width:none">'+esc(plainMsg(s))+'</div>')+'</div>';
   h+='<section class="group"><h2 class="sech">이 종목 지금은</h2>'+summaryHTML(a)+'</section>';
   if(!P.member){
@@ -2381,7 +2386,7 @@ var THIS_WEEK=mondayOf(DATA_TODAY);
 function hlCard(kind,r,val,sub){
   var lab={best:'이번 주 잘 맞힌 사람',worst:'이번 주 틀린 사람',top:'통산 1위',contra:'반대지표 · 거꾸로 하면 이득'}[kind];
   if(!r)return '<div class="hl-card empty-hl"><span class="hl-k">'+lab+'</span><b>해당 없음</b></div>';
-  return '<button class="hl-card '+kind+'" data-a="expert" data-v="'+r.x.id+'"><span class="hl-k">'+lab+'</span><b>'+esc(r.x.name)+'</b><span class="hl-v '+tone(val)+'">'+pct(val)+'</span><span class="hl-s">'+sub+'</span></button>';
+  return '<button class="hl-card '+kind+'" data-a="expert" data-v="'+r.x.id+'"><span class="hl-k">'+lab+'</span><b>'+xN(r.x)+'</b><span class="hl-v '+tone(val)+'">'+pct(val)+'</span><span class="hl-s">'+sub+'</span></button>';
 }
 function hlGrid(sb,two){
   var h=hlCard('best',sb.best,sb.best&&sb.best.wk.sum,sb.best?sb.best.wk.n+'건 중 '+sb.best.wk.h+'건 적중':'')+
@@ -2404,7 +2409,7 @@ function screenRank(){
   h+='<ol class="card rank-list" aria-label="전문가 순위">'+rows.map(function(r,i){
     var wk=r.wk.n?'<b class="'+tone(r.wk.sum)+'">'+pct(r.wk.sum)+'</b> · '+r.wk.n+'건 중 '+r.wk.h+'건 적중':'판정 없음';
     return '<li><button class="rk" data-a="expert" data-v="'+r.x.id+'"><span class="rk-n">'+(i+1)+'</span>'+
-      '<span class="rk-main"><b>'+esc(r.x.name)+(r.x.live?livePill():'')+'</b><span class="rk-wk">'+(isNow?'이번 주':'그 주')+' '+wk+'</span></span>'+
+      '<span class="rk-main"><b>'+xN(r.x)+(r.x.live?livePill():'')+'</b><span class="rk-wk">'+(isNow?'이번 주':'그 주')+' '+wk+'</span></span>'+
       '<span class="rk-all"><b>'+(r.all.rate==null?'-':Math.round(r.all.rate)+'%')+'</b><span>통산 적중 ('+r.all.n+'건)</span><span class="'+(r.all.sum==null?'flat':tone(r.all.sum))+'">'+(r.all.sum==null?'-':pct(r.all.sum))+'</span></span></button></li>';
   }).join('')+'</ol>';
   h+='<p class="small">적중 = 구매 가격보다 높게 판매한 추천 · 따라수익 = 추천대로 했을 때 수익의 단순 합(복리 아님) · 투자 권유가 아니에요 <button class="link-btn" data-a="sheet" data-v="basis">계산 기준 자세히</button></p>';
@@ -2576,7 +2581,7 @@ function screenAlerts(){
     h+='<div class="gx"><div class="empty">관심 전문가를 고르면<br>그 전문가의 추천이 여기로 와요.<button class="btn btn-primary" data-a="sheet" data-v="welcome">관심 전문가 고르기</button></div></div>';
   }else{
     h+='<div class="rooms-list">'+rooms.map(function(r){
-      return '<button class="room gx" data-a="openRoom" data-v="'+r.x.id+'">'+avatar(r.x)+'<span class="rt"><b>'+esc(r.x.name)+'</b><span class="prev'+(r.un?' unread':'')+'">'+esc(plainMsg(r.last))+'</span></span>'+
+      return '<button class="room gx" data-a="openRoom" data-v="'+r.x.id+'">'+avatar(r.x)+'<span class="rt"><b>'+xN(r.x)+'</b><span class="prev'+(r.un?' unread':'')+'">'+esc(plainMsg(r.last))+'</span></span>'+
         '<span class="rm"><span class="time">'+fmtWhen(r.last.e.at)+'</span>'+(r.un?'<span class="ubadge" aria-label="안 읽은 추천 '+r.un+'개">'+r.un+'</span>':'')+'</span></button>';
     }).join('')+'</div>';
   }
@@ -2598,7 +2603,7 @@ function screenRoom(id){
     if(day!==lastDay){body+='<p class="kday">'+fmtDay(s.e.at)+'</p>';lastDay=day;prevDay=null;}
     var first=prevDay!==day;prevDay=day;
     var content=SIGNAL_TYPES[s.e.t]?kcard(s):(s.e.t==='news'?'<div class="kbub"><b>'+esc(STOCKS[s.L.stock].name)+' 뉴스</b><br>'+esc(s.e.title)+'</div>':'<div class="kbub">'+esc(plainMsg(s))+'</div>');
-    body+='<div class="kmsg">'+(first?avatar(x,'sm'):'<span class="kgap"></span>')+'<div class="kbody">'+(first?'<span class="kname">'+esc(x.name)+'</span>':'')+'<div class="krow">'+content+'<span class="ktime">'+fmtTime(s.e.at)+'</span></div></div></div>';
+    body+='<div class="kmsg">'+(first?avatar(x,'sm'):'<span class="kgap"></span>')+'<div class="kbody">'+(first?'<span class="kname">'+xN(x)+'</span>':'')+'<div class="krow">'+content+'<span class="ktime">'+fmtTime(s.e.at)+'</span></div></div></div>';
   });
   return '<main class="kroom gx">'+body+'<div class="kfoot">이 방에는 '+esc(x.name)+' 님의 추천만 와요. 다른 분들과 이야기는 종목을 눌러 이야기방에서 할 수 있어요.<button class="btn btn-line btn-sm" data-a="expert" data-v="'+x.id+'">'+esc(x.name)+' 추천 기록 보기</button></div></main>';
 }
@@ -2673,7 +2678,7 @@ function screenStock(id){
   h+='<section class="screen gx" style="gap:.6rem"><h2 class="sech">이 종목을 추천한 전문가 <span class="cnt">'+leads.length+'</span></h2>'+(leads.length?'<div class="card">'+leads.map(function(a){
     var x=expertById(a.L.expert);
     var stt=a.status==='holding'?'가지고 있는 중 · 구매 가격 대비 <b class="'+tone(a.unreal)+'">'+pct(a.unreal)+'</b>':a.status==='done'?'판매 완료 · <b class="'+tone(a.ret)+'">'+pct(a.ret)+'</b> · '+fmtDate(a.endAt):'지켜보는 중';
-    return '<button class="who-row" data-a="toLeading" data-v="'+a.L.id+'">'+avatar(x)+'<span class="ft"><b>'+esc(x.name)+(x.live?livePill():'')+'</b>'+badge(lastLeadLabel(a))+'<span class="wst">'+stt+'</span></span>'+IC.right+'</button>';
+    return '<button class="who-row" data-a="toLeading" data-v="'+a.L.id+'">'+avatar(x)+'<span class="ft"><b>'+xN(x)+(x.live?livePill():'')+'</b>'+badge(lastLeadLabel(a))+'<span class="wst">'+stt+'</span></span>'+IC.right+'</button>';
   }).join('')+'</div>':'<p class="empty">아직 이 종목을 추천한 전문가가 없어요</p>')+'</section>';
   h+='<section class="screen gx" style="gap:1rem"><h2 class="sech">'+esc(st.name)+' 이야기방 <span class="cnt">'+allMsgs(id).length+'</span></h2>'+talkRoom(id)+'</section>';
   return h+'</main>';
@@ -2700,7 +2705,7 @@ function xrow(o){
   var x=o.x,st=o.st,f=isFollow(x.id),hr=st.hitRate;
   return '<div class="xr"><button class="xr-main" data-a="expert" data-v="'+x.id+'" aria-label="'+o.rank+'위 '+esc(x.name)+', 적중률 '+(hr==null?'없음':Math.round(hr)+'%')+'">'+
     '<span class="xr-rk'+(o.rank<=3?' top':'')+'">'+o.rank+'</span>'+avatar(x)+
-    '<span class="xr-t"><b>'+esc(x.name)+'</b>'+
+    '<span class="xr-t"><b>'+xN(x)+'</b>'+
       (x.live?'<span class="xr-live">'+esc(x.live.ch)+' 출연 중</span>':'<span class="xr-s">'+esc(x.tags.join(' · '))+' · 팔로워 '+fansOf(x).toLocaleString('ko-KR')+'명</span>')+
       '<span class="xr-bar" aria-hidden="true"><i style="width:'+(hr==null?0:Math.round(hr))+'%"></i></span></span>'+
     '<span class="xr-hit"><b>'+(hr==null?'-':Math.round(hr)+'%')+'</b><span>적중 '+st.hits+'/'+st.doneCount+'건</span><span class="'+(st.sum==null?'flat':tone(st.sum))+'">'+(st.sum==null?'-':pct(st.sum))+'</span></span></button>'+
@@ -2724,7 +2729,7 @@ function screenExperts(){
     '<span class="xs-bar" role="img" aria-label="스윙 '+cnt.swing+'명, 단타 '+cnt.day+'명, 중장기 '+cnt.long+'명">'+['swing','day','long'].map(function(k){return cnt[k]?'<i class="sty-'+k+'" style="flex:'+cnt[k]+'"></i>':''}).join('')+'</span>'+
     '<span class="xs-leg">'+['swing','day','long'].map(function(k){return '<span><i class="sty-'+k+'"></i>'+STYLE_SHORT[k]+' '+cnt[k]+'</span>'}).join('')+'</span></div></section>';
   if(lives.length)h+='<section class="xlive-wrap" aria-label="지금 방송 중인 전문가"><p class="xs-k">'+livePill()+' 눌러서 바로 보기</p><div class="xlive">'+lives.map(function(x){
-    return '<button class="xl-card" data-a="expert" data-v="'+x.id+'">'+avatar(x)+'<span><b>'+esc(x.name)+'</b><span class="s">'+esc(x.live.ch)+' · '+onAirText(x.live.since)+'</span></span></button>'}).join('')+'</div></section>';
+    return '<button class="xl-card" data-a="expert" data-v="'+x.id+'">'+avatar(x)+'<span><b>'+xN(x)+'</b><span class="s">'+esc(x.live.ch)+' · '+onAirText(x.live.since)+'</span></span></button>'}).join('')+'</div></section>';
   // 2. 찾기 · 분류
   var chips=[['all','전체'],['live','방송 중'],['fav','관심'],['swing','스윙'],['day','단타'],['long','중장기']];
   h+='<div class="search"><label class="vh" for="xq">전문가 찾기</label>'+IC.search+'<input class="field" id="xq" type="search" autocomplete="off" placeholder="이름이나 출연 채널로 찾기" value="'+esc(S.xq)+'"></div>'+
@@ -2781,7 +2786,7 @@ function screenExpert(id){
   var rk=expertRanking(),me=rk.filter(function(o){return o.x.id===id})[0];
   var holding=st.list.filter(function(a){return a.status==='holding'}).length;
   var head='<section class="xd gx">'+
-    '<div class="xd-top">'+avatar(x,'lg')+'<div class="xd-id"><h2>'+esc(x.name)+'</h2><div class="xd-tags">'+x.tags.map(function(t){return '<span class="tag">'+esc(t)+'</span>'}).join('')+'</div>'+
+    '<div class="xd-top">'+avatar(x,'lg')+'<div class="xd-id"><h2>'+xN(x)+'</h2><div class="xd-tags">'+x.tags.map(function(t){return '<span class="tag">'+esc(t)+'</span>'}).join('')+'</div>'+
       '<span class="xd-fans">팔로워 <b>'+fansOf(x).toLocaleString('ko-KR')+'명</b></span></div></div>'+
     '<p class="xd-intro">'+esc(x.intro)+'</p>'+
     (x.live?'<button class="xd-live" data-a="channel" data-v="'+esc(x.live.ch)+'"><span class="ld" aria-hidden="true"></span><span class="lt"><b>지금 '+esc(x.live.ch)+' 출연 중</b><span>'+esc(x.live.title)+' · '+onAirText(x.live.since)+'</span></span>'+IC.right+'</button>':'')+
@@ -2879,7 +2884,7 @@ function sheetHTML(){
   if(S.sheet==='welcome'){
     var ord=heroOrder(P.follows);
     body='<h2>'+(P.member?esc(P.member.name)+' 님, 환영해요!':'환영해요!')+'</h2><p style="font-size:1.0625rem">누구의 추천을 받아 볼까요? 고른 전문가의 구매·판매 추천이 알림으로 와요.</p>'+
-      '<div>'+ord.map(function(o){var x=o.x,f=isFollow(x.id);return '<div class="pick">'+avatar(x)+'<span class="pt"><b>'+esc(x.name)+(x.live?livePill(x.live.ch):'')+'</b><span>팔로워 '+fansOf(x).toLocaleString('ko-KR')+'명 · '+esc(x.tags.join(' · '))+'</span></span><button class="star-btn" data-a="follow" data-v="'+x.id+'" aria-pressed="'+f+'" aria-label="'+esc(x.name)+(f?' 관심 해제':' 관심 등록')+'">'+(f?IC.starOn:IC.star)+'</button></div>'}).join('')+'</div>'+
+      '<div>'+ord.map(function(o){var x=o.x,f=isFollow(x.id);return '<div class="pick">'+avatar(x)+'<span class="pt"><b>'+xN(x)+(x.live?livePill(x.live.ch):'')+'</b><span>팔로워 '+fansOf(x).toLocaleString('ko-KR')+'명 · '+esc(x.tags.join(' · '))+'</span></span><button class="star-btn" data-a="follow" data-v="'+x.id+'" aria-pressed="'+f+'" aria-label="'+esc(x.name)+(f?' 관심 해제':' 관심 등록')+'">'+(f?IC.starOn:IC.star)+'</button></div>'}).join('')+'</div>'+
       '<button class="btn btn-primary btn-block" data-a="welcomeDone">'+(P.follows.length?P.follows.length+'명 골랐어요':'나중에 고를게요')+'</button>';
   }else if(S.sheet==='add'){
     var q=S.addQ.trim();

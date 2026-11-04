@@ -233,7 +233,9 @@
   function load(){
     var c = sb(), L = window.__lnLive;
     if (!c || !L || !L.ready) return setTimeout(load, 300);
-    Promise.all([q(c.rpc('mention_feed')), q(c.from('ai_notes').select('kind,key,body,line,by,made_at,facts').in('kind', ['stock', 'expert']).limit(1000)), q(c.rpc('bc_feed')), q(c.from('site_config').select('value').eq('key', 'daily_brief').maybeSingle()), q(c.rpc('rank_feed')), q(c.from('site_config').select('value').eq('key', 'help').maybeSingle())]).then(function(rs){
+    Promise.all([q(c.rpc('mention_feed')), q(c.from('ai_notes').select('kind,key,body,line,by,made_at,facts').in('kind', ['stock', 'expert']).limit(1000)), q(c.rpc('bc_feed')), q(c.from('site_config').select('value').eq('key', 'daily_brief').maybeSingle()), q(c.rpc('rank_feed')), q(c.from('site_config').select('value').eq('key', 'help').maybeSingle()), q(c.from('site_config').select('value').eq('key', 'expert_titles').maybeSingle())]).then(function(rs){
+      // 전문가 호칭(자문역 · 전문가): 운영실 '전문가'에서 정해요 · 없으면 자문역
+      if (rs[6] && !rs[6].error && rs[6].data && rs[6].data.value) { X.xt = rs[6].data.value; try { var lf = lnFrame(); if (lf) lf.contentWindow.XT = X.xt; } catch (e) {} }
       if (!rs[4].error && rs[4].data) X.rank = rs[4].data;
       if (!rs[5].error && rs[5].data && rs[5].data.value) X.help = rs[5].data.value;
       if (!rs[0].error) X.mention = rs[0].data;
@@ -736,7 +738,7 @@
     var S = w.S, f = S.ptf = S.ptf || { ex: '', days: 30, t: 'all' };
     var R = tableRows(w, f), wide = false;
     var exs = w.EXPERTS.filter(function(x){ return w.LEADINGS.some(function(l){ return l.expert === x.id; }); });
-    var exSel = '<select data-pt="ex" aria-label="전문가"><option value="">전체 전문가</option>' + exs.map(function(x){ return '<option value="' + esc(x.id) + '"' + (f.ex === x.id ? ' selected' : '') + '>' + esc(x.name) + '</option>'; }).join('') + '</select>';
+    var exSel = '<select data-pt="ex" aria-label="전문가"><option value="">전체 전문가</option>' + exs.map(function(x){ return '<option value="' + esc(x.id) + '"' + (f.ex === x.id ? ' selected' : '') + '>' + esc(x.name) + ' ' + esc(w.xTitle ? w.xTitle(x) : '자문역') + '</option>'; }).join('') + '</select>';
     var daySel = '<select data-pt="days" aria-label="기간">' + [[30, '최근 30일'], [90, '최근 90일'], [0, '전체 기간']].map(function(d){ return '<option value="' + d[0] + '"' + (+f.days === d[0] ? ' selected' : '') + '>' + d[1] + '</option>'; }).join('') + '</select>';
     var types = [['all', '전체'], ['buy', '구매'], ['sell', '판매'], ['watch', '지켜보기'], ['revise', '가격 변경'], ['strategy', '조언']];
     var sells = R.filter(function(r){ return r.t === 'sell' && r.ret != null; }), avg = sells.length ? sells.reduce(function(s, r){ return s + r.ret; }, 0) / sells.length : null;
@@ -759,7 +761,7 @@
     var f = w.S.ptf = w.S.ptf || { ex: '', days: 30, t: 'all' };
     var R = tableRows(w, f);
     var exs = w.EXPERTS.filter(function(x){ return w.LEADINGS.some(function(l){ return l.expert === x.id; }); });
-    var exSel = '<select data-pt="ex" aria-label="전문가"><option value="">전체 전문가</option>' + exs.map(function(x){ return '<option value="' + esc(x.id) + '"' + (f.ex === x.id ? ' selected' : '') + '>' + esc(x.name) + '</option>'; }).join('') + '</select>';
+    var exSel = '<select data-pt="ex" aria-label="전문가"><option value="">전체 전문가</option>' + exs.map(function(x){ return '<option value="' + esc(x.id) + '"' + (f.ex === x.id ? ' selected' : '') + '>' + esc(x.name) + ' ' + esc(w.xTitle ? w.xTitle(x) : '자문역') + '</option>'; }).join('') + '</select>';
     var daySel = '<select data-pt="days" aria-label="기간">' + [[30, '최근 30일'], [90, '최근 90일'], [0, '전체 기간']].map(function(d){ return '<option value="' + d[0] + '"' + (+f.days === d[0] ? ' selected' : '') + '>' + d[1] + '</option>'; }).join('') + '</select>';
     var types = [['all', '전체'], ['buy', '구매'], ['sell', '판매'], ['watch', '지켜보기'], ['revise', '가격 변경'], ['strategy', '조언']];
     var sells = R.filter(function(r){ return r.t === 'sell' && r.ret != null; }), avg = sells.length ? sells.reduce(function(s2, r){ return s2 + r.ret; }, 0) / sells.length : null;
@@ -901,7 +903,7 @@
   // ── 리딩 모음에 붙이기
   function patchLn(w, d){
     if (w.__p || !w.__t2 || !d.__lnLive || !w.A || !w.S || !w.P) return false;
-    w.__p = true; window.__pW = w;
+    w.__p = true; window.__pW = w; if (X.xt) w.XT = X.xt;
     var A = w.A, S = w.S, P = w.P;
     var st = d.createElement('style'); st.id = 'p-css'; st.textContent = CSS; d.head.appendChild(st);
     try { w.VIEW_TITLE.ptable = '전체 추천 기록'; w.VIEW_TITLE.pmention = '오늘의 언급 종목'; w.VIEW_TITLE.pbc = '방송 속 고수 종목'; w.VIEW_TITLE.pbcall = '지난 방송 모아 보기'; } catch (e) {}

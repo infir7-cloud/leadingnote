@@ -240,8 +240,10 @@ function loadAll(){
     sb.from('site_config').select('value').eq('key','daily_brief').maybeSingle(),
     sb.from('bc_ai_jobs').select('*').order('published_at',{ascending:false,nullsFirst:false}).order('id',{ascending:false}).limit(40),
     sb.from('site_config').select('value').eq('key','help').maybeSingle(),
-    sb.from('site_config').select('value').eq('key','bc_video').maybeSingle()
+    sb.from('site_config').select('value').eq('key','bc_video').maybeSingle(),
+    sb.from('site_config').select('value').eq('key','expert_titles').maybeSingle()
   ]).then(function(rs){
+    S.xt=(rs[16]&&!rs[16].error&&rs[16].data&&rs[16].data.value)||{};
     S.brief=(rs[12]&&!rs[12].error&&rs[12].data&&rs[12].data.value)||{cur:null,prev:null};
     S.bcJobs=rs[13]&&!rs[13].error?(rs[13].data||[]):[];S.bcJobsOff=!!(rs[13]&&rs[13].error);
     S.help=(rs[14]&&!rs[14].error&&rs[14].data&&rs[14].data.value)||{};
@@ -579,16 +581,20 @@ function vExperts(m){
 }
 function xDetail(c,x){
   var cnt=S.events.filter(function(e){return e.expert_id===x.id&&e.status==='published'}).length;
-  c.innerHTML='<div class="ex"><span class="nm">'+(x.live?'<span class="dot"></span>':'')+esc(x.name)+'</span><span class="tag">'+esc(STYLE[x.style]||x.style)+'</span>'+(x.status==='hidden'?'<span class="tag">숨김</span>':'')+
+  var xt=(S.xt||{})[x.id]||'자문역';
+  c.innerHTML='<div class="ex"><span class="nm">'+(x.live?'<span class="dot"></span>':'')+esc(x.name)+' <small style="font-size:.72em;font-weight:600;color:var(--sub)">'+esc(xt)+'</small></span><span class="tag">'+esc(STYLE[x.style]||x.style)+'</span>'+(x.status==='hidden'?'<span class="tag">숨김</span>':'')+
     '<span style="color:var(--sub);font-size:14px">공개 기록 '+cnt+'개 · '+esc((x.channels||[]).join(', '))+'</span></div>'+
     (x.intro?'<p style="margin:8px 0 0">'+esc(x.intro)+'</p>':'')+
     '<div class="src" style="margin-top:6px">'+(x.links||[]).map(function(l){return '<a href="'+esc(l.u)+'" target="_blank" rel="noopener noreferrer">'+esc(l.t||l.u)+' ↗</a>'}).concat((S.sources||[]).filter(function(t){return t.expert_id===x.id}).map(function(t){return '<a href="https://t.me/s/'+esc(t.handle)+'" target="_blank" rel="noopener noreferrer">텔레그램 @'+esc(t.handle)+(t.active?'':' (멈춤)')+' ↗</a>'})).join(' · ')+'</div>'+
     (x.live?'<div class="msg warn" style="margin:10px 0 0">방송 중: '+esc(x.live.ch||'')+' '+esc(x.live.title||'')+' (시작 '+esc((x.live.since||'').replace('T',' '))+')</div>':'')+
+    '<div class="row" style="align-items:center;gap:8px;margin-top:10px;flex-wrap:wrap"><b style="font-size:14px">호칭</b>'+['자문역','전문가'].map(function(t){return '<button type="button" class="btn s xtt'+(t===xt?' p':'')+'" data-t="'+t+'" aria-pressed="'+(t===xt)+'">'+t+'</button>'}).join('')+'<span class="hint" style="margin:0">사이트에서 이름 혼자 보일 때 뒤에 작게 붙어요 (방송 출연자 줄은 이름만)</span></div>'+
     '<div class="acts">'+(x.live?'<button class="btn s lvoff">방송 끝남</button>':'<button class="btn s lvon">방송 시작</button>')+'<button class="btn s xe">정보 고치기</button><button class="btn s bad xdel">전문가 삭제</button><button class="btn s xc" style="margin-left:auto">닫기</button></div><div class="xb hide"></div>'+
     '<div class="xpk"></div>';
   $('.xc',c).onclick=function(){S.xSel='';vExperts($('#main'))};
   $('.xe',c).onclick=function(){var b=$('.xb',c);b.classList.toggle('hide');if(!b.classList.contains('hide'))expertForm(b,x)};
   $('.xdel',c).onclick=function(){xDelete(c,x)};
+  $$('.xtt',c).forEach(function(b){b.onclick=function(){var t=b.dataset.t;if(t===xt)return;var v=Object.assign({},S.xt||{});if(t==='자문역')delete v[x.id];else v[x.id]=t;
+    b.disabled=true;sb.from('site_config').upsert({key:'expert_titles',value:v,updated_at:new Date().toISOString()},{onConflict:'key'}).then(function(r){if(r.error)throw r.error;return reload('ok',x.name+' 호칭을 \''+t+'\'(으)로 바꿨어요. 사이트에 바로 반영돼요.')}).catch(function(e){b.disabled=false;flash('bad',errText(e))})}});
   xPicks($('.xpk',c),x);
   var on=$('.lvon',c),off=$('.lvoff',c);
   if(on)on.onclick=function(){var b=$('.xb',c);b.classList.remove('hide');b.innerHTML='<div class="row" style="margin-top:12px"><label class="f"><b>채널</b><input type="text" class="lc" value="'+esc((x.channels||[])[0]||'')+'"></label><label class="f"><b>방송 제목</b><input type="text" class="lt" placeholder="예: 장중 시황"></label></div><button class="btn p s lgo">방송 중으로 표시</button>';

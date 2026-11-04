@@ -197,8 +197,8 @@
     if (w.__t2 || !w.screenHome || !w.screenExpert || !w.render || !w.P || !w.S) return false;
     w.__t2 = true;
     d.documentElement.classList.add('t2');
-    cmPatch(w, 'feedSig', [["'<span class=\"sm\">'+esc(x.name)+' 추천 · '", "'<span class=\"sm\"><b class=\"t2-xn\">'+esc(x.name)+'</b> 추천 · '"]]);
-    cmPatch(w, 'pushHTML', [["'<span>리딩노트 · '+esc(x.name)+'</span>'", "'<span>리딩노트 · <b class=\"t2-xn\">'+esc(x.name)+'</b></span>'"]]);
+    cmPatch(w, 'feedSig', [["'<span class=\"sm\">'+esc(x.name)+' 추천 · '", "'<span class=\"sm\"><b class=\"t2-xn\">'+xN(x)+'</b> 추천 · '"]]);
+    cmPatch(w, 'pushHTML', [["'<span>리딩노트 · '+esc(x.name)+'</span>'", "'<span>리딩노트 · <b class=\"t2-xn\">'+xN(x)+'</b></span>'"]]);
     font(d); css(d, 't2-ln', LN_CSS);
     var P = w.P, S = w.S;
     function won(n){ return n == null || isNaN(n) ? '-' : Number(n).toLocaleString('ko-KR') + '원'; }
@@ -270,7 +270,7 @@
       if (lives.length) {
         h += '<section class="t2-sec">' + head('지금 방송 중', null, 'view', 'experts') + lives.map(function(x){
           var t = ''; try { t = w.onAirText(x.live.since); } catch (e) {}
-          return '<button class="t2-row" data-a="expert" data-v="' + esc(x.id) + '"><span class="t2-mid"><b><span class="t2-dot"></span>' + esc(x.name) + '</b><span>' + esc([x.live.ch, x.live.title, t].filter(Boolean).join(' · ')) + '</span></span>' + I.chev + '</button>';
+          return '<button class="t2-row" data-a="expert" data-v="' + esc(x.id) + '"><span class="t2-mid"><b><span class="t2-dot"></span>' + w.xN(x) + '</b><span>' + esc([x.live.ch, x.live.title, t].filter(Boolean).join(' · ')) + '</span></span>' + I.chev + '</button>';
         }).join('') + '</section>';
       }
       if (!P.member) h += '<button class="t2-cta" data-a="join"><span class="bell">' + I.bell + '</span><b>새 추천을 알림으로 받아 보세요<small>카카오로 3초 · 무료</small></b>' + I.chev + '</button>';
@@ -284,7 +284,7 @@
       var rk = w.expertRanking().filter(function(o){ return o.st.hitRate != null; }).slice(0, 3);
       if (rk.length) {
         h += '<section class="t2-sec">' + head('전문가 성적표', null, 'view', 'rank') + rk.map(function(o, i){
-          return '<button class="t2-row" data-a="expert" data-v="' + esc(o.x.id) + '"><span class="t2-rk">' + (i + 1) + '</span><span class="t2-mid"><b>' + esc(o.x.name) + '</b><span>끝난 추천 ' + o.st.doneCount + '건</span></span><span class="t2-rt"><b>' + Math.round(o.st.hitRate) + '%</b><span>적중률</span></span></button>';
+          return '<button class="t2-row" data-a="expert" data-v="' + esc(o.x.id) + '"><span class="t2-rk">' + (i + 1) + '</span><span class="t2-mid"><b>' + w.xN(o.x) + '</b><span>끝난 추천 ' + o.st.doneCount + '건</span></span><span class="t2-rt"><b>' + Math.round(o.st.hitRate) + '%</b><span>적중률</span></span></button>';
         }).join('') + '</section>';
       }
       h += '<p class="t2-basis">전문가가 방송·게시글로 공개한 추천을 모아 정리했어요 · 투자 권유가 아니에요</p>';
@@ -320,7 +320,7 @@
       var st = w.expertStats(id), f = w.isFollow(id);
       var meta = [w.STYLE_SHORT ? (w.STYLE_SHORT[x.style] || '') + ' 매매' : '', (x.channels || [])[0], '팔로워 ' + w.fansOf(x).toLocaleString('ko-KR') + '명'].filter(Boolean).join(' · ');
       var h = '<main class="t2" style="padding-top:.25rem"><section class="t2-sec" style="padding-top:1.25rem">' +
-        '<div class="t2-pf"><h2>' + esc(x.name) + (x.live ? '<span class="t2-tag lv">방송 중</span>' : '') + '</h2><p>' + esc(meta) + '</p>' + (x.intro ? '<p class="intro">' + esc(x.intro) + '</p>' : '') +
+        '<div class="t2-pf"><h2>' + w.xN(x) + (x.live ? '<span class="t2-tag lv">방송 중</span>' : '') + '</h2><p>' + esc(meta) + '</p>' + (x.intro ? '<p class="intro">' + esc(x.intro) + '</p>' : '') +
         '<button class="t2-btn' + (f ? ' on' : '') + '" data-a="follow" data-v="' + esc(x.id) + '" aria-pressed="' + f + '">' + (f ? '관심 전문가 · 새 추천 알림 받는 중' : '관심 전문가로 받기') + '</button></div>' +
         (x.live ? '<button class="t2-live" data-a="channel" data-v="' + esc(x.live.ch) + '"><span class="t2-dot"></span><span><b>지금 ' + esc(x.live.ch) + ' 출연 중</b><br><span>' + esc(x.live.title || '') + '</span></span></button>' : '') +
         '<div class="t2-st"><div><span>평균 적중률</span><b>' + (st.hitRate == null ? '-' : Math.round(st.hitRate) + '%') + '</b></div><div><span>평균 수익률</span><b class="' + (st.avg == null ? 'flat' : tone(st.avg)) + '">' + (st.avg == null ? '-' : pct(st.avg)) + '</b></div></div>' +
@@ -529,11 +529,11 @@
   new MutationObserver(scan).observe(document.documentElement, { childList: true, subtree: true });
   scan();
   // 더하기 기능 (공유 카드 · 오늘의 언급 종목 · 표로 보기 · AI 요약): 같은 폴더의 ln-plus.js
-  try { var me = document.currentScript && document.currentScript.src; var ps = document.createElement('script'); ps.src = (me ? new URL('ln-plus.js?v=12', me).href : 'ln-plus.js?v=12'); ps.defer = true; (document.head || document.documentElement).appendChild(ps); } catch (e) {}
+  try { var me = document.currentScript && document.currentScript.src; var ps = document.createElement('script'); ps.src = (me ? new URL('ln-plus.js?v=13', me).href : 'ln-plus.js?v=13'); ps.defer = true; (document.head || document.documentElement).appendChild(ps); } catch (e) {}
   // 오늘의 재료 뉴스 (리딩 모음 홈 · #ln/news): 같은 폴더의 ln-news.js
   try { var me2 = document.currentScript && document.currentScript.src; var ns = document.createElement('script'); ns.src = (me2 ? new URL('ln-news.js?v=4', me2).href : 'ln-news.js?v=4'); ns.defer = true; (document.head || document.documentElement).appendChild(ns); } catch (e) {}
   // 회원: 약관 동의 · 마이페이지(닉네임·내 활동·탈퇴): 같은 폴더의 ln-member.js
-  try { var me4 = document.currentScript && document.currentScript.src; var ms = document.createElement('script'); ms.src = (me4 ? new URL('ln-member.js?v=1', me4).href : 'ln-member.js?v=1'); ms.defer = true; (document.head || document.documentElement).appendChild(ms); } catch (e) {}
+  try { var me4 = document.currentScript && document.currentScript.src; var ms = document.createElement('script'); ms.src = (me4 ? new URL('ln-member.js?v=2', me4).href : 'ln-member.js?v=2'); ms.defer = true; (document.head || document.documentElement).appendChild(ms); } catch (e) {}
   // 시간대별 홈 · 종목 화면 보강 (리딩 모음): 같은 폴더의 ln-home.js
-  try { var me3 = document.currentScript && document.currentScript.src; var hs = document.createElement('script'); hs.src = (me3 ? new URL('ln-home.js?v=7', me3).href : 'ln-home.js?v=7'); hs.defer = true; (document.head || document.documentElement).appendChild(hs); } catch (e) {}
+  try { var me3 = document.currentScript && document.currentScript.src; var hs = document.createElement('script'); hs.src = (me3 ? new URL('ln-home.js?v=8', me3).href : 'ln-home.js?v=8'); hs.defer = true; (document.head || document.documentElement).appendChild(hs); } catch (e) {}
 })();

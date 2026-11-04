@@ -50,12 +50,12 @@
   function tabOf(app, route){
     if (app === 'tools') return 'tools';
     if (app === 'cm') return 'cm';
-    if (route === 'bc' || route === 'bcall' || route === 'experts' || /^x-/.test(route)) return 'bc';
+    if (route === 'bc' || route === 'bcall' || route === 'tbl' || route === 'experts' || /^x-/.test(route)) return 'bc';
     if (route === 'more' || route === 'watch' || route === 'alerts' || route === 'install') return 'my';
     return 'home';
   }
   function segOf(tab, route){
-    if (tab === 'bc') return route === 'bcall' ? 1 : (route === 'experts' || /^x-/.test(route)) ? 2 : 0;
+    if (tab === 'bc') return route === 'tbl' ? -1 : route === 'bcall' ? 1 : (route === 'experts' || /^x-/.test(route)) ? 2 : 0;
     if (tab === 'tools') return route === 'search' || /^s-/.test(route) ? 1 : route === 'learn' ? 2 : 0;
     if (tab === 'cm') return route === 'chat' ? 1 : route === 'me' ? 2 : 0;
     return -1;
@@ -71,6 +71,32 @@
     '#shell .body{display:grid!important;grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(0,1fr);max-width:none!important;margin:0!important;padding:0!important;gap:0!important;width:100%}',
     '#shell #frames{grid-column:1;grid-row:2;min-height:0;max-width:none!important;width:100%;border:0!important}',
     '#bn-side,#bn-panel{display:none}',
+    /* 많이 리딩된 종목 띠는 홈에서만 */
+    'html:not(.bn-home) #bp-top{display:none!important}',
+    /* 방송종목 맨 위: 전체 추천 기록 */
+    '.bn-all{display:flex;align-items:center;gap:10px;width:100%;min-height:56px;margin:0 0 8px;padding:8px 14px;border:0;border-radius:16px;background:var(--surface);box-shadow:inset 0 0 0 1px var(--line);color:var(--ink);font:inherit;text-align:left;cursor:pointer}',
+    '.bn-all>svg:first-child{width:26px;height:26px;flex:none;color:var(--t2-acc-ink,var(--accent))}.bn-all span{flex:1;min-width:0;display:flex;flex-direction:column}.bn-all b{font-size:16px;font-weight:800;letter-spacing:-.02em}.bn-all small{font-size:13px;color:var(--ink2);font-weight:600}.bn-all>svg:last-child{width:20px;height:20px;flex:none;color:var(--ink2)}',
+    '.bn-all[aria-current="page"]{box-shadow:inset 0 0 0 2px var(--accent);background:var(--accent-soft,var(--acc-soft))}',
+    /* 휴대폰 머리: 로고(= 전체 메뉴) */
+    '#bn-top{flex:none;display:flex;align-items:center;gap:10px;padding:calc(6px + env(safe-area-inset-top,0px)) 12px 6px;background:var(--bg);border-bottom:1px solid var(--line)}',
+    '@media (min-width:1024px){#bn-top{display:none}}',
+    '.bn-mb{flex:none;position:relative;width:44px;height:44px;border:0;border-radius:13px;background:var(--accent);display:flex;align-items:center;justify-content:center;cursor:pointer}',
+    '.bn-mb svg{width:28px;height:28px}.bn-mb .cap{position:absolute;left:50%;bottom:-7px;transform:translateX(-50%);padding:0 5px;border-radius:999px;background:var(--ink);color:var(--bg);font-size:10px;font-weight:800;line-height:1.45;white-space:nowrap}',
+    '.bn-wm{flex:1;min-width:0;display:flex;flex-direction:column;border:0;background:none;padding:0;color:var(--ink);font:inherit;text-align:left;cursor:pointer}.bn-wm b{font-size:18px;font-weight:800;letter-spacing:-.03em;line-height:1.2}.bn-wm small{font-size:12.5px;color:var(--ink2);font-weight:600}',
+    '.bn-ga{flex:none;width:44px;height:44px;border:1px solid var(--line);border-radius:12px;background:var(--surface);color:var(--ink);font:inherit;font-size:19px;font-weight:800;cursor:pointer}',
+    '.bn-mb:focus-visible,.bn-wm:focus-visible,.bn-ga:focus-visible{outline:3px solid var(--accent);outline-offset:2px}',
+    /* 전체 메뉴 서랍 */
+    '#bn-dr{position:fixed;inset:0;z-index:96;display:flex}',
+    '#bn-dr .sc{position:absolute;inset:0;background:rgba(8,12,18,.5)}',
+    '#bn-dr .pn{position:relative;width:min(23rem,88%);height:100%;overflow:auto;background:var(--bg);box-shadow:12px 0 40px rgba(0,0,0,.25);display:flex;flex-direction:column;gap:16px;padding:calc(14px + env(safe-area-inset-top,0px)) 16px calc(20px + env(safe-area-inset-bottom,0px))}',
+    '@media (prefers-reduced-motion:no-preference){#bn-dr .pn{animation:bndr .22s ease-out}@keyframes bndr{from{transform:translateX(-24px);opacity:0}to{transform:none;opacity:1}}}',
+    '.dr-h{display:flex;align-items:center;gap:10px}.dr-h .bn-wm{cursor:default}.dr-x{margin-left:auto;width:44px;height:44px;border:0;border-radius:12px;background:var(--surface);color:var(--ink);font:inherit;font-size:24px;line-height:1;cursor:pointer}',
+    '.dr-sec{display:flex;flex-direction:column;gap:8px}.dr-sh{margin:0;display:flex;align-items:center;gap:8px;font-size:16px;font-weight:800;color:var(--ink)}.dr-sh svg{width:20px;height:20px;color:var(--t2-acc-ink,var(--accent))}.dr-sh em{font-style:normal;font-size:12px;font-weight:700;padding:1px 8px;border-radius:999px;background:var(--accent-soft,var(--acc-soft));color:var(--t2-acc-ink,var(--accent))}',
+    '.dr-g{display:grid;grid-template-columns:1fr 1fr;gap:8px}',
+    '.dr-it{min-height:48px;padding:8px 12px;border-radius:14px;border:0;background:var(--surface);box-shadow:inset 0 0 0 1px var(--line);color:var(--ink);font:inherit;font-size:15px;font-weight:700;text-align:left;cursor:pointer}',
+    '.dr-it:active{background:var(--raise)}',
+    '.dr-join{display:flex;flex-direction:column;gap:4px;padding:16px;border-radius:20px;background:var(--ink);color:var(--bg)}.dr-join b{font-size:17px}.dr-join span{font-size:14px;opacity:.85}.dr-join button{margin-top:8px;min-height:48px;border:0;border-radius:12px;background:#FEE500;color:#191600;font:inherit;font-size:16px;font-weight:800;cursor:pointer}',
+    '.dr-ft{display:flex;flex-direction:column}.dr-ft button{min-height:44px;border:0;background:none;color:var(--ink2);font:inherit;font-size:15px;text-align:left;padding:0 4px;cursor:pointer}',
     /* 세그먼트 */
     '#bn-seg{grid-column:1;grid-row:1;padding:10px 16px 8px;background:var(--bg)}',
     '#bn-seg[hidden]{display:none!important}',
@@ -167,8 +193,13 @@
   var side = document.createElement('nav'); side.id = 'bn-side'; side.setAttribute('aria-label', '주요 메뉴'); body.insertBefore(side, body.firstChild);
   var panel = document.createElement('aside'); panel.id = 'bn-panel'; panel.setAttribute('aria-label', '홈 바로 보기'); body.appendChild(panel);
   var tab = document.createElement('nav'); tab.id = 'bn-tab'; tab.setAttribute('aria-label', '주요 메뉴'); shell.appendChild(tab);
+  var topb = document.createElement('header'); topb.id = 'bn-top';
+  topb.innerHTML = '<button type="button" class="bn-mb" data-bn="menu" aria-label="전체 메뉴 열기" aria-haspopup="dialog">' + MARK + '<span class="cap" aria-hidden="true">메뉴</span></button>' +
+    '<button type="button" class="bn-wm" data-tab="home" aria-label="리딩노트 홈"><b>리딩노트</b><small>방송 속 고수 종목을 한눈에</small></button>' +
+    '<button type="button" class="bn-ga" data-bn="size" aria-label="글자 크기 · 화면 밝기">가</button>';
+  shell.insertBefore(topb, shell.firstChild);
 
-  side.innerHTML = '<button type="button" class="bn-logo" data-tab="home" aria-label="리딩노트 홈"><i>' + MARK + '</i><span><b>리딩노트</b><small>방송 속 고수 종목을 한눈에</small></span></button>' +
+  side.innerHTML = '<button type="button" class="bn-logo" data-bn="menu" aria-label="리딩노트 전체 메뉴 열기" aria-haspopup="dialog"><i>' + MARK + '</i><span><b>리딩노트</b><small>방송 속 고수 종목을 한눈에</small></span></button>' +
     TABS.map(function(t){ return '<button type="button" class="bn-mi" data-tab="' + t[0] + '">' + IC[t[0]] + '<span>' + t[1] + '</span></button>'; }).join('') +
     '<div class="bn-join" id="bn-join"><b>카카오로 3초 만에 가입</b><span>관심 전문가의 새 방송 종목과 추천을 알려 드려요. 무료예요.</span><button type="button" class="bn-kk" data-tab="my">카카오로 시작하기</button></div>' +
     '<div class="bn-foot"><button type="button" class="bn-mi" data-bn="size">' + IC.sun + '<span>글자 크기 · 화면 밝기</span></button></div>';
@@ -177,11 +208,43 @@
   function onTab(e){
     var b = e.target.closest && e.target.closest('[data-tab],[data-bn]'); if (!b) return;
     if (b.getAttribute('data-bn') === 'size') { openSize(); return; }
+    if (b.getAttribute('data-bn') === 'menu') { openDrawer(); return; }
     var id = b.getAttribute('data-tab'), t = TABS.filter(function(x){ return x[0] === id; })[0]; if (!t) return;
     go(t[2], t[3]);
   }
-  side.addEventListener('click', onTab); tab.addEventListener('click', onTab);
+  side.addEventListener('click', onTab); tab.addEventListener('click', onTab); topb.addEventListener('click', onTab);
+
+  // ---- 전체 메뉴 서랍 (로고를 누르면 열려요)
+  var DR = [
+    ['home', '홈', [['홈', 'ln', 'home'], ['오늘의 재료 뉴스', 'ln', 'news'], ['시세 조회', 'ln', 'quotes'], ['전문가 성적표', 'ln', 'rank']]],
+    ['bc', '방송종목', [['전체 추천 기록', 'ln', 'tbl'], ['이번 주 방송', 'ln', 'bc'], ['지난 방송', 'ln', 'bcall'], ['전문가 찾기', 'ln', 'experts']]],
+    ['tools', '도구', [['계산기', 'tools', 'home'], ['종목 검색', 'tools', 'search'], ['목표·손절가', 'tools', 'tp'], ['주식 기본기', 'tools', 'learn']]],
+    ['cm', '커뮤니티', [['이번 주 토론', 'cm', 'home'], ['실시간 토론', 'cm', 'chat'], ['토론 목록', 'cm', 'agendas'], ['내 활동', 'cm', 'me']]],
+    ['my', 'MY', [['MY 홈', 'ln', 'more'], ['관심 종목', 'ln', 'watch'], ['알림', 'ln', 'alerts'], ['글자 크기 · 밝기', '', 'size']]]
+  ];
+  var dr = null;
+  function openDrawer(){
+    if (dr) return; var c = cur();
+    dr = document.createElement('div'); dr.id = 'bn-dr'; dr.setAttribute('role', 'dialog'); dr.setAttribute('aria-modal', 'true'); dr.setAttribute('aria-label', '전체 메뉴');
+    dr.innerHTML = '<div class="sc" data-dr="x"></div><div class="pn">' +
+      '<div class="dr-h"><span class="bn-mb" aria-hidden="true" style="cursor:default">' + MARK + '</span><span class="bn-wm"><b>리딩노트</b><small>전체 메뉴</small></span><button type="button" class="dr-x" data-dr="x" aria-label="메뉴 닫기">×</button></div>' +
+      DR.map(function(sec){ return '<section class="dr-sec"><h2 class="dr-sh">' + IC[sec[0]] + esc(sec[1]) + (sec[0] === c.tab ? '<em>지금 보는 곳</em>' : '') + '</h2><div class="dr-g">' +
+        sec[2].map(function(it){ return '<button type="button" class="dr-it" data-dr="go" data-app="' + it[1] + '" data-r="' + it[2] + '">' + esc(it[0]) + '</button>'; }).join('') + '</div></section>'; }).join('') +
+      (member() ? '' : '<div class="dr-join"><b>무료 가입하고 알림 받기</b><span>관심 전문가의 새 방송 종목과 추천을 알려 드려요</span><button type="button" data-dr="go" data-app="ln" data-r="more">카카오로 3초 만에 시작</button></div>') +
+      '<div class="dr-ft"><button type="button" data-dr="go" data-app="ln" data-r="install">앱 설치하기</button><button type="button" data-dr="go" data-app="ln" data-r="more">서비스 안내</button></div></div>';
+    document.body.appendChild(dr); document.body.style.overflow = 'hidden';
+    dr.addEventListener('click', function(e){
+      var b = e.target.closest && e.target.closest('[data-dr]'); if (!b) return;
+      if (b.getAttribute('data-dr') === 'x') { closeDrawer(); return; }
+      var app = b.getAttribute('data-app'), r = b.getAttribute('data-r'); closeDrawer(true);
+      if (r === 'size') openSize(); else go(app, r);
+    });
+    var x = dr.querySelector('.dr-x'); if (x) x.focus();
+  }
+  function closeDrawer(nofocus){ if (!dr) return; dr.remove(); dr = null; document.body.style.overflow = ''; if (!nofocus) { var l = document.querySelector(MQ_PC.matches ? '.bn-logo' : '.bn-mb'); if (l) l.focus(); } }
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape' && dr) closeDrawer(); });
   seg.addEventListener('click', function(e){
+    if (e.target.closest && e.target.closest('[data-bn-all]')) { go('ln', 'tbl'); return; }
     var b = e.target.closest && e.target.closest('[data-seg]'); if (!b) return;
     var c = cur(), s = (SEG[c.tab] || [])[+b.getAttribute('data-seg')]; if (s) go(s[1], s[2]);
   });
@@ -196,7 +259,7 @@
     var S2 = SEG[c.tab];
     if (S2) {
       seg.hidden = false;
-      seg.innerHTML = '<div class="bn-track" role="group" aria-label="' + esc(TABS.filter(function(x){ return x[0] === c.tab; })[0][1]) + ' 화면 고르기">' + S2.map(function(s, i){ return '<button type="button" data-seg="' + i + '"' + (i === c.seg ? ' aria-current="page"' : '') + '>' + esc(s[0]) + '</button>'; }).join('') + '</div>';
+      seg.innerHTML = (c.tab === 'bc' ? '<button type="button" class="bn-all" data-bn-all="1"' + (c.route === 'tbl' ? ' aria-current="page"' : '') + '>' + svg('<rect x="3.5" y="4.5" width="17" height="15" rx="2.5"/><path d="M3.5 9.5h17M9 9.5v10"/>') + '<span><b>전체 추천 기록</b><small>방송·전문가 추천을 표로 한눈에</small></span>' + IC.chev + '</button>' : '') + '<div class="bn-track" role="group" aria-label="' + esc(TABS.filter(function(x){ return x[0] === c.tab; })[0][1]) + ' 화면 고르기">' + S2.map(function(s, i){ return '<button type="button" data-seg="' + i + '"' + (i === c.seg ? ' aria-current="page"' : '') + '>' + esc(s[0]) + '</button>'; }).join('') + '</div>';
     } else { seg.hidden = true; seg.innerHTML = ''; }
     if (c.tab === 'home') drawPanel();
   }
@@ -246,6 +309,7 @@
     try { w.VIEW_TITLE.pbcwk = '이번 주 방송'; } catch (e) {}
     var og = w.__site.go;
     w.__site.go = function(r){
+      if (r === 'rank' || r === 'quotes') { S.stack = [{ t: r, id: '' }]; S.sheet = null; S.tab = 'home'; w.render(); try { w.scrollTo(0, 0); } catch (e) {} return; }
       if (r === 'bc' || r === 'bcall') {
         var api = window.__lnPlus && window.__lnPlus.api;
         S.stack = [{ t: r === 'bc' && api ? 'pbcwk' : 'pbcall', id: '' }]; S.sheet = null; S.tab = 'home';
@@ -267,7 +331,7 @@
             if (S.tab === 'more') h = h.replace(/(<h1 class="top-title">)[^<]*(<\/h1>)/, '$1MY$2');
             // MY 안의 관심 종목 · 알림은 뒤로 가면 MY로
             if (S.tab === 'watch' || S.tab === 'alerts') h = h.replace('data-a="back"', 'data-bn-go="more"');
-          }
+          } else if (S.stack.length === 1 && S.stack[0].t === 'ptable') h = h.replace('data-a="back"', 'data-bn-go="bc"');
         } catch (e) {}
         return h;
       };
@@ -277,7 +341,8 @@
       var orr = w.reportRoute;
       w.reportRoute = function(r){
         try { var st3 = S.stack, top = st3[st3.length - 1];
-          if (top && (top.t === 'pbcwk' || top.t === 'pbcall' || top.t === 'pbc')) for (var i = st3.length - 1; i >= 0; i--) { if (st3[i].t === 'pbcall') { r = 'bcall'; break; } if (st3[i].t === 'pbcwk') { r = 'bc'; break; } }
+          if (top && top.t === 'ptable' && st3.length === 1) r = 'tbl';
+          else if (top && (top.t === 'pbcwk' || top.t === 'pbcall' || top.t === 'pbc')) for (var i = st3.length - 1; i >= 0; i--) { if (st3[i].t === 'pbcall') { r = 'bcall'; break; } if (st3[i].t === 'pbcwk') { r = 'bc'; break; } }
         } catch (e) {}
         return orr.call(this, r);
       };

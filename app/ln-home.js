@@ -247,7 +247,7 @@
     if (n) {
       var B = [['매수', d.buy || 0, '#F04452'], ['보유', d.hold || 0, '#F59F00'], ['관망', d.watch || 0, '#8B95A1'], ['매도', d.sell || 0, '#3182F6']];
       h += B.map(function(b){ return '<div class="hm-ob"><span>' + b[0] + '</span><span class="t"><i style="width:' + (n ? b[1] / n * 100 : 0).toFixed(0) + '%;background:' + b[2] + '"></i></span><span class="v">' + b[1] + '명</span></div>'; }).join('');
-      h += '<div class="hm-exl">' + (O.experts || []).slice(0, 8).map(function(x){ return '<span class="hm-exc">' + esc(x.name) + ' ' + spTag(x.stance) + '<small style="color:var(--sn);font-weight:600">' + md(String(x.at).slice(0, 10)) + '</small></span>'; }).join('') + '</div>';
+      h += '<div class="hm-exl">' + (O.experts || []).slice(0, 8).map(function(x){ return '<span class="hm-exc">' + xNm(x.id || x.expert_id, x.name) + ' ' + spTag(x.stance) + '<small style="color:var(--sn);font-weight:600">' + md(String(x.at).slice(0, 10)) + '</small></span>'; }).join('') + '</div>';
     }
     if (talk.length) {
       var one = function(t){ return '<div class="hm-qa">' + (t.q ? '<div class="hm-q"><small>회원 · ' + md(String(t.qa || t.at).slice(0, 10)) + '</small>' + esc(t.q) + '</div>' : '') +
@@ -261,7 +261,7 @@
     if (tr.length >= 2) h += '<p style="font-size:.9375rem;font-weight:800;margin:1rem 0 0">주별 의견 흐름 <small style="font-weight:600;color:var(--ink2)">매수·보유 의견 비율</small></p><div class="hm-trend">' +
       tr.map(function(w){ return '<i style="height:' + Math.max(4, Math.round(Number(w.pos) * 100)) + '%" title="' + md(w.wk) + ' 주 · ' + Math.round(Number(w.pos) * 100) + '% · ' + w.n + '건"></i>'; }).join('') + '</div><div class="hm-trl"><span>' + md(tr[0].wk) + ' 주</span><span>' + md(tr[tr.length - 1].wk) + ' 주</span></div>';
     var qs = (O.experts || []).filter(function(x){ return x.quote; }).slice(0, 2);
-    if (qs.length) h += qs.map(function(x){ return '<div class="hm-oq">"' + esc(x.quote) + '"<small>' + esc(x.name) + ' · ' + md(String(x.at).slice(0, 10)) + ' · ' + esc(x.src || '') + (x.url ? ' · <a href="' + esc(x.url) + '" target="_blank" rel="noopener noreferrer">원문 ↗</a>' : '') + '</small></div>'; }).join('');
+    if (qs.length) h += qs.map(function(x){ return '<div class="hm-oq">"' + esc(x.quote) + '"<small>' + xNm(x.id || x.expert_id, x.name) + ' · ' + md(String(x.at).slice(0, 10)) + ' · ' + esc(x.src || '') + (x.url ? ' · <a href="' + esc(x.url) + '" target="_blank" rel="noopener noreferrer">원문 ↗</a>' : '') + '</small></div>'; }).join('');
     return h + '<p class="hm-note">전문가가 방송·공개 채널·공개 대화방에서 한 말을 모은 거예요. 의견 분포일 뿐 사거나 팔라는 권유가 아니에요.</p></section>';
   }
   function needCode(code){
@@ -296,6 +296,8 @@
     var k = String(name || '').replace(/\s+/g, ''); if (!k) return null;
     return w.EXPERTS.filter(function(e){ return String(e.name || '').replace(/\s+/g, '') === k; })[0] || null;
   }
+  // 이름 혼자 보일 때: 이름 + 작은 호칭 (방송 출연자 줄에는 쓰지 않아요)
+  function xNm(id, name){ var w = lnWin(), x = xOf(id, name) || { id: id, name: name }; try { if (w && w.xN) return w.xN({ id: x.id, name: name || x.name }); } catch (e) {} return esc(name || ''); }
   function xLink(id, name){ var x = xOf(id, name); return x ? '<button class="hm-xl" data-a="expert" data-v="' + esc(x.id) + '">' + esc(name || x.name) + '</button>' : esc(name || ''); }
   function exName(e){ return ((e && e.experts) || []).map(function(x){ return x.name; }); }
   function lineupOf(e, p){ var n = exName(e); if (n.length) return n; return String((p && p.lineup_note) || '').split(/[,·、]/).map(function(x){ return x.trim(); }).filter(function(x){ return x && x.length <= 6; }); }
