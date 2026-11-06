@@ -10,11 +10,13 @@
 <meta property="og:title" content="리딩노트 — 방송 속 고수 종목을 한눈에">
 <meta property="og:description" content="방송에서 나온 종목과 전문가 기록을 쉬운 말로 정리해요. 가입 없이 볼 수 있어요.">
 <meta name="theme-color" content="#F2F4F6">
-<style>html,body{margin:0;height:100%;background:#F2F4F6}iframe{border:0;width:100%;height:100%;height:100dvh;display:block}</style>
-<script>window.__SB={projectId:"khbgiybvzagvbilbqnsn",anonKey:"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtoYmdpeWJ2emFndmJpbGJxbnNuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI0NTQ4NDAsImV4cCI6MjEwODAzMDg0MH0.7tLIqf0LFwrvusH1EoEjTD7_3R1bF9CwwFR-Hb9oHsY"};</script>
+<!-- 예전에는 이 페이지가 앱을 iframe으로 감쌌어요(3겹 구조).
+     이제는 앱 셸로 바로 이동해요. 카카오 로그인 뒤 돌아올 때 붙는 ?code=… 와 #화면 주소도 그대로 넘겨요. -->
+<script>location.replace('app/index.html' + location.search + location.hash);</script>
+<meta http-equiv="refresh" content="0; url=app/index.html">
+<style>html,body{margin:0;background:#F2F4F6;font-family:system-ui,sans-serif;color:#333D4B}a{color:#4E5968}</style>
 </head>
 <body>
-<iframe src="app/index.html" title="리딩노트" allow="clipboard-write; web-share"></iframe>
-<noscript>리딩노트를 보려면 자바스크립트를 켜 주세요.</noscript>
+<p style="padding:24px">리딩노트로 이동하고 있어요. 바로 열리지 않으면 <a href="app/index.html">여기</a>를 눌러 주세요.</p>
 </body>
 </html>
