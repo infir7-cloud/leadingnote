@@ -139,6 +139,9 @@
     '  #bn-seg,#shell #frames{grid-column:2}',
     '  #shell #frames{max-width:none!important;width:100%}',
     '  #bn-seg{width:100%;max-width:840px;justify-self:center;padding:12px 16px 4px}',
+    '  html.bn-bcwide #bn-seg{max-width:1180px}',
+    /* 11/6 스크롤 막대는 가운데 하나만 보이게: 왼쪽 메뉴 · 오른쪽 칸은 막대를 숨기고, 휠은 가운데 화면으로 넘겨요 */
+    '  #bn-side,html.bn-home #bn-panel{scrollbar-width:none}#bn-side::-webkit-scrollbar,#bn-panel::-webkit-scrollbar{display:none}',
     '}',
     '.bn-logo{display:flex;align-items:center;gap:10px;min-height:48px;margin:0 0 8px;padding:0 6px;border:0;background:transparent;color:var(--ink);font:inherit;text-align:left;cursor:pointer;border-radius:14px}',
     '.bn-logo i{flex:none;width:40px;height:40px;border-radius:12px;background:var(--accent);display:flex;align-items:center;justify-content:center}',
@@ -275,6 +278,7 @@
     root.classList.toggle('bn-hasseg', !!SEG[c.tab]);
     root.classList.toggle('bn-deep', isDeep(c.app));
     placeStrip(c);
+    root.classList.toggle('bn-bcwide', c.tab === 'bc' && MQ_PC.matches && wideBc());
     if (sig === last) return; last = sig;
     [side, tab].forEach(function(n){ Array.prototype.forEach.call(n.querySelectorAll('[data-tab]'), function(b){ if (b.classList.contains('bn-kk') || b.classList.contains('bn-logo')) return; if (b.getAttribute('data-tab') === c.tab) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current'); }); });
     var S2 = SEG[c.tab];
@@ -292,6 +296,31 @@
   var FRAME_CSS = 'html body nav.nav,html body nav#nav{display:none!important}:root,html:root{--nav-h:0px!important}' +
     '@media (min-width:640px){html[data-wide] .app{max-width:840px!important}html[data-wide] .joinbar,html[data-wide] .sheet,html[data-wide] .push,html[data-wide] .composer{max-width:840px!important}}' +
     '.bn-ltop{height:6px}' +
+    /* 11/6 PC 방송종목 2단 */
+    'html .app:has(.bn-bc2),html[data-wide] .app:has(.bn-bc2){max-width:1180px!important}' +
+    '.bn-bc2{display:grid;grid-template-columns:minmax(0,1fr) minmax(300px,340px);gap:16px;align-items:start;padding-left:16px;padding-right:16px}' +
+    '.bn-bc2-l{min-width:0}.bn-bc2-r{position:sticky;top:12px;margin-top:.75rem}' +
+    '.bn-tb{display:flex;flex-direction:column;margin:.5rem -.25rem 0}' +
+    '.bn-tr{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr) 96px 92px minmax(0,1.3fr);column-gap:12px;align-items:center;width:100%;min-height:62px;padding:8px 12px;border:0;border-top:1px solid var(--line);border-radius:0;background:transparent;color:var(--ink);font:inherit;text-align:left;cursor:pointer}' +
+    '.bn-tr:hover{background:var(--raise)}.bn-tr.on{background:var(--accent-soft)}' +
+    '.bn-th{min-height:40px;cursor:default;font-size:.8125rem;color:var(--ink2);border-top:0}.bn-th:hover{background:transparent}' +
+    '.bn-tr .num{text-align:right;font-variant-numeric:tabular-nums}.bn-tr>span{min-width:0}' +
+    '.bn-tr .nm{display:flex;flex-wrap:wrap;align-items:center;gap:2px 6px}.bn-tr .nm b{font-size:1rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}.bn-tr .nm small{flex-basis:100%;font-size:.8125rem;color:var(--ink2)}' +
+    '.bn-tr .pg{font-size:.9375rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.bn-tr .pg small{display:block;font-size:.8125rem;color:var(--ink2)}' +
+    '.bn-tr .qt{font-size:.875rem;color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}' +
+    '.bn-rt{display:inline-block;padding:3px 8px;border-radius:6px;font-weight:700}.bn-rt.up{color:var(--up);background:var(--up-soft)}.bn-rt.down{color:var(--down);background:var(--down-soft)}.mute{color:var(--ink2)}' +
+    '.bn-hd{flex:none;font-size:.75rem;font-weight:800;color:var(--accent);box-shadow:inset 0 0 0 1.5px var(--accent);border-radius:6px;padding:1px 6px}' +
+    '.bn-kd{flex:none;font-size:.75rem;font-weight:700;color:var(--ink2);background:var(--raise);border-radius:6px;padding:2px 7px}' +
+    '.bn-pv{display:flex;flex-direction:column;gap:14px;padding:20px;border-radius:20px;background:var(--surface)}' +
+    '.bn-pv-empty{margin:0;color:var(--ink2);font-size:.9375rem;line-height:1.6}' +
+    '.bn-pv-h{display:flex;align-items:center;gap:8px}.bn-pv-h b{font-size:1.25rem;font-weight:800;letter-spacing:-.02em}' +
+    '.bn-pv-s{margin:-8px 0 0;font-size:.875rem;color:var(--ink2)}' +
+    '.bn-pv-r small{display:block;font-size:.8125rem;color:var(--ink2)}.bn-pv-r b{font-size:1.625rem;font-weight:800;font-variant-numeric:tabular-nums}.bn-pv-r b.up{color:var(--up)}.bn-pv-r b.down{color:var(--down)}.bn-pv-r b.mute{font-size:1rem}' +
+    '.bn-pv-c{width:100%;height:auto;border-radius:12px;background:#fff}' +
+    '.bn-pv-kv{display:grid;grid-template-columns:1fr 1fr;gap:10px 16px;margin:0}.bn-pv-kv dt{font-size:.8125rem;color:var(--ink2)}.bn-pv-kv dd{margin:2px 0 0;font-size:1.0625rem;font-weight:700;font-variant-numeric:tabular-nums}' +
+    '.bn-pv-say{padding:14px 16px;border-radius:14px;background:var(--raise)}.bn-pv-say small{display:block;font-size:.8125rem;font-weight:700;color:var(--ink2);margin-bottom:4px}.bn-pv-say q{font-size:.9375rem;line-height:1.6}.bn-pv-q{margin:0;font-size:.9375rem;color:var(--ink2);line-height:1.6}' +
+    '.bn-pv-a{display:flex;flex-wrap:wrap;gap:8px}.bn-pv-a button,.bn-pv-a a{display:inline-flex;align-items:center;min-height:44px;padding:0 14px;border:0;border-radius:12px;background:var(--raise);color:var(--ink);font:inherit;font-size:.9375rem;font-weight:700;text-decoration:none;cursor:pointer}' +
+    '.bn-pv-cta{display:flex;flex-direction:column;gap:10px;padding:16px;border-radius:14px;background:var(--accent-soft)}.bn-pv-cta b{font-size:1rem}.bn-pv-cta button{min-height:48px;border:0;border-radius:12px;background:var(--accent);color:var(--on-accent);font:inherit;font-size:1rem;font-weight:800;cursor:pointer}' +
     '.bn-my{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0 4px}' +
     '.bn-my button{display:flex;align-items:center;gap:10px;min-height:56px;padding:0 14px;border:0;border-radius:16px;background:var(--surface);color:var(--ink);font:inherit;font-size:16px;font-weight:700;text-align:left;cursor:pointer}' +
     '.bn-my button svg{width:22px;height:22px;flex:none;color:var(--t2-acc-ink,var(--accent))}' +
@@ -399,10 +428,15 @@
     w.document.addEventListener('click', function(e){
       var m = e.target.closest && e.target.closest('[data-bn-mb]');
       if (m) { e.preventDefault(); e.stopPropagation(); myBuyAct(w, m); return; }
+      var pk = e.target.closest && e.target.closest('[data-bn-pk]');
+      if (pk) { e.preventDefault(); e.stopPropagation(); BCSEL = +pk.getAttribute('data-bn-pk') || 0; var sy = w.scrollY; try { w.render(); w.scrollTo(0, sy); } catch (er) {} return; }
+      if (e.target.closest && e.target.closest('[data-bn-calc]')) { e.preventDefault(); e.stopPropagation(); go('tools', 'home'); return; }
       var b = e.target.closest && e.target.closest('[data-bn-go]'); if (!b) return;
       e.preventDefault(); e.stopPropagation();
       var r = b.getAttribute('data-bn-go'); if (r === 'size' || r === 'theme') toggleTheme(); else go('ln', r);
     }, true);
+    var rzT = null, wasWide = null;
+    w.addEventListener('resize', function(){ clearTimeout(rzT); rzT = setTimeout(function(){ var nw = wideBc(); if (nw === wasWide) return; wasWide = nw; try { var v = w.view && w.view(); if (v && v.t === 'pbcwk') w.render(); } catch (e) {} }, 200); });
     try { w.render(); } catch (e) {}
     // 링크로 들어온 화면(#ln/bc · #ln/s-종목코드 · #ln/x-전문가 등)은 자료가 준비된 뒤 한 번 더 열어요
     if (!initDone) { initDone = true; var m0 = /^ln\/(.+)$/.exec(INIT); if (m0 && m0[1] !== 'home') reopen(w, m0[1]); }
@@ -482,6 +516,59 @@
     return { A: A, lp: lp, now: now, today: today, mon: mon, sun: sun };
   }
   function md(ymd){ return (+ymd.slice(5, 7)) + '월 ' + (+ymd.slice(8, 10)) + '일'; }
+  // ---- 11/6 PC 방송종목: 토스형 2단 (왼쪽 이번 주 종목 표 · 오른쪽 고른 종목 미리보기)
+  var BCSEL = 0;
+  function wideBc(){ var w = W('ln'); try { return !!(w && w.innerWidth >= 900); } catch (e) { return false; } }
+  function pctTxt(v){ return (v > 0 ? '+' : v < 0 ? '−' : '') + Math.abs(v).toFixed(2) + '%'; }
+  function wonTxt(n){ return n ? Math.round(n).toLocaleString('ko-KR') + '원' : '—'; }
+  function bcPicks(A, done){
+    var out = [];
+    done.forEach(function(sl){
+      var ep = sl.ep; if (!ep || !ep.published) return;
+      (ep.picks || []).forEach(function(k){ out.push({ k: k, sl: sl, ep: ep, lock: k.kind === 'secret' && !k.revealed, ret: A.pickRet ? A.pickRet(k) : null }); });
+    });
+    return out;
+  }
+  function bcPreview(A, it){
+    if (!it) return '<div class="bn-pv"><p class="bn-pv-empty">왼쪽 표에서 종목을 고르면 여기에 자세히 보여 드려요.</p></div>';
+    var k = it.k, sl = it.sl, ep = it.ep, lbl = '';
+    try { lbl = A.pkLabel(k, ep && ep.program_id); } catch (e) {}
+    var head = '<div class="bn-pv-h">' + (k.kind === 'secret' ? '<span class="bn-hd">히든주</span>' : (lbl ? '<span class="bn-kd">' + esc(lbl) + '</span>' : '')) +
+      '<b>' + (it.lock ? '방송에서 아직 공개 전이에요' : esc(k.stock_name || '')) + '</b></div>' +
+      '<p class="bn-pv-s">' + esc(sl.p.name) + ' · ' + esc(k.expert_name || '') + ' · ' + md(sl.date) + ' 방송</p>';
+    if (it.lock) return '<div class="bn-pv">' + head + '<p class="bn-pv-q">공개되면 종목과 매수·목표 가격을 바로 정리해 드려요.</p></div>';
+    var ret = it.ret ? '<div class="bn-pv-r"><small>' + (it.ret.done ? '매도 수익률' : '방송 후 수익률') + '</small><b class="' + (it.ret.v > 0 ? 'up' : it.ret.v < 0 ? 'down' : '') + '">' + pctTxt(it.ret.v) + '</b></div>' : '<div class="bn-pv-r"><small>방송 후 수익률</small><b class="mute">시세 표시 준비 중</b></div>';
+    var kv = '<dl class="bn-pv-kv"><div><dt>매수가</dt><dd>' + wonTxt(k.buy) + '</dd></div><div><dt>목표가</dt><dd>' + wonTxt(k.target) + '</dd></div>' +
+      (k.stop ? '<div><dt>손절가</dt><dd>' + wonTxt(k.stop) + '</dd></div>' : '') + (k.sell ? '<div><dt>매도가</dt><dd>' + wonTxt(k.sell) + '</dd></div>' : '') + '</dl>';
+    var chart = k.stock_code ? '<img class="bn-pv-c" alt="' + esc(k.stock_name || '') + ' 최근 3개월 주가 흐름 (네이버 증권)" loading="lazy" src="https://ssl.pstatic.net/imgfinance/chart/item/area/month3/' + encodeURIComponent(k.stock_code) + '.png">' : '';
+    var q = k.quote ? '<div class="bn-pv-say"><small>방송에서 이렇게 말했어요</small><q>' + esc(k.quote) + '</q></div>' : '';
+    var acts = '<div class="bn-pv-a">' + (k.stock_code ? '<button type="button" data-a="stock" data-v="' + esc(k.stock_code) + '">종목 자세히</button>' : '') +
+      (ep && ep.video_url ? '<a href="' + esc(ep.video_url) + '" target="_blank" rel="noopener noreferrer">방송 영상 보기 ↗</a>' : '') + '</div>';
+    var calc = '<div class="bn-pv-cta"><b>해당 종목 예상 수익이 궁금하다면?</b><button type="button" data-bn-calc="1">수익 계산기 열기</button></div>';
+    return '<div class="bn-pv">' + head + ret + chart + kv + q + acts + calc + '</div>';
+  }
+  function screenWeekWide(K, A, r, done, soon, foot){
+    var rows = bcPicks(A, done); if (BCSEL >= rows.length) BCSEL = 0;
+    var tb = rows.length ? '<div class="bn-tb" role="table" aria-label="이번 주 방송 종목"><div class="bn-tr bn-th" role="row"><span role="columnheader">종목 · 전문가</span><span role="columnheader">방송</span><span role="columnheader" class="num">매수가</span><span role="columnheader" class="num">수익률</span><span role="columnheader">한마디</span></div>' +
+      rows.map(function(it, i){
+        var k = it.k, rv = it.ret ? '<span class="bn-rt ' + (it.ret.v > 0 ? 'up' : it.ret.v < 0 ? 'down' : '') + '">' + pctTxt(it.ret.v) + '</span>' : '<span class="mute">—</span>';
+        return '<button type="button" class="bn-tr' + (i === BCSEL ? ' on' : '') + '" role="row" data-bn-pk="' + i + '" aria-pressed="' + (i === BCSEL) + '">' +
+          '<span class="nm">' + (k.kind === 'secret' ? '<span class="bn-hd">히든주</span>' : '') + '<b>' + (it.lock ? '공개 전' : esc(k.stock_name || '')) + '</b><small>' + esc(k.expert_name || '') + '</small></span>' +
+          '<span class="pg">' + esc(it.sl.p.name) + '<small>' + (+it.sl.date.slice(5, 7)) + '.' + (+it.sl.date.slice(8, 10)) + '</small></span>' +
+          '<span class="num">' + (it.lock ? '—' : wonTxt(k.buy)) + '</span><span class="num">' + rv + '</span>' +
+          '<span class="qt">' + esc(k.quote || '') + '</span></button>';
+      }).join('') + '</div>' : '<p class="t2-empty">이번 주에 정리된 방송 종목이 아직 없어요. 방송이 끝나면 전문가별 종목과 가격을 여기 표로 보여 드려요.</p>';
+    var WDN = ['', '월', '화', '수', '목', '금', '토', '일'];
+    var left = '<section class="t2-sec"><div class="t2-h" style="cursor:default">이번 주 방송 종목<span class="n">' + rows.length + '</span></div>' +
+      '<p class="bn-wk-sub">' + md(K.mon) + ' ~ ' + md(K.sun) + ' · SBS Biz 본방송 · 줄을 누르면 오른쪽에 자세히 보여요</p>' + tb + '</section>' +
+      (r.top ? '<section class="t2-sec">' + A.bcTopCard(r.top, K.now) + '</section>' : '') +
+      (done.length ? '<section class="t2-sec"><div class="t2-h" style="cursor:default">방송별로 보기</div>' + done.map(A.bcRow).join('') + '</section>' : '') +
+      (soon.length ? '<section class="t2-sec"><div class="t2-h" style="cursor:default">이번 주 남은 방송</div>' + soon.map(function(sl){
+        var ep = sl.ep, xs = ep && ep.experts && ep.experts.length ? ep.experts.map(function(x){ return x.name; }).join(', ') : (sl.p.lineup_note || '');
+        return '<button type="button" class="bn-soon" data-a="pBc" data-v="' + esc(sl.key) + '"><b>' + esc(sl.p.name) + '</b><span>' + WDN[A.wdOf(sl.date)] + ' ' + (+sl.date.slice(5, 7)) + '.' + (+sl.date.slice(8, 10)) + ' ' + esc(String(sl.p.air_time || '20:30').slice(0, 5)) + (xs ? ' · ' + esc(xs) : '') + '</span></button>';
+      }).join('') + '</section>' : '');
+    return '<main class="t2 bn-bc2" style="padding-top:.25rem"><div class="bn-bc2-l">' + left + foot.replace('</main>', '') + '</div><aside class="bn-bc2-r" aria-label="고른 종목 미리보기">' + bcPreview(A, rows[BCSEL]) + '</aside></main>';
+  }
   function screenWeek(){
     var K = wk(), CH = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>';
     var foot = '<button class="p-go" data-a="pBcAll"><span>지난 방송 모두 보기</span>' + CH + '</button><p class="t2-basis">SBS Biz 본방송에서 전문가가 직접 한 말과 가격을 정리해요. 사거나 팔라는 권유가 아니에요.</p></main>';
@@ -490,6 +577,7 @@
     var done = r.past.filter(function(x){ return x.date >= K.mon && x.date <= K.sun; });
     var soon = r.all.filter(function(x){ return x.date > K.today && x.date <= K.sun; }).sort(function(a, b){ return a.start - b.start; });
     var WDN = ['', '월', '화', '수', '목', '금', '토', '일'];
+    if (wideBc()) return screenWeekWide(K, A, r, done, soon, foot);
     var h = '<main class="t2" style="padding-top:.25rem"><section class="t2-sec"><div class="t2-h" style="cursor:default">이번 주 방송<span class="n">' + done.length + '</span></div>' +
       '<p class="bn-wk-sub">' + md(K.mon) + ' ~ ' + md(K.sun) + ' · SBS Biz 본방송</p>' +
       (r.top ? A.bcTopCard(r.top, K.now) : '') +
@@ -665,6 +753,26 @@
     applyAll(); paintTheme(); closeDrawer(true);
   }
   paintTheme();
+
+  // ---- 다른 탭 미리 불러오기 (11/6): 첫 화면이 뜨고 쉬는 동안 '도구'를 미리 불러 두고,
+  //      '커뮤니티'는 실시간 연결을 쓰니 탭에 손가락·마우스를 올렸을 때 불러요 (모든 방문자가 실시간 연결을 열지 않게)
+  function pre(id){ try { if (SH.mk && !(SH.F || {})[id]) SH.mk(id); } catch (e) {} }
+  setTimeout(function(){ var go2 = function(){ pre('ln'); pre('tools'); }; if (window.requestIdleCallback) requestIdleCallback(go2, { timeout: 4000 }); else go2(); }, 3500);
+  ['pointerenter', 'touchstart', 'focusin'].forEach(function(ev){
+    document.addEventListener(ev, function(e){ var b = e.target.closest && e.target.closest('[data-tab="cm"],[data-tab="tools"],[data-tab="home"],[data-tab="bc"],[data-tab="my"]'); if (!b) return; var t = b.getAttribute('data-tab'); pre(t === 'cm' ? 'cm' : t === 'tools' ? 'tools' : 'ln'); }, { passive: true, capture: true });
+  });
+
+  // ---- PC 휠 넘기기 (11/6): 왼쪽 메뉴 · 오른쪽 칸 위에서 굴려도, 그 칸이 더 내려갈 데가 없으면 가운데 화면이 움직여요
+  document.addEventListener('wheel', function(e){
+    if (!MQ_PC.matches || e.ctrlKey) return;
+    var box = e.target.closest && e.target.closest('#bn-side,#bn-panel,#bn-seg,#bp-top,#ad-top');
+    if (!box) return;
+    var dy = e.deltaY; if (!dy) return;
+    var sc = box.closest('#bn-side,#bn-panel');
+    if (sc && (dy > 0 ? sc.scrollTop + sc.clientHeight < sc.scrollHeight - 1 : sc.scrollTop > 0)) return;
+    var w = W(cur().app); if (!w) return;
+    try { w.scrollBy(0, e.deltaMode === 1 ? dy * 16 : dy); e.preventDefault(); } catch (er) {}
+  }, { passive: false });
 
   // ---- 휴대폰 위 고정 줄은 한 줄만 (11/6)
   //  · 세부 화면 고르기(세그먼트)는 휴대폰에서 로고 옆, 같은 줄로 올려요
