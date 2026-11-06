@@ -64,10 +64,10 @@
     lsSet('site.v1', JSON.stringify(C));
     Object.keys(sh.F || {}).forEach(function(id){ try { var w = sh.F[id].contentWindow; if (sh.READY[id] && w && w.__site) w.__site.apply(Object.assign({}, C, { wide: wide })); } catch (e) {} });
   }
-  // 처음 오신 분 기본값: 글자 '크게' · 밝은 화면
+  // 처음 오신 분 기본값: 글자 '보통' · 밝은 화면 (11/6: 글자 크기 조절을 없앴어요)
   if (brandNew) {
-    if (HEAD) lsSet('site.v1', JSON.stringify({ size: 'l', theme: 'light' }));
-    else if (SH()) { SH().C.size = 'l'; SH().C.theme = 'light'; applyAllX(); }
+    if (HEAD) lsSet('site.v1', JSON.stringify({ size: 'm', theme: 'light', v: 2 }));
+    else if (SH()) { SH().C.size = 'm'; SH().C.theme = 'light'; applyAllX(); }
   }
   function openSettings(){ var sh = SH(); if (sh && sh.openSettings) sh.openSettings(); }
 

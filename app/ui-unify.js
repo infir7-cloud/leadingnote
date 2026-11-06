@@ -63,8 +63,33 @@
     if (d.getElementById('uu-v2')) { if (d.head.lastElementChild !== d.getElementById('uu-v2')) d.head.appendChild(d.getElementById('uu-v2')); return; }
     var st = d.createElement('style'); st.id = 'uu-v2'; st.textContent = CSS; d.head.appendChild(st);
   }
+  /* ── 11/6 글자 크기 하한: 50~80대 기준으로 13px보다 작은 글씨는 13px로 올려요.
+     (새로 그려지는 화면도 0.3초 뒤 다시 맞춰요. 지름 22px 이하 동그라미 안 글자(예: '?' 표시)는 그대로 둬요) */
+  var MIN_FS = 13;
+  function floorText(d){
+    if (!d || !d.body) return;
+    var w = d.defaultView, els = d.body.getElementsByTagName('*');
+    for (var i = 0; i < els.length; i++) {
+      var e = els[i];
+      if (e.__uuFs) continue;
+      var own = false, c = e.firstChild;
+      for (; c; c = c.nextSibling) { if (c.nodeType === 3 && c.nodeValue.trim()) { own = true; break; } }
+      if (!own) continue;
+      var fs = parseFloat(w.getComputedStyle(e).fontSize);
+      if (!(fs < MIN_FS)) continue;
+      var r = e.getBoundingClientRect(); if (r.width && r.width <= 22 && r.height <= 22) continue;
+      e.style.setProperty('font-size', MIN_FS + 'px', 'important'); e.__uuFs = true;
+    }
+  }
+  function watchFloor(d){
+    if (!d || !d.body || d.__uuFloor) return; d.__uuFloor = true;
+    var t = null; function run(){ t = null; try { floorText(d); } catch (e) {} }
+    run(); new (d.defaultView.MutationObserver)(function(){ if (!t) t = setTimeout(run, 300); }).observe(d.body, { childList: true, subtree: true, characterData: true });
+  }
   function scan(){
+    watchFloor(document);
     Array.prototype.forEach.call(document.querySelectorAll('iframe'), function(f){
+      try { var fd = f.contentDocument; if (fd && /(ln|tools|community)\.html/.test(fd.URL || '')) watchFloor(fd); } catch (e) {}
       if (!f.__uu) { f.__uu = true; f.addEventListener('load', function(){ put(f); }); }
       put(f);
     });

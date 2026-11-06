@@ -10,18 +10,18 @@
   var F = "'Pretendard Variable',Pretendard,-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Noto Sans KR','Malgun Gothic',sans-serif";
 
   // ---- 색 (모든 화면 공통 이름)
-  var DARK = '--bg:#101013;--surface:#1C1C21;--raise:#24242A;--sunk:#2A2A31;--ink:#ECECEF;--ink2:#9A9AA5;--line:#26262D;' +
+  var DARK = '--bg:#101013;--surface:#1C1C21;--raise:#24242A;--sunk:#2A2A31;--ink:#ECECEF;--ink2:#B0B0BA;--ink3:#8A8A95;--line:#2E2E36;' +
     '--accent:#7B6DFF;--on-accent:#FFFFFF;--accent-soft:#262140;--acc-soft:#262140;' +
     '--up:#FF5A68;--on-up:#FFFFFF;--up-soft:#3A1E24;--down:#4D96FF;--on-down:#FFFFFF;--down-soft:#182740;' +
     '--live:#FF5A68;--on-live:#FFFFFF;--room:#101013;--ad:#1C1C21;--ad-line:#2A2A31;--overlay:rgba(0,0,0,.6);--shadow:0 10px 30px rgba(0,0,0,.45);' +
-    '--sa:#FF5A68;--sb:#4D96FF;--sa-soft:#3A1E24;--sb-soft:#182740;--sn:#74747F;--warn:#F5B13D;--warn-soft:#3A2E14;' +
+    '--sa:#FF5A68;--sb:#4D96FF;--sa-soft:#3A1E24;--sb-soft:#182740;--sn:#8A8A95;--warn:#F5B13D;--warn-soft:#3A2E14;' +
     '--t2-y:#F5B13D;--t2-ys:#3A2E14;--t2-g:#2FC48A;--t2-gs:#14302A;--t2-nav:#25252B;--t2-acc-ink:#9D93FF;' +
     "--f-ui:" + F + ";--f-mono:" + F + ";--f-mark:" + F + ";color-scheme:dark;";
-  var LIGHT = '--bg:#F2F4F6;--surface:#FFFFFF;--raise:#F7F8FA;--sunk:#EEF0F3;--ink:#191F28;--ink2:#6B7684;--line:#EEF0F3;' +
+  var LIGHT = '--bg:#F2F4F6;--surface:#FFFFFF;--raise:#F7F8FA;--sunk:#EEF0F3;--ink:#191F28;--ink2:#4E5968;--ink3:#6B7684;--line:#E5E8EB;' +
     '--accent:#5B4CF0;--on-accent:#FFFFFF;--accent-soft:#EEEBFF;--acc-soft:#EEEBFF;' +
     '--up:#F04452;--on-up:#FFFFFF;--up-soft:#FFEEF0;--down:#3182F6;--on-down:#FFFFFF;--down-soft:#E8F3FF;' +
     '--live:#F04452;--on-live:#FFFFFF;--room:#F2F4F6;--ad:#FFFFFF;--ad-line:#E5E8EB;--overlay:rgba(0,0,0,.45);--shadow:0 8px 24px rgba(0,0,0,.08);' +
-    '--sa:#F04452;--sb:#3182F6;--sa-soft:#FFEEF0;--sb-soft:#E8F3FF;--sn:#8B95A1;--warn:#B25E00;--warn-soft:#FFF4DB;' +
+    '--sa:#F04452;--sb:#3182F6;--sa-soft:#FFEEF0;--sb-soft:#E8F3FF;--sn:#6B7684;--warn:#B25E00;--warn-soft:#FFF4DB;' +
     '--t2-y:#E08A00;--t2-ys:#FFF4DB;--t2-g:#0F9D6A;--t2-gs:#E5F7EF;--t2-nav:#FFFFFF;--t2-acc-ink:#5B4CF0;' +
     "--f-ui:" + F + ";--f-mono:" + F + ";--f-mark:" + F + ";color-scheme:light;";
   // 셸·도구·커뮤니티: data-theme 방식 / 리딩 모음: html.lite 방식

@@ -100,6 +100,8 @@
     '  #bn-top #bp-top{flex:1;min-width:0;border:0;background:none}',
     '  #bn-top #bp-top .bp-top-in{padding:0;min-height:44px;max-width:none}',
     '  #bn-top #bp-top .bp-top-list{padding:0}',
+    '  #bn-top #bp-top .bp-top-in>.bp-tl,#bn-top #bp-top .bp-ti .bp-mt{display:none}',
+    '  #bn-top #bp-top .bp-slide{flex:1;min-width:0}#bn-top #bp-top .bp-nm{max-width:none;flex:1 1 auto;min-width:0;font-weight:800}',
     '}',
     /* 전체 메뉴 서랍 */
     '#bn-dr{position:fixed;inset:0;z-index:96;display:flex}',

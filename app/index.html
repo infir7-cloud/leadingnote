@@ -721,7 +721,7 @@ if(SB.on)SITESYNC=SB.bind('site',{
 applyShell();
 var h0=(location.hash||'').replace('#','');
 if(h0==='admin'){show(C.tab,null,{init:true});openAdmin('dash')}
-else{var p0=parseHash();if(NAME[p0.app])show(p0.app,p0.route!=='home'?p0.route:null,{init:true});else show(C.tab,null,{init:true})}
+else{var p0=parseHash();if(NAME[p0.app])show(p0.app,p0.route||'home',{init:true});/* 11/6: 주소에 #tools처럼 서비스만 있으면 마지막 세부 화면이 아니라 그 서비스 첫 화면을 열어요 */else show(C.tab,null,{init:true})}
 /* 브라우저 뒤로·앞으로 */
 window.addEventListener('popstate',function(){
   var p=parseHash();if(p.app==='admin')return;
