@@ -1,6 +1,7 @@
 <!doctype html>
 <html lang="ko">
 <head>
+<script src="config.js?v=1"></script>
 <script src="ux-polish.js?v=7"></script>
 <script>window.__bnHash0=location.hash;</script>
 <script src="ln-theme.js?v=20"></script>
@@ -9,7 +10,7 @@
 
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#0B0F14">
+<meta name="theme-color" content="#F2F4F6">
 <meta name="robots" content="noindex">
 <meta name="description" content="정보 · 도구 · 커뮤니티 — 50~80대를 위한 쉬운 투자 정보 (체험판)">
 <meta property="og:title" content="리딩노트">
@@ -302,11 +303,13 @@ window.LN_ADS={client:'',slots:{top_m:'',top_t:'',rail1:'',rail2:''},placeholder
 var KEY='site.v1';
 var APPS=[['ln','정보'],['tools','도구'],['cm','커뮤니티']];
 var NAME={ln:'정보',tools:'도구',cm:'커뮤니티'};
-var DEF={size:'m',theme:'dark',tab:'ln',
+var DEF={size:'m',theme:'light',tab:'ln',
   notice:{on:true,text:'홈 · 방송종목 · 도구 · 커뮤니티 · MY 메뉴로 원하는 곳에 바로 갈 수 있어요.',where:'all',to:'',v:1},
   noticeClosed:0,hideP:{},picks:[],hiddenChat:{}};
 function load(){try{return JSON.parse(localStorage.getItem(KEY))}catch(e){return null}}
 var C=(function(){var l=load()||{},o=JSON.parse(JSON.stringify(DEF));Object.keys(l).forEach(function(k){o[k]=l[k]});o.notice=Object.assign({},DEF.notice,l.notice||{});o.hideP=o.hideP||{};o.picks=o.picks||[];o.hiddenChat=o.hiddenChat||{};return o})();
+/* 11/6: 기본 화면을 밝은 화면으로 바꾸고 글자 크기 조절을 없앴어요. 예전에 저장된 설정도 한 번만 맞춰요 (어두운 화면은 계속 고를 수 있어요). */
+if(C.v!==2){C.theme='light';C.size='m';C.v=2}
 function save(){window.__siteCfg=C;try{localStorage.setItem(KEY,JSON.stringify(C))}catch(e){}if(SITESYNC)SITESYNC.touch()}
 var SITESYNC=null;
 save();

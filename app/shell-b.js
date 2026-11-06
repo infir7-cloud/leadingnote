@@ -24,6 +24,7 @@
     cm: svg('<path d="M4 6.5C4 5.1 5.1 4 6.5 4h11C18.9 4 20 5.1 20 6.5v7c0 1.4-1.1 2.5-2.5 2.5H10l-4.5 4v-4C4.7 16 4 15.3 4 14.5z"/><path d="M8.5 9h7M8.5 12h4"/>'),
     my: svg('<circle cx="12" cy="8.5" r="3.75"/><path d="M4.5 20c.9-3.6 3.9-5.5 7.5-5.5s6.6 1.9 7.5 5.5"/>'),
     chev: svg('<path d="M9 6l6 6-6 6"/>'),
+    moon: svg('<path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/>'),
     sun: svg('<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>')
   };
   var MARK = '<svg viewBox="0 0 28 28" aria-hidden="true"><rect x="5" y="6" width="11" height="4" rx="2" fill="#fff"/><rect x="5" y="12" width="15" height="4" rx="2" fill="#fff"/><rect x="5" y="18" width="18" height="4" rx="2" fill="#fff"/></svg>';
@@ -85,6 +86,21 @@
     '.bn-wm{flex:1;min-width:0;display:flex;flex-direction:column;border:0;background:none;padding:0;color:var(--ink);font:inherit;text-align:left;cursor:pointer}.bn-wm b{font-size:18px;font-weight:800;letter-spacing:-.03em;line-height:1.2}.bn-wm small{font-size:12.5px;color:var(--ink2);font-weight:600}',
     '.bn-ga{flex:none;width:44px;height:44px;border:1px solid var(--line);border-radius:12px;background:var(--surface);color:var(--ink);font:inherit;font-size:19px;font-weight:800;cursor:pointer}',
     '.bn-mb:focus-visible,.bn-wm:focus-visible,.bn-ga:focus-visible{outline:3px solid var(--accent);outline-offset:2px}',
+    '.bn-ga{display:flex;align-items:center;justify-content:center;color:var(--ink2)}.bn-ga svg{width:22px;height:22px}',
+    /* 11/6 휴대폰: 위 고정 줄은 한 줄만 — 세그먼트는 로고 옆으로, 깊은 화면은 그 화면의 뒤로 줄만 */
+    '@media (max-width:1023.98px){',
+    '  #bn-top{min-height:56px;box-sizing:border-box}',
+    '  #bn-top #bn-seg{flex:1;min-width:0;padding:0;background:none}',
+    '  html.bn-hasseg #bn-top .bn-wm,html.bn-hasseg #bn-top .bn-ga{display:none}',
+    '  #bn-top .bn-all{display:none}',
+    '  #bn-top .bn-track{padding:3px;border-radius:14px}',
+    '  #bn-top .bn-track button{min-height:40px;padding:0 4px;font-size:15px}',
+    '  html.bn-deep #bn-top{display:none}',
+    '  html.bn-strip #bn-top .bn-wm{display:none}',
+    '  #bn-top #bp-top{flex:1;min-width:0;border:0;background:none}',
+    '  #bn-top #bp-top .bp-top-in{padding:0;min-height:44px;max-width:none}',
+    '  #bn-top #bp-top .bp-top-list{padding:0}',
+    '}',
     /* 전체 메뉴 서랍 */
     '#bn-dr{position:fixed;inset:0;z-index:96;display:flex}',
     '#bn-dr .sc{position:absolute;inset:0;background:rgba(8,12,18,.5)}',
@@ -116,11 +132,11 @@
     '@media (min-width:1024px){',
     '  #bn-tab{display:none!important}',
     /* 여백 줄이기: 전체 폭을 1200px 안에 모으고, 가운데 화면은 칸을 꽉 채워요 (화면 안 내용은 최대 720px) */
-    '  #shell .body{grid-template-columns:232px minmax(0,1fr);max-width:1200px!important;margin:0 auto!important}',
+    '  #shell .body{grid-template-columns:232px minmax(0,1fr);max-width:1440px!important;margin:0 auto!important}',
     '  #bn-side{display:flex;grid-column:1;grid-row:1/3;flex-direction:column;gap:6px;min-height:0;overflow-y:auto;padding:14px 12px 14px;border-right:1px solid var(--line);background:var(--bg);scrollbar-width:thin}',
     '  #bn-seg,#shell #frames{grid-column:2}',
     '  #shell #frames{max-width:none!important;width:100%}',
-    '  #bn-seg{width:100%;max-width:720px;justify-self:center;padding:12px 16px 4px}',
+    '  #bn-seg{width:100%;max-width:840px;justify-self:center;padding:12px 16px 4px}',
     '}',
     '.bn-logo{display:flex;align-items:center;gap:10px;min-height:48px;margin:0 0 8px;padding:0 6px;border:0;background:transparent;color:var(--ink);font:inherit;text-align:left;cursor:pointer;border-radius:14px}',
     '.bn-logo i{flex:none;width:40px;height:40px;border-radius:12px;background:var(--accent);display:flex;align-items:center;justify-content:center}',
@@ -194,20 +210,20 @@
   var panel = document.createElement('aside'); panel.id = 'bn-panel'; panel.setAttribute('aria-label', '홈 바로 보기'); body.appendChild(panel);
   var tab = document.createElement('nav'); tab.id = 'bn-tab'; tab.setAttribute('aria-label', '주요 메뉴'); shell.appendChild(tab);
   var topb = document.createElement('header'); topb.id = 'bn-top';
-  topb.innerHTML = '<button type="button" class="bn-mb" data-bn="menu" aria-label="전체 메뉴 열기" aria-haspopup="dialog">' + MARK + '<span class="cap" aria-hidden="true">메뉴</span></button>' +
+  topb.innerHTML = '<button type="button" class="bn-mb" data-bn="menu" aria-label="전체 메뉴 열기" aria-haspopup="dialog">' + MARK + '</button>' +
     '<button type="button" class="bn-wm" data-tab="home" aria-label="리딩노트 홈"><b>리딩노트</b><small>방송 속 고수 종목을 한눈에</small></button>' +
-    '<button type="button" class="bn-ga" data-bn="size" aria-label="글자 크기 · 화면 밝기">가</button>';
+    '<button type="button" class="bn-ga" data-bn="theme" aria-label="어두운 화면으로 바꾸기"></button>';
   shell.insertBefore(topb, shell.firstChild);
 
   side.innerHTML = '<button type="button" class="bn-logo" data-bn="menu" aria-label="리딩노트 전체 메뉴 열기" aria-haspopup="dialog"><i>' + MARK + '</i><span><b>리딩노트</b><small>방송 속 고수 종목을 한눈에</small></span></button>' +
     TABS.map(function(t){ return '<button type="button" class="bn-mi" data-tab="' + t[0] + '">' + IC[t[0]] + '<span>' + t[1] + '</span></button>'; }).join('') +
     '<div class="bn-join" id="bn-join"><b>카카오로 3초 만에 가입</b><span>관심 전문가의 새 방송 종목과 추천을 알려 드려요. 무료예요.</span><button type="button" class="bn-kk" data-tab="my">카카오로 시작하기</button></div>' +
-    '<div class="bn-foot"><button type="button" class="bn-mi" data-bn="size">' + IC.sun + '<span>글자 크기 · 화면 밝기</span></button></div>';
+    '<div class="bn-foot"><button type="button" class="bn-mi bn-th" data-bn="theme"></button></div>';
   tab.innerHTML = TABS.map(function(t){ return '<button type="button" data-tab="' + t[0] + '">' + IC[t[0]] + '<span>' + t[1] + '</span></button>'; }).join('');
 
   function onTab(e){
     var b = e.target.closest && e.target.closest('[data-tab],[data-bn]'); if (!b) return;
-    if (b.getAttribute('data-bn') === 'size') { openSize(); return; }
+    if (b.getAttribute('data-bn') === 'theme' || b.getAttribute('data-bn') === 'size') { toggleTheme(); return; }
     if (b.getAttribute('data-bn') === 'menu') { openDrawer(); return; }
     var id = b.getAttribute('data-tab'), t = TABS.filter(function(x){ return x[0] === id; })[0]; if (!t) return;
     go(t[2], t[3]);
@@ -220,7 +236,7 @@
     ['bc', '방송종목', [['전체 추천 기록', 'ln', 'tbl'], ['이번 주 방송', 'ln', 'bc'], ['지난 방송', 'ln', 'bcall'], ['전문가 찾기', 'ln', 'experts']]],
     ['tools', '도구', [['계산기', 'tools', 'home'], ['종목 검색', 'tools', 'search'], ['목표·손절가', 'tools', 'tp'], ['주식 기본기', 'tools', 'learn']]],
     ['cm', '커뮤니티', [['이번 주 토론', 'cm', 'home'], ['실시간 토론', 'cm', 'chat'], ['토론 목록', 'cm', 'agendas'], ['내 활동', 'cm', 'me']]],
-    ['my', 'MY', [['MY 홈', 'ln', 'more'], ['관심 종목', 'ln', 'watch'], ['알림', 'ln', 'alerts'], ['글자 크기 · 밝기', '', 'size']]]
+    ['my', 'MY', [['MY 홈', 'ln', 'more'], ['관심 종목', 'ln', 'watch'], ['알림', 'ln', 'alerts'], ['화면 밝기 바꾸기', '', 'theme']]]
   ];
   var dr = null;
   function openDrawer(){
@@ -237,7 +253,7 @@
       var b = e.target.closest && e.target.closest('[data-dr]'); if (!b) return;
       if (b.getAttribute('data-dr') === 'x') { closeDrawer(); return; }
       var app = b.getAttribute('data-app'), r = b.getAttribute('data-r'); closeDrawer(true);
-      if (r === 'size') openSize(); else go(app, r);
+      if (r === 'size' || r === 'theme') toggleTheme(); else go(app, r);
     });
     var x = dr.querySelector('.dr-x'); if (x) x.focus();
   }
@@ -254,6 +270,9 @@
   function update(){
     var c = cur(), sig = c.tab + '|' + c.seg + '|' + c.app + '|' + c.route;
     root.classList.toggle('bn-home', c.tab === 'home');
+    root.classList.toggle('bn-hasseg', !!SEG[c.tab]);
+    root.classList.toggle('bn-deep', isDeep(c.app));
+    placeStrip(c);
     if (sig === last) return; last = sig;
     [side, tab].forEach(function(n){ Array.prototype.forEach.call(n.querySelectorAll('[data-tab]'), function(b){ if (b.classList.contains('bn-kk') || b.classList.contains('bn-logo')) return; if (b.getAttribute('data-tab') === c.tab) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current'); }); });
     var S2 = SEG[c.tab];
@@ -269,7 +288,7 @@
 
   // ---- 각 서비스 화면: 안쪽 아래 메뉴 숨기기
   var FRAME_CSS = 'html body nav.nav,html body nav#nav{display:none!important}:root,html:root{--nav-h:0px!important}' +
-    '@media (min-width:640px){html[data-wide] .app{max-width:720px!important}html[data-wide] .joinbar,html[data-wide] .sheet,html[data-wide] .push,html[data-wide] .composer{max-width:720px!important}}' +
+    '@media (min-width:640px){html[data-wide] .app{max-width:840px!important}html[data-wide] .joinbar,html[data-wide] .sheet,html[data-wide] .push,html[data-wide] .composer{max-width:840px!important}}' +
     '.bn-ltop{height:6px}' +
     '.bn-my{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0 4px}' +
     '.bn-my button{display:flex;align-items:center;gap:10px;min-height:56px;padding:0 14px;border:0;border-radius:16px;background:var(--surface);color:var(--ink);font:inherit;font-size:16px;font-weight:700;text-align:left;cursor:pointer}' +
@@ -292,7 +311,11 @@
     var d; try { d = f.contentDocument; } catch (e) { return; }
     if (!d || !d.head || d.getElementById('bn-frame')) return;
     if (!/(ln|tools|community)\.html/.test(d.URL || '')) return;
-    var s = d.createElement('style'); s.id = 'bn-frame'; s.textContent = FRAME_CSS; d.head.appendChild(s);
+    /* 11/6: 뒤로 가기가 없는 첫 화면의 머리 줄 — 도구 · 커뮤니티는 위 세그먼트와 같은 제목이라 숨기고,
+       리딩 모음(검색 · 알림 버튼이 있음)은 고정하지 않고 함께 올라가게 해요 */
+    var TOP0 = 'header.top:not(:has(.back,[data-a="back"],[data-bn-go]))';
+    var extra = /ln\.html/.test(d.URL || '') ? TOP0 + '{position:static!important}' : TOP0 + '{display:none!important}';
+    var s = d.createElement('style'); s.id = 'bn-frame'; s.textContent = FRAME_CSS + extra; d.head.appendChild(s);
   }
 
   // ---- 리딩 모음(ln): 방송종목 화면(#ln/bc · #ln/bcall)과 MY 바로가기
@@ -361,7 +384,7 @@
           '<button type="button" data-bn-go="watch">' + svg('<path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z"/>') + '관심 종목</button>' +
           '<button type="button" data-bn-go="alerts">' + svg('<path d="M6 16V11a6 6 0 1 1 12 0v5l1.5 2h-15z"/><path d="M10 20.5a2 2 0 0 0 4 0"/>') + '알림</button>' +
           '<button type="button" data-bn-go="experts">' + IC.bc + '방송 전문가</button>' +
-          '<button type="button" data-bn-go="size">' + svg('<path d="M4 19 9 5l5 14M5.8 14h6.4M15 19l3-8 3 8M15.9 16.5h4.2"/>') + '글자 크기</button></div>';
+          '<button type="button" data-bn-go="theme">' + IC.moon + '화면 밝기</button></div>';
         grid += myBuyHTML(w);
         return j > -1 ? h.slice(0, j + 1) + grid + h.slice(j + 1) : grid + h;
       };
@@ -376,7 +399,7 @@
       if (m) { e.preventDefault(); e.stopPropagation(); myBuyAct(w, m); return; }
       var b = e.target.closest && e.target.closest('[data-bn-go]'); if (!b) return;
       e.preventDefault(); e.stopPropagation();
-      var r = b.getAttribute('data-bn-go'); if (r === 'size') openSize(); else go('ln', r);
+      var r = b.getAttribute('data-bn-go'); if (r === 'size' || r === 'theme') toggleTheme(); else go('ln', r);
     }, true);
     try { w.render(); } catch (e) {}
     // 링크로 들어온 화면(#ln/bc · #ln/s-종목코드 · #ln/x-전문가 등)은 자료가 준비된 뒤 한 번 더 열어요
@@ -628,6 +651,45 @@
   function closeSize(){ if (sz) { sz.remove(); sz = null; } }
   document.addEventListener('keydown', function(e){ if (e.key === 'Escape' && sz) closeSize(); });
 
+  // ---- 화면 밝기 (11/6: 글자 크기 조절은 없애고, 밝은 화면 ↔ 어두운 화면만 바로 바꿔요)
+  function paintTheme(){
+    var dark = C.theme === 'dark';
+    var t = dark ? '밝은 화면으로 바꾸기' : '어두운 화면으로 바꾸기';
+    Array.prototype.forEach.call(document.querySelectorAll('.bn-ga[data-bn="theme"]'), function(b){ b.innerHTML = dark ? IC.sun : IC.moon; b.setAttribute('aria-label', t); b.title = t; });
+    Array.prototype.forEach.call(document.querySelectorAll('.bn-th'), function(b){ b.innerHTML = (dark ? IC.sun : IC.moon) + '<span>' + (dark ? '밝은 화면' : '어두운 화면') + '</span>'; b.setAttribute('aria-pressed', String(dark)); });
+  }
+  function toggleTheme(){
+    C.theme = C.theme === 'dark' ? 'light' : 'dark'; C.size = 'm';
+    applyAll(); paintTheme(); closeDrawer(true);
+  }
+  paintTheme();
+
+  // ---- 휴대폰 위 고정 줄은 한 줄만 (11/6)
+  //  · 세부 화면 고르기(세그먼트)는 휴대폰에서 로고 옆, 같은 줄로 올려요
+  //  · 뒤로 가기가 있는 깊은 화면에서는 셸의 위 줄을 숨기고, 그 화면의 '‹ 제목' 줄 하나만 남겨요
+  function placeSeg(){
+    if (MQ_PC.matches) { if (seg.parentNode !== body) body.insertBefore(seg, $('frames')); }
+    else if (seg.parentNode !== topb) topb.insertBefore(seg, topb.querySelector('.bn-ga'));
+  }
+  placeSeg();
+  if (MQ_PC.addEventListener) MQ_PC.addEventListener('change', placeSeg); else if (MQ_PC.addListener) MQ_PC.addListener(placeSeg);
+  // 많이 리딩된 종목 띠(bench-plus.js)는 휴대폰 홈에서 로고 옆, 같은 줄에 넣어요 (따로 한 줄을 차지하지 않게)
+  var stripHome = null;
+  function placeStrip(c){
+    var t = $('bp-top'); if (!t) return;
+    if (!stripHome && t.parentNode !== topb) stripHome = { p: t.parentNode, n: t.nextSibling };
+    var inBar = !MQ_PC.matches && c.tab === 'home';
+    if (inBar && t.parentNode !== topb) topb.insertBefore(t, topb.querySelector('.bn-ga'));
+    else if (!inBar && t.parentNode === topb && stripHome) stripHome.p.insertBefore(t, stripHome.n && stripHome.n.parentNode === stripHome.p ? stripHome.n : null);
+    root.classList.toggle('bn-strip', inBar && !t.hidden);
+  }
+  function isDeep(app){
+    var w = W(app), d; try { d = w && w.document; } catch (e) { d = null; } if (!d) return false;
+    var bs = d.querySelectorAll('header.top .back, header.top [data-a="back"], header.top [data-bn-go]');
+    for (var i = 0; i < bs.length; i++) { if (bs[i].offsetParent !== null) return true; }
+    return false;
+  }
+
   update();
-  window.__shellB = { update: update, tabOf: tabOf, segOf: segOf, cur: cur, go: go, openSize: openSize };
+  window.__shellB = { update: update, tabOf: tabOf, segOf: segOf, cur: cur, go: go, openSize: toggleTheme, toggleTheme: toggleTheme };
 })();
