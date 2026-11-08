@@ -358,6 +358,8 @@
     if (!priceOn()) return null;
     if (!o.cur) return { k: 'no', t: '가격 정보가 아직 없어요' };
     if (o.ret == null) return { k: 'no', t: '방송가는 다음 장 마감 뒤에 잡혀요' };
+    // 방송일이 아직 기준일(마지막 종가일)이면 성적이 0%로 보이므로, 첫 거래일 전에는 화살표·색 없이 안내만
+    if (o.asof && o.date && o.date >= o.asof) return { k: 'no', t: '다음 거래일부터 성적이 쌓여요' };
     if (o.target && o.cur >= o.target) return { k: 'ok', t: '★ 목표가에 닿았어요' };
     if (o.ret < 0) return { k: 'dn', t: '▼ 방송가보다 ' + pct(-o.ret) .replace('+', '') + ' 아래예요' };
     if (o.target) return { k: 'up', t: '▲ 방송 후 ' + pct(o.ret) + ' · 목표까지 ' + pct(o.toTarget).replace('+', '') + ' 남았어요' };
@@ -547,8 +549,9 @@
     });
     var mx = Math.max.apply(null, rows.map(function(r){ return on && r.avg != null ? Math.abs(r.avg) : r.n; }).concat([1]));
     var h = rows.map(function(r){
+      if (!r.n) return '<div class="hm-bar"><span>' + esc(r.p.name) + '</span><span class="hm-none" style="grid-column:2 / -1;color:var(--ink2);font-size:.875rem">이번 주 정리된 종목 없음</span></div>';
       var v = on && r.avg != null ? r.avg : null, w = v != null ? Math.abs(v) / mx * 100 : r.n / mx * 100, col = v == null ? 'var(--sn)' : v >= 0 ? 'var(--up)' : 'var(--down)';
-      return '<div class="hm-bar"><span>' + esc(r.p.name) + '</span><span class="t"><i style="width:' + Math.max(r.has ? 3 : 0, w).toFixed(0) + '%;background:' + col + '"></i></span><span class="v' + (v != null ? ' hm-' + tone(v) : '') + '">' + (v != null ? pct(v) : r.has ? r.n + '개' : '—') + '</span></div>'; }).join('');
+      return '<div class="hm-bar"><span>' + esc(r.p.name) + '</span><span class="t"><i style="width:' + Math.max(r.has ? 3 : 0, w).toFixed(0) + '%;background:' + col + '"></i></span><span class="v' + (v != null ? ' hm-' + tone(v) : '') + '">' + (v != null ? pct(v) : r.n + '개') + '</span></div>'; }).join('');
     return '<section class="t2-sec hm-sec"><div class="hm-sh"><div><h2>프로그램별 성적</h2><small>' + (on ? '방송가 대비 평균 · ' + weekRange() : '이번 주 공개 종목 수 · ' + weekRange()) + '</small></div></div><div class="hm-bars">' + h + '</div>' + pxNote() + '</section>';
   }
   function nextWeekHTML(){

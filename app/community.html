@@ -343,41 +343,20 @@ var TODAY='2026-10-19';
 var AG={id:'w43',week:'10월 19일 ~ 23일',due:'금요일 오후 6시 마감',dday:4,
   title:'노후 자금, 배당주와 성장주 중 어디에 더 담으시겠어요?',
   a:{name:'배당주',sub:'꾸준히 받는 돈'},b:{name:'성장주',sub:'크게 불어나는 돈'},
-  ages:[['40대',41,212],['50대',55,604],['60대',66,731],['70대 이상',72,295]],   // [나이대, 배당주 %, 참여 수]
+  ages:[['40대',50,0],['50대',50,0],['60대',50,0],['70대 이상',50,0]],   // [나이대, 배당주 %, 참여 수]
   why:['은퇴를 앞두거나 은퇴하신 분들께 가장 많이 받는 질문이 있어요. "모아 둔 돈을 매달 꺼내 쓸 수 있게 둘까, 조금 더 키울까?"',
        '배당주는 회사가 번 돈 일부를 해마다 나눠 주는 종목이고, 성장주는 배당 대신 번 돈을 다시 사업에 넣어 회사를 키우는 종목이에요. 정답은 없어요. 내 나이, 다른 소득, 마음 편한 정도에 따라 답이 달라져요.'],
   aSide:['매달·분기마다 들어오는 돈이 생활비가 돼요','주가가 출렁여도 배당은 대체로 꾸준해서 마음이 편해요','받은 배당을 다시 사면 복리처럼 불어나요'],
   bSide:['길게 보면 자산이 더 크게 불어날 수 있어요','배당소득세가 없어 중간에 새는 돈이 적어요','아직 일하고 있다면 지금은 키울 때예요'],
-  kw:[['생활비',96,'a'],['마음 편함',64,'a'],['복리',71,'a'],['변동성',58,'b'],['길게 보기',52,'b'],['세금',41,'b'],['손주 용돈',33,'a'],['물가',29,'b'],['반반',27,'']]
+  kw:[]   // [낱말, 나온 횟수, 'a'|'b'] — 실제 의견이 모이면 채워요
 };
-var OPS=[
-  {id:'o1',name:'이*호',age:'70대 이상',side:'a',like:154,text:'성장주는 오를 때 좋지만 떨어지면 밤에 잠이 안 와요. 이 나이엔 마음 편한 게 수익이에요.'},
-  {id:'o2',name:'김*수',age:'60대',side:'a',like:128,text:'은퇴하고 나니 매달 들어오는 돈이 제일 든든해요. 주가는 신경 안 쓰고 배당 날만 기다립니다.'},
-  {id:'o3',name:'박*희',age:'50대',side:'b',like:97,text:'아직 10년은 더 일할 거라 지금은 키우는 게 먼저라고 봐요. 배당은 은퇴 직전에 바꿔도 늦지 않아요.'},
-  {id:'o4',name:'정*숙',age:'60대',side:'a',like:88,text:'배당을 다시 사는 데 쓰면 복리처럼 불어나요. 꼭 둘 중 하나일 필요는 없을 것 같아요.'},
-  {id:'o5',name:'최*영',age:'40대',side:'b',like:61,text:'배당 받아도 세금 떼고 나면 생각보다 적더라고요. 저는 길게 보고 키우는 쪽입니다.'},
-  {id:'o6',name:'한*수',age:'50대',side:'a',like:45,text:'반반이 정답 같아요. 저는 배당 6, 성장 4로 나눠 담고 있어요.'},
-  {id:'o7',name:'서*미',age:'60대',side:'b',like:33,text:'손주 대학 등록금 생각하면 조금은 키워야죠. 다 꺼내 쓰기엔 아직 시간이 길어요.'},
-  {id:'o8',name:'윤*진',age:'40대',side:'b',like:19,text:'물가가 오르는 만큼은 자산도 커져야 한다고 생각해요.'}
-];
-var LAST={id:'w42',week:'10월 12일 ~ 16일',title:'국민연금, 일찍 받기와 늦게 받기 중 어느 쪽이세요?',
-  a:{name:'일찍 받기'},b:{name:'늦게 받기'},
-  ages:[['40대',35,180],['50대',38,702],['60대',44,1021],['70대 이상',29,415]],   // [나이대, 일찍 받기 %, 참여 수]
-  picks:[
-    {name:'이*호',age:'70대 이상',side:'b',like:212,text:'65세에 받았으면 후회했을 거예요. 늦춘 덕에 매달 받는 돈이 꽤 늘었어요.'},
-    {name:'김*자',age:'60대',side:'a',like:187,text:'건강할 때 쓰는 돈이 진짜 돈이라고 생각해요. 여행도 다니고 손주도 보고요.'},
-    {name:'박*수',age:'60대',side:'b',like:164,text:'다른 소득이 있으면 늦추는 게 이득이고, 없으면 일찍 받는 게 맞는 것 같아요.'},
-    {name:'최*길',age:'70대 이상',side:'b',like:143,text:'오래 살 생각이면 늦게, 아니면 일찍. 결국 내 건강은 내가 제일 잘 알죠.'},
-    {name:'정*란',age:'50대',side:'a',like:98,text:'부모님을 보니 일찍 받아서 생활비 부담을 줄이시는 게 좋아 보였어요.'}]
-};
-var PAST=[
-  {week:'10월 5일 ~ 9일',title:'은퇴 후 집, 줄여서 이사할까요 그대로 살까요?',a:'줄여서 이사',b:'그대로 살기',pa:47,n:1976},
-  {week:'9월 28일 ~ 10월 2일',title:'손주 용돈, 현금으로 줄까요 주식으로 줄까요?',a:'현금',b:'주식',pa:37,n:1540}
-];
-var PRED={q:'오늘 코스피, 장 마감 때 지난 거래일보다 오를까요?',up:515,down:388,
-  y:{date:'10월 16일 (금)',pick:'오른다',pct:62,res:'올랐어요',hit:true},
-  crowd:[1,1,0,1,0,1,1,1,0,1]};
-var CANDS=[['자녀에게 증여, 미리 할까요 나중에 할까요?',412],['은퇴 후 부동산 비중, 줄일까요 유지할까요?',388],['손해 막는 가격, 꼭 지켜야 할까요?',297],['금 투자, 지금 할까요 기다릴까요?',205]];
+var OPS=[];   // 서버에서 실제 의견을 받아 채워요
+var LAST=null;   // 지난 주 토론 결과 (실제 결과가 생기면 운영자가 채워요)
+var PAST=[];
+var PRED={q:'오늘 코스피, 장 마감 때 지난 거래일보다 오를까요?',up:0,down:0,
+  y:null,   // 지난 거래일 채점 결과 (채점 기능이 생기면 채워요)
+  crowd:[]};
+var CANDS=[['자녀에게 증여, 미리 할까요 나중에 할까요?',0],['은퇴 후 부동산 비중, 줄일까요 유지할까요?',0],['손해 막는 가격, 꼭 지켜야 할까요?',0],['금 투자, 지금 할까요 기다릴까요?',0]];
 var PLAN=[
   {when:'10/19 ~ 10/23',t:'노후 자금, 배당주 vs 성장주',s:'진행 중 · 금요일 결과 리포트와 뽑힌 의견 5개',now:true},
   {when:'10/26 ~ 10/30',t:'은퇴 후 부동산 비중, 줄일까 유지할까',s:'11월 토론 주제 후보 투표도 이 주에 마감'},
@@ -386,43 +365,24 @@ var PLAN=[
 var DAILY=[['월','코스피 방향'],['화','원·달러 환율'],['수','코스닥 방향'],['목','가장 많이 본 종목'],['금','다음 주 코스피']];
 
 /* ===== 저장 (이 브라우저에만) ===== */
-var KEY='agora.v1';
+var KEY='agora.v2';   // v1에 남은 예시 기록은 버려요
 function load(){try{var v=localStorage.getItem(KEY);return v?JSON.parse(v):null}catch(e){return null}}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(P))}catch(e){}}
 function defaults(){return {chat:[],clikes:{},vote:null,age:'60대',reason:'',myOp:null,likes:{},pred:null,cand:null,picked:false,
-  myPred:[1,0,1,1,null,1,0,1,1]}}   // 지난 9일 예시 기록 + 오늘
+  myPred:[null,null,null,null,null,null,null,null,null]}}   // 지난 9일 기록 + 오늘 (처음엔 비어 있어요)
 var P=Object.assign(defaults(),load()||{});
 var S={view:'home',stack:[],sort:'like',side:'all'};
 
 /* ===== 실시간 토론 (시안: 미리 적어 둔 대화가 몇 초마다 올라와요. 실서비스는 실시간 서버) ===== */
 var CHAT_SEED=[
-  {id:'c0',sys:true,name:'운영자',text:'이번 주 토론방이 열렸어요. 생각이 달라도 서로 존중해 주세요. 인터넷 주소·전화번호는 올릴 수 없어요.',at:'10:30'},
-  {id:'c1',name:'김*수',age:'60대',side:'a',like:12,text:'저는 무조건 배당이요. 은퇴하고 나니 월급처럼 들어오는 게 최고예요',at:'10:41'},
-  {id:'c2',name:'최*영',age:'40대',side:'b',like:7,text:'40대는 아직 키울 때죠. 배당은 나중에 바꿔도 돼요',at:'10:43'},
-  {id:'c3',name:'이*호',age:'70대 이상',side:'a',like:15,text:'성장주 들고 있다가 반토막 나 본 적이 있어서… 이제는 못 하겠어요',at:'10:46'},
-  {id:'c4',name:'박*희',age:'50대',side:'b',like:9,text:'@이*호 반토막은 종목 탓 아닐까요? 지수로 길게 가면 괜찮던데요',at:'10:48'},
-  {id:'c5',name:'정*숙',age:'60대',side:'a',like:6,text:'배당 받은 걸로 다시 사면 그게 복리라서 저는 둘 다 잡는 느낌이에요',at:'10:51'},
-  {id:'c6',sys:true,name:'운영자',text:'세금 이야기가 많아서 알려드려요. 배당에는 배당소득세 15.4%가 붙어요.',at:'10:53'},
-  {id:'c7',name:'한*수',age:'50대',side:'a',like:4,text:'그래서 저는 반반 해요. 배당 6, 성장 4',at:'10:55'},
-  {id:'c8',name:'서*미',age:'60대',side:'b',like:3,text:'손주 등록금 생각하면 저는 아직 성장 쪽이요',at:'10:58'}];
-var LIVE_Q=[
-  {name:'윤*진',age:'40대',side:'b',text:'다들 연금계좌로 사세요? 세금 차이가 꽤 나던데요'},
-  {name:'김*수',age:'60대',side:'a',text:'@윤*진 저는 연금계좌에 배당주 담아요. 세금을 나중에 내서 좋아요'},
-  {name:'오*택',age:'70대 이상',side:'a',text:'나이 들수록 마음 편한 게 제일이에요'},
-  {name:'강*호',age:'50대',side:'b',text:'요즘 배당주도 많이 올라서 배당률이 예전만 못해요'},
-  {name:'박*희',age:'50대',side:'b',text:'맞아요. 지금 배당주를 사기엔 좀 비싸다는 생각도 들어요'},
-  {name:'이*호',age:'70대 이상',side:'a',text:'비쌀 땐 조금씩 나눠서 사면 되죠'},
-  {sys:true,name:'운영자',text:'중간 집계예요. 지금까지 60%가 배당주를 골랐어요. 아직 투표 안 하셨다면 위에서 참여해 주세요.'},
-  {name:'정*란',age:'50대',side:'a',text:'다들 몇 대 몇으로 나누세요?'},
-  {name:'한*수',age:'50대',side:'a',text:'@정*란 저는 6:4요'},
-  {name:'최*영',age:'40대',side:'b',text:'40대는 3:7 정도가 맞는 것 같아요'},
-  {name:'서*미',age:'60대',side:'b',text:'다들 말씀 들으니 저도 조금 섞어야겠네요'}];
+  {id:'c0',sys:true,name:'운영자',text:'이번 주 토론방이 열렸어요. 생각이 달라도 서로 존중해 주세요. 인터넷 주소·전화번호는 올릴 수 없어요.',at:'10:30'}];   // 운영자 안내만 (미리 적어 둔 대화 없음)
+var LIVE_Q=[];
 var QCHIPS=['배당이 마음 편해요','길게 보면 성장주예요','반반이 답 같아요','궁금한 게 있어요'];
-var REPLIES=[{name:'김*수',age:'60대',side:'a',t:'저도 비슷한 생각이에요'},{name:'박*희',age:'50대',side:'b',t:'좋은 말씀이네요. 저는 조금 다르게 보지만요'},{name:'이*호',age:'70대 이상',side:'a',t:'공감합니다'}];
 S.chat=CHAT_SEED.map(function(m){return Object.assign({},m)}).concat((P.chat||[]).map(function(m){return Object.assign({},m)}));
-S.online=37;S.lq=0;S.unseen=0;S.typing=null;
+S.online=0;S.offline=false;S.lq=0;S.unseen=0;S.typing=null;
 function hhmm(){var d=new Date(),z=function(n){return (n<10?'0':'')+n};return z(d.getHours())+':'+z(d.getMinutes())}
 function blocked(t){return [/https?:\/\//i,/www\./i,/[a-z0-9-]+\.(com|net|kr|co|io|me|ly|link|site)\b/i,/0\d{1,2}[\s.-]?\d{3,4}[\s.-]?\d{4}/,/open\.kakao/i,/오픈\s*채팅|오픈톡|단톡방/].some(function(r){return r.test(t)})}
+function numOnly(t){return /^[\d\s.,%+\-원]*$/.test(String(t||'').trim())}
 function mention(t){return esc(t).replace(/^(@\S+)/,'<span class="mention">$1</span>')}
 function cLike(m){return (m.like||0)+(P.clikes&&P.clikes[m.id]?1:0)}
 function sideMeter(){
@@ -441,7 +401,7 @@ function livePrev(n){
   return S.chat.filter(function(m){return m.sys||!siteHid(m.id)}).slice(-n).map(function(m,i,arr){return '<span class="lp'+(m.sys?' sys':'')+(m.fresh&&i===arr.length-1?' new':'')+'"><span class="lp-who">'+(m.side?'<i class="dot '+m.side+'"></i>':'')+'<b>'+(m.mine?'나':esc(m.name))+'</b>'+(m.age?'<span>'+esc(m.age)+'</span>':'')+'<span class="mono">'+m.at+'</span></span><span class="lp-text">'+mention(m.text)+'</span></span>'}).join('');
 }
 function liveSection(id,n){
-  return '<section class="sec" id="'+id+'"><h2 class="sech"><i class="live" aria-hidden="true"></i>실시간 토론<span class="meta" id="'+id+'-on">'+S.online+'명 대화 중</span></h2>'+
+  return '<section class="sec" id="'+id+'"><h2 class="sech"><i class="live" aria-hidden="true"></i>실시간 토론<span class="meta" id="'+id+'-on">'+onlineText()+'</span></h2>'+
     '<button class="livebox" data-go="chat" aria-label="실시간 토론방 들어가기"><span id="'+id+'-list" style="display:flex;flex-direction:column">'+livePrev(n)+'</span>'+
     '<span class="fake-in"><span>한마디 남기기…</span><span class="go">토론방 들어가기 ›</span></span></button></section>';
 }
@@ -470,20 +430,16 @@ function pushMsg(m){
   }
 }
 function setTyping(name){S.typing=name;var el=document.getElementById('typing');if(el)el.textContent=name?name+'님이 입력 중…':''}
-function setOnline(){S.online=Math.max(28,Math.min(52,S.online+Math.round(Math.random()*6-2)));['lv-home','lv-detail'].forEach(function(id){var el=document.getElementById(id+'-on');if(el)el.textContent=S.online+'명 대화 중'});var t=document.getElementById('chat-on');if(t)t.textContent=S.online+'명'}
-function tick(){
-  setOnline();
-  if(S.lq>=LIVE_Q.length)return;
-  var q=LIVE_Q[S.lq++];if(!q.sys)setTyping(q.name);
-  setTimeout(function(){setTyping(null);pushMsg(Object.assign({id:'l'+S.lq,at:hhmm(),like:0},q))},q.sys?0:1800);
-}
-setInterval(tick,7000);
+function onlineText(){return S.offline?'잠시 후 다시 시도해 주세요':S.online?S.online+'명 대화 중':''}
+function setOnline(){['lv-home','lv-detail'].forEach(function(id){var el=document.getElementById(id+'-on');if(el)el.textContent=onlineText()});var t=document.getElementById('chat-on');if(t)t.textContent=S.online?S.online+'명':''}
+// 서버(community-live.js)가 8초 안에 붙지 않으면 가짜 대화 대신 안내를 보여줘요
+setTimeout(function(){if(!window.__cmLive){S.offline=true;setOnline();var l=document.getElementById('chat-list');if(l&&!document.getElementById('cm-offline'))l.insertAdjacentHTML('beforeend','<div class="cm sys" id="cm-offline"><div class="bub">서버에 연결하지 못했어요. 잠시 후 다시 시도해 주세요.</div></div>')}},8000);
 
 
 /* ===== 계산 ===== */
-function tally(ag){var a=0,n=0;ag.ages.forEach(function(r){a+=Math.round(r[2]*r[1]/100);n+=r[2]});return {a:a,b:n-a,n:n,pa:Math.round(a/n*100)}}
-function liveTally(){var t=tally(AG);if(P.vote){t.n++;if(P.vote==='a')t.a++;else t.b++;t.pa=Math.round(t.a/t.n*100)}return t}
-function predTally(){var u=PRED.up+(P.pred==='up'?1:0),d=PRED.down+(P.pred==='down'?1:0);return {u:u,d:d,n:u+d,pu:Math.round(u/(u+d)*100)}}
+function tally(ag){var a=0,n=0;ag.ages.forEach(function(r){a+=Math.round(r[2]*r[1]/100);n+=r[2]});return {a:a,b:n-a,n:n,pa:n?Math.round(a/n*100):50}}
+function liveTally(){var t=tally(AG);if(P.vote){t.n++;if(P.vote==='a')t.a++;else t.b++;t.pa=t.n?Math.round(t.a/t.n*100):50}return t}
+function predTally(){var u=PRED.up+(P.pred==='up'?1:0),d=PRED.down+(P.pred==='down'?1:0);return {u:u,d:d,n:u+d,pu:(u+d)?Math.round(u/(u+d)*100):50}}
 function num(n){return n.toLocaleString('ko-KR')}
 function esc(s){return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
 var SERIES=(function(){var r=[],cum=0;for(var t=0;t<=10;t++){var v=Math.pow(1.02,t);r.push({t:t,a:v+cum,b:Math.pow(1.07,t),cash:cum});cum+=.04*v}return r})();
@@ -550,6 +506,7 @@ function lineTable(){
     SERIES.filter(function(p){return p.t%2===0}).map(function(p){return '<tr><td>'+(p.t?p.t+'년 뒤':'지금')+'</td><td>'+p.a.toFixed(2)+'억</td><td>'+p.b.toFixed(2)+'억</td></tr>'}).join('')+'</tbody></table></div></details>';
 }
 function kwCloud(){
+  if(!AG.kw.length)return '<p class="small">의견이 모이면 많이 나온 말을 보여드려요.</p>';
   var mx=Math.max.apply(null,AG.kw.map(function(k){return k[1]}));
   return '<div class="kw">'+AG.kw.slice().sort(function(a,b){return b[1]-a[1]}).map(function(k){var fs=(.875+.55*k[1]/mx).toFixed(3);
     return '<span style="font-size:'+fs+'rem">'+(k[2]?'<i class="dot '+k[2]+'"></i>':'')+esc(k[0])+'<small>'+k[1]+'</small></span>'}).join('')+'</div>';
@@ -572,7 +529,7 @@ function viewHome(){
   h+='<section class="sec"><h2 class="sech">오늘의 예측<span class="meta">매일 · 다음 날 채점</span></h2><div class="card pred">'+
     '<h3>'+esc(PRED.q)+'</h3><div class="two"><button class="pick a" data-act="pred" data-v="up" aria-pressed="'+(P.pred==='up')+'">'+I.up+'오른다</button><button class="pick b" data-act="pred" data-v="down" aria-pressed="'+(P.pred==='down')+'">'+I.down+'내린다</button></div>'+
     (P.pred?'<div style="display:flex;flex-direction:column;gap:.4rem">'+splitBar(pt.pu,'오른다','내린다')+'<p class="small">'+num(pt.n)+'명 참여 · 내일 오전 9시에 채점해요. 다른 쪽을 눌러 바꿀 수 있어요 (장 마감 전까지).</p></div>':'<p class="small">누르면 다른 분들의 예측이 보여요. '+num(pt.n)+'명 참여 중</p>')+
-    '<div class="yrow"><span style="flex:1;min-width:0">지난 거래일 '+PRED.y.date+' — <b>'+PRED.y.pct+'%가 "'+PRED.y.pick+'"</b>, 실제로 '+PRED.y.res+'. 다수 의견 적중 <span class="mono">(예시)</span></span></div>'+
+    (PRED.y?'<div class="yrow"><span style="flex:1;min-width:0">지난 거래일 '+PRED.y.date+' — <b>'+PRED.y.pct+'%가 "'+PRED.y.pick+'"</b>, 실제로 '+PRED.y.res+'.</span></div>':'')+
     '<div style="display:flex;flex-direction:column;gap:.45rem"><span class="small">내 최근 10일</span>'+predStrip(P.myPred,!!P.pred)+'<div class="legend"><span><i class="lg-h"></i>적중</span><span><i class="lg-m"></i>빗나감</span><span><i class="lg-n"></i>참여 안 함·채점 전</span></div></div>'+
     '</div></section>';
   // 2. 실시간 토론
@@ -584,6 +541,7 @@ function viewHome(){
     (P.vote?'<span style="display:flex;flex-direction:column;gap:.4rem">'+splitBar(t.pa,esc(AG.a.name),esc(AG.b.name))+'</span>':'<span class="locked">'+I.lock+'투표하면 '+num(t.n)+'명의 선택이 열려요</span>')+
     '<span class="bfoot"><span>'+esc(AG.due)+'</span><span class="go">본문 전체 보기 ›</span></span></button></section>';
   // 3. 뽑힌 의견
+  if(LAST){
   var picks=LAST.picks.slice();var mo2=P.picked?myOpinion():null;
   h+='<section class="sec"><h2 class="sech">지난 주 뽑힌 의견<span class="meta">5 PICKS</span></h2><p class="small" style="margin-top:-.4rem">"'+esc(LAST.title)+'"에 남겨 주신 의견 중 골랐어요.</p>'+
     '<div class="quotes">'+(mo2?quoteCard(mo2,AG,{picked:true}):'')+picks.map(function(o){return quoteCard(o,LAST,{picked:true})}).join('')+'</div>'+
@@ -592,15 +550,16 @@ function viewHome(){
   var lt=tally(LAST);
   h+='<section class="sec"><h2 class="sech">지난 주 결과</h2><button class="report" data-go="report">'+donut(lt.pa,84)+
     '<span class="rt"><span class="lbl">'+LAST.week+' · '+num(lt.n)+'명</span><h3>'+esc(LAST.title)+'</h3><span class="small"><i class="dot b"></i> '+esc(LAST.b.name)+' '+(100-lt.pa)+'% · <i class="dot a"></i> '+esc(LAST.a.name)+' '+lt.pa+'%</span></span></button></section>';
+  }
   // 5. 다음 달 아젠다 투표
   h+='<section class="sec"><h2 class="sech">11월에 이야기할 주제<span class="meta">10/30 마감</span></h2><p class="small" style="margin-top:-.4rem">가장 많이 고른 주제가 11월 첫 주 토론 주제가 돼요.</p><div class="card">'+candList()+'</div></section>';
-  h+='<p class="foot">투표와 의견은 회원들의 생각을 모은 것이며 투자 권유가 아니에요. 화면의 숫자와 의견은 모두 예시예요.</p>';
+  h+='<p class="foot">투표와 의견은 회원들의 생각을 모은 것이며 투자 권유가 아니에요.</p>';
   return h;
 }
 function candList(){
   var mx=0;CANDS.forEach(function(c,i){var v=c[1]+(P.cand===i?1:0);if(v>mx)mx=v});
   return CANDS.map(function(c,i){var v=c[1]+(P.cand===i?1:0);
-    return '<button class="cand" data-act="cand" data-v="'+i+'" aria-pressed="'+(P.cand===i)+'"><span class="ct"><span>'+esc(c[0])+'</span><span class="mono">'+num(v)+'</span></span><span class="cbar" style="width:'+Math.round(v/mx*100)+'%"></span></button>';
+    return '<button class="cand" data-act="cand" data-v="'+i+'" aria-pressed="'+(P.cand===i)+'"><span class="ct"><span>'+esc(c[0])+'</span><span class="mono">'+num(v)+'</span></span><span class="cbar" style="width:'+(mx?Math.round(v/mx*100):0)+'%"></span></button>';
   }).join('');
 }
 function myOpinion(){
@@ -612,7 +571,7 @@ function myOpinion(){
 function viewDetail(){
   var t=liveTally(),h='<article class="art">';
   h+='<header style="display:flex;flex-direction:column;gap:.75rem"><span class="lbl acc">이번 주 토론 · '+AG.week+'</span><h1>'+esc(AG.title)+'</h1>'+
-    '<div class="metas"><span class="chip">'+esc(AG.due)+'</span><span class="chip mono">'+num(t.n)+'명 참여</span><span class="chip mono">의견 '+num(OPS.length+(P.myOp?1:0)+214)+'</span></div></header>';
+    '<div class="metas"><span class="chip">'+esc(AG.due)+'</span><span class="chip mono">'+num(t.n)+'명 참여</span><span class="chip mono">의견 '+num(allOps().length)+'</span></div></header>';
   h+='<div class="vs"><span class="va"><b>'+esc(AG.a.name)+'</b><small>'+esc(AG.a.sub)+'</small></span><i>VS</i><span class="vb"><b>'+esc(AG.b.name)+'</b><small>'+esc(AG.b.sub)+'</small></span></div>';
   h+='<section class="prose"><h2>왜 이 질문인가요</h2>'+AG.why.map(function(p){return '<p>'+esc(p)+'</p>'}).join('')+'</section>';
   // 시각화 1
@@ -652,7 +611,7 @@ function viewDetail(){
   h+='</figure>';
   // 공감 많은 의견
   var top=allOps().slice().sort(function(a,b){return b.like-a.like}).slice(0,3);
-  h+='<section class="sec"><h2 class="sech">지금 공감 많은 의견<span class="meta">금요일 5개 선정</span></h2><div class="qstack">'+top.map(function(o){return quoteCard(o,AG)}).join('')+'</div></section>';
+  h+='<section class="sec"><h2 class="sech">지금 공감 많은 의견<span class="meta">금요일 5개 선정</span></h2><div class="qstack">'+(top.length?top.map(function(o){return quoteCard(o,AG)}).join(''):'<p class="small">아직 남겨진 의견이 없어요. 첫 의견을 남겨 주세요.</p>')+'</div></section>';
   // 시각화 3: 많이 나온 말
   h+='<figure class="fig"><figcaption><span class="lbl">의견 속 낱말</span><b>의견에 많이 나온 말</b><span class="small">글자가 클수록 많이 나왔어요. 숫자는 나온 횟수예요.</span></figcaption>'+kwCloud()+
     '<div class="legend"><span><i class="dot a"></i>'+esc(AG.a.name)+' 쪽에서 주로</span><span><i class="dot b"></i>'+esc(AG.b.name)+' 쪽에서 주로</span></div></figure>';
@@ -660,7 +619,7 @@ function viewDetail(){
   h+='<section class="sec"><h2 class="sech">모든 의견</h2><div class="ops-ctl">'+[['like','공감 많은 순'],['new','최신 순']].map(function(c){return '<button class="tab" data-act="sort" data-v="'+c[0]+'" aria-pressed="'+(S.sort===c[0])+'">'+c[1]+'</button>'}).join('')+
     '<span style="flex-basis:100%;height:0"></span>'+[['all','전체'],['a',AG.a.name],['b',AG.b.name]].map(function(c){return '<button class="tab" data-act="side" data-v="'+c[0]+'" aria-pressed="'+(S.side===c[0])+'">'+esc(c[1])+'</button>'}).join('')+'</div>'+
     '<div>'+opList()+'</div></section>';
-  h+='<p class="foot">투표와 의견은 회원들의 생각을 모은 것이며 투자 권유가 아니에요. 투자 판단과 결과의 책임은 본인에게 있어요. 화면의 숫자와 의견은 모두 예시예요.</p>';
+  h+='<p class="foot">투표와 의견은 회원들의 생각을 모은 것이며 투자 권유가 아니에요. 투자 판단과 결과의 책임은 본인에게 있어요.</p>';
   return h+'</article>';
 }
 function allOps(){var o=OPS.map(function(x){return Object.assign({},x,{like:x.like+(P.likes[x.id]?1:0)})});if(P.myOp)o.unshift(P.myOp);return o}
@@ -678,6 +637,7 @@ function opList(){
 
 /* ===== 화면: 결과 리포트 ===== */
 function viewReport(){
+  if(!LAST)return '<section class="sec"><p class="small">아직 마감된 토론이 없어요. 첫 결과 리포트는 이번 주 토론이 끝나면 올라와요.</p></section>';
   var t=tally(LAST),h='<article class="art">';
   h+='<header style="display:flex;flex-direction:column;gap:.75rem"><span class="lbl acc">결과 리포트 · '+LAST.week+'</span><h1>'+esc(LAST.title)+'</h1><div class="metas"><span class="chip mono">'+num(t.n)+'명 참여</span><span class="chip">마감됨</span></div></header>';
   h+='<figure class="fig"><figcaption><span class="lbl">최종 결과</span><b>'+esc(LAST.b.name)+'가 '+(100-t.pa)+'%로 더 많았어요</b></figcaption>'+
@@ -698,11 +658,11 @@ function viewReport(){
 
 /* ===== 화면: 아젠다 목록·운영 일정 ===== */
 function viewAgendas(){
-  var t=liveTally(),lt=tally(LAST),h='';
+  var t=liveTally(),lt=LAST?tally(LAST):null,h='';
   h+='<section class="sec"><h2 class="sech">진행 중</h2><button class="banner" data-go="detail"><span class="brow"><span class="lbl acc">'+AG.week+'</span><span class="lbl">D-'+AG.dday+'</span></span><h2 style="font-size:1.25rem">'+esc(AG.title)+'</h2>'+
     (P.vote?'<span style="display:flex;flex-direction:column;gap:.4rem">'+splitBar(t.pa,esc(AG.a.name),esc(AG.b.name))+'</span>':'<span class="locked">'+I.lock+'투표하면 결과가 열려요</span>')+'</button></section>';
   h+='<section class="sec"><h2 class="sech">지난 토론</h2><div class="alist">'+
-    '<button class="arow" data-go="report"><span class="brow"><span class="lbl">'+LAST.week+'</span><span class="lbl">'+num(lt.n)+'명</span></span><h3>'+esc(LAST.title)+'</h3>'+splitBar(lt.pa,esc(LAST.a.name),esc(LAST.b.name))+'</button>'+
+    (LAST?'<button class="arow" data-go="report"><span class="brow"><span class="lbl">'+LAST.week+'</span><span class="lbl">'+num(lt.n)+'명</span></span><h3>'+esc(LAST.title)+'</h3>'+splitBar(lt.pa,esc(LAST.a.name),esc(LAST.b.name))+'</button>':(PAST.length?'':'<p class="small">아직 마감된 토론이 없어요.</p>'))+
     PAST.map(function(p){return '<div class="arow"><span class="brow"><span class="lbl">'+p.week+'</span><span class="lbl">'+num(p.n)+'명</span></span><h3>'+esc(p.title)+'</h3>'+splitBar(p.pa,esc(p.a),esc(p.b))+'</div>'}).join('')+'</div></section>';
   h+='<section class="sec"><h2 class="sech">운영 일정<span class="meta">10월 ~ 11월</span></h2><div class="plan">'+
     PLAN.map(function(p){return '<div class="prow'+(p.now?' now':'')+'"><span class="when">'+p.when+'</span><span class="what"><b>'+esc(p.t)+'</b><span class="small">'+esc(p.s)+'</span></span></div>'}).join('')+'</div></section>';
@@ -716,13 +676,13 @@ function viewAgendas(){
 /* ===== 화면: 내 기록 ===== */
 function viewMe(){
   var hits=P.myPred.filter(function(v){return v===1}).length,tried=P.myPred.filter(function(v){return v!==null}).length,h='';
-  h+='<section class="sec"><h2 class="sech">내 참여<span class="meta">예시 기록 포함</span></h2><div class="stats">'+
-    '<div class="tile"><span class="tk">참여한 토론</span><b>'+(3+(P.vote?1:0))+'개</b><span class="s">지난 3주 + 이번 주</span></div>'+
-    '<div class="tile"><span class="tk">남긴 의견</span><b>'+(2+(P.myOp?1:0))+'개</b><span class="s">공감 받은 수 41</span></div>'+
+  h+='<section class="sec"><h2 class="sech">내 참여</h2><div class="stats">'+
+    '<div class="tile"><span class="tk">참여한 토론</span><b>'+(P.vote?1:0)+'개</b><span class="s">이번 주</span></div>'+
+    '<div class="tile"><span class="tk">남긴 의견</span><b>'+(P.myOp?1:0)+'개</b><span class="s">이번 주</span></div>'+
     '<div class="tile"><span class="tk">뽑힌 의견</span><b>'+(P.picked?1:0)+'개</b><span class="s">'+(P.picked?'이번 주 선정':'아직 없어요')+'</span></div>'+
-    '<div class="tile"><span class="tk">예측 적중률</span><b>'+Math.round(hits/tried*100)+'%</b><span class="s">'+tried+'번 중 '+hits+'번</span></div></div></section>';
+    '<div class="tile"><span class="tk">예측 적중률</span><b>'+(tried?Math.round(hits/tried*100)+'%':'—')+'</b><span class="s">'+tried+'번 중 '+hits+'번</span></div></div></section>';
   h+='<section class="sec"><h2 class="sech">예측 기록</h2><div class="card pred">'+predStrip(P.myPred,!!P.pred)+'<div class="legend"><span><i class="lg-h"></i>적중</span><span><i class="lg-m"></i>빗나감</span><span><i class="lg-n"></i>참여 안 함·채점 전</span></div>'+
-    '<p class="small">다수 의견의 최근 10일 적중: '+PRED.crowd.filter(function(v){return v}).length+'번. 회원님은 다수보다 '+(hits/tried*10>=PRED.crowd.filter(function(v){return v}).length?'잘':'덜')+' 맞혔어요.</p></div></section>';
+    (PRED.crowd.length&&tried?'<p class="small">다수 의견의 최근 10일 적중: '+PRED.crowd.filter(function(v){return v}).length+'번. 회원님은 다수보다 '+(hits/tried*10>=PRED.crowd.filter(function(v){return v}).length?'잘':'덜')+' 맞혔어요.</p>':'<p class="small">예측에 참여하면 다음 날부터 기록이 쌓여요.</p>')+'</div></section>';
   h+='<section class="sec"><h2 class="sech">뽑힌 의견 미리 보기</h2><p class="small">의견이 뽑히면 홈 맨 위와 결과 리포트에 이렇게 실려요.</p>'+
     (P.picked?'<button class="btn btn-line btn-block" data-act="unpick">미리 보기 끄기</button>':'<button class="btn btn-primary btn-block" data-act="pickme">내 의견이 뽑혔다고 가정하고 보기</button>')+
     (P.myOp?'':'<p class="small">이번 주 토론에 이유를 남기면 그 글로 보여드려요. 아직 없으면 예시 문장으로 보여드려요.</p>')+'</section>';
@@ -811,14 +771,9 @@ document.addEventListener('submit',function(ev){
   var i=document.getElementById('chat-in'),t=(i.value||'').trim();
   if(!t){toast('보낼 말을 적어 주세요');return}
   if(blocked(t)){toast('인터넷 주소·전화번호·단체방 주소는 올릴 수 없어요');return}
-  var m={id:'me'+Date.now(),mine:true,name:'나',age:P.age,side:P.vote,text:t,at:hhmm(),like:0};
-  P.chat=(P.chat||[]).concat([{id:m.id,mine:true,name:'나',age:m.age,side:m.side,text:t,at:m.at,like:0}]);save();
-  i.value='';S.draft='';pushMsg(m);
-  // 참여하면 바로 반응이 와요 (시안용 연출)
-  setTimeout(function(){m.like+=2;var el=document.getElementById('cm-'+m.id);if(el)el.outerHTML=chatMsg(m);toast('2명이 회원님 말에 공감했어요')},3000);
-  var r=REPLIES[Math.floor(Math.random()*REPLIES.length)];
-  setTimeout(function(){setTyping(r.name)},4200);
-  setTimeout(function(){setTyping(null);pushMsg({id:'r'+Date.now(),name:r.name,age:r.age,side:r.side,text:'@회원님 '+r.t,at:hhmm(),like:0})},6200);
+  if(numOnly(t)){toast('숫자만으로는 글을 올릴 수 없어요');return}
+  // 서버가 연결돼 있으면 community-live.js가 먼저 받아 저장해요. 여기까지 오면 서버 연결이 안 된 상태예요.
+  toast('잠시 후 다시 시도해 주세요');
 });
 document.addEventListener('input',function(ev){
   if(ev.target.id==='chat-in')S.draft=ev.target.value;if(ev.target.id==='reason'){P.reason=ev.target.value;var c=document.getElementById('rc');if(c)c.textContent=P.reason.length+' / 80';save()}});

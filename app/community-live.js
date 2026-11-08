@@ -2,14 +2,12 @@
    index.html(맨 바깥 셸)에 <script src="community-live.js"></script> 한 줄만 넣으면 동작해요.
    - 커뮤니티 화면 코드는 고치지 않고, 바깥에서 서버 저장·실시간 연결을 붙여요.
    - 서버에 연결되면 미리 적어 둔 대화·가짜 공감·가짜 답글·가짜 접속 수를 끄고 실제 참여만 보여줘요.
-   - 서버 연결이 안 되면 지금처럼(이 기기 안에서만 저장) 그대로 동작해요.
+   - 서버 연결이 안 되면 커뮤니티 화면이 "잠시 후 다시 시도해 주세요"를 보여줘요 (가짜 대화·숫자 없음).
    필요한 것: Supabase 표(supabase_setup.sql)와 Authentication → Allow anonymous sign-ins 켜기
-   시작 숫자: 기본은 화면에 미리 넣어 둔 참여 수·예시 의견 위에 실제 참여를 더해요.
-             0부터 실제 참여만 세려면 <script src="community-live.js" data-seed="off"></script> 로 넣으세요. */
+   숫자는 항상 0부터 실제 참여만 세요. (예전 data-seed 옵션은 없앴어요) */
 (function(){
   if (window.__communityLive) return;
-  var me = document.currentScript, SEED_OFF = !!(me && me.getAttribute('data-seed') === 'off');
-  var LIB = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3/dist/umd/supabase.js';
+    var LIB = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3/dist/umd/supabase.js';
 
   function cfg(){
     var w = window;
@@ -117,14 +115,11 @@
     w.__cmLive = true;
     var AG = w.AG, P = w.P, S = w.S, PRED_ID = 'pred-' + w.TODAY, CAND_ID = 'cand-' + AG.id;
     var SEED = { ages: JSON.parse(JSON.stringify(AG.ages)), up: w.PRED.up, down: w.PRED.down, cands: w.CANDS.map(function(c){ return c[1]; }) };
-    if (SEED_OFF) {   // 미리 넣어 둔 숫자·예시 의견 없이 0부터
-      SEED = { ages: SEED.ages.map(function(r){ return [r[0], 50, 0]; }), up: 0, down: 0, cands: SEED.cands.map(function(){ return 0; }) };
-      if (w.OPS && w.OPS.length) w.OPS.length = 0;
-      patchFn(w, 'tally', [['pa:Math.round(a/n*100)', 'pa:n?Math.round(a/n*100):50']]);
-      patchFn(w, 'predTally', [['pu:Math.round(u/(u+d)*100)', 'pu:(u+d)?Math.round(u/(u+d)*100):50']]);
-      patchFn(w, 'candList', [['Math.round(v/mx*100)', '(mx?Math.round(v/mx*100):0)']]);
-      AG.ages = SEED.ages.map(function(r){ return r.slice(); }); w.PRED.up = 0; w.PRED.down = 0; w.CANDS.forEach(function(c){ c[1] = 0; });
-    }
+    // 항상 0부터 실제 참여만 (미리 넣어 둔 숫자·예시 의견 없음)
+    SEED = { ages: SEED.ages.map(function(r){ return [r[0], 50, 0]; }), up: 0, down: 0, cands: SEED.cands.map(function(){ return 0; }) };
+    if (w.OPS && w.OPS.length) w.OPS.length = 0;
+    AG.ages = SEED.ages.map(function(r){ return r.slice(); }); w.PRED.up = 0; w.PRED.down = 0; w.CANDS.forEach(function(c){ c[1] = 0; });
+    S.offline = false; var off = d.getElementById('cm-offline'); if (off) off.remove();
     var SYS = w.CHAT_SEED.filter(function(m){ return m.sys; });   // 운영자 안내만 남기고, 미리 적어 둔 대화는 빼요
     S.chat = SYS.map(function(m){ return Object.assign({}, m); }).concat((S.chat || []).filter(function(m){ return m.mine; }));
     w.__dbVoted = true;
@@ -133,7 +128,6 @@
     patchFn(w, 'predTally', [["(P.pred==='up'?1:0)", "(P.pred==='up'&&!window.__dbVoted?1:0)"], ["(P.pred==='down'?1:0)", "(P.pred==='down'&&!window.__dbVoted?1:0)"]]);
     patchFn(w, 'candList', [['(P.cand===i?1:0)', '(P.cand===i&&!window.__dbVoted?1:0)']]);
     patchFn(w, 'allOps', [['if(P.myOp)o.unshift(P.myOp);return o}', 'o=o.concat(window.__remoteOps||[]);if(P.myOp)o.unshift(P.myOp);return o}']]);
-    patchFn(w, 'liveSection', [['명 대화 중</span>', "'+(window.__dbVoted?'명 접속 중':'명 대화 중')+'</span>"]]);
     // 미리 적어 둔 대화·가짜 접속 수 끄기
     S.lq = w.LIVE_Q ? w.LIVE_Q.length : 999; S.typing = null;
     w.setOnline = function(){ S.online = Math.max(1, D.online || 1); ['lv-home', 'lv-detail'].forEach(function(id){ var el = d.getElementById(id + '-on'); if (el) el.textContent = S.online + '명 접속 중'; }); var t = d.getElementById('chat-on'); if (t) t.textContent = S.online + '명'; };
@@ -170,6 +164,7 @@
       var i = d.getElementById('chat-in'), t = (i.value || '').trim();
       if (!t) { w.toast('보낼 말을 적어 주세요'); return; }
       if (w.blocked(t)) { w.toast('인터넷 주소·전화번호·단체방 주소는 올릴 수 없어요'); return; }
+      if (/^[\d\s.,%+\-원]*$/.test(t)) { w.toast('숫자만으로는 글을 올릴 수 없어요'); return; }
       var id = uuid(), m = { id: 'db-' + id, mine: true, name: '나', age: P.age, side: P.vote || '', text: t, at: w.hhmm(), like: 0 };
       i.value = ''; S.draft = ''; w.pushMsg(m);
       API.chatSend({ id: id, agenda_id: AG.id, nickname: nickname(), age_group: P.age, side: P.vote || null, body: t }).then(function(r){

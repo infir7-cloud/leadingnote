@@ -549,14 +549,17 @@
   }
   function screenWeekWide(K, A, r, done, soon, foot){
     var rows = bcPicks(A, done); if (BCSEL >= rows.length) BCSEL = 0;
-    var tb = rows.length ? '<div class="bn-tb" role="table" aria-label="이번 주 방송 종목"><div class="bn-tr bn-th" role="row"><span role="columnheader">종목 · 전문가</span><span role="columnheader">방송</span><span role="columnheader" class="num">매수가</span><span role="columnheader" class="num">수익률</span><span role="columnheader">한마디</span></div>' +
+    // 값이 하나도 없는 열(전부 '—')은 열 자체를 숨겨요
+    var hasBuy = rows.some(function(it){ return !it.lock && it.k.buy; }), hasRet = rows.some(function(it){ return !!it.ret; }), hasQt = rows.some(function(it){ return !!it.k.quote; });
+    var gcol = 'grid-template-columns:minmax(0,1.3fr) minmax(0,1fr)' + (hasBuy ? ' 96px' : '') + (hasRet ? ' 92px' : '') + (hasQt ? ' minmax(0,1.3fr)' : '');
+    var tb = rows.length ? '<div class="bn-tb" role="table" aria-label="이번 주 방송 종목"><div class="bn-tr bn-th" role="row" style="' + gcol + '"><span role="columnheader">종목 · 전문가</span><span role="columnheader">방송</span>' + (hasBuy ? '<span role="columnheader" class="num">매수가</span>' : '') + (hasRet ? '<span role="columnheader" class="num">수익률</span>' : '') + (hasQt ? '<span role="columnheader">한마디</span>' : '') + '</div>' +
       rows.map(function(it, i){
         var k = it.k, rv = it.ret ? '<span class="bn-rt ' + (it.ret.v > 0 ? 'up' : it.ret.v < 0 ? 'down' : '') + '">' + pctTxt(it.ret.v) + '</span>' : '<span class="mute">—</span>';
-        return '<button type="button" class="bn-tr' + (i === BCSEL ? ' on' : '') + '" role="row" data-bn-pk="' + i + '" aria-pressed="' + (i === BCSEL) + '">' +
+        return '<button type="button" class="bn-tr' + (i === BCSEL ? ' on' : '') + '" role="row" data-bn-pk="' + i + '" aria-pressed="' + (i === BCSEL) + '" style="' + gcol + '">' +
           '<span class="nm">' + (k.kind === 'secret' ? '<span class="bn-hd">히든주</span>' : '') + '<b>' + (it.lock ? '공개 전' : esc(k.stock_name || '')) + '</b><small>' + esc(k.expert_name || '') + '</small></span>' +
           '<span class="pg">' + esc(it.sl.p.name) + '<small>' + (+it.sl.date.slice(5, 7)) + '.' + (+it.sl.date.slice(8, 10)) + '</small></span>' +
-          '<span class="num">' + (it.lock ? '—' : wonTxt(k.buy)) + '</span><span class="num">' + rv + '</span>' +
-          '<span class="qt">' + esc(k.quote || '') + '</span></button>';
+          (hasBuy ? '<span class="num">' + (it.lock ? '—' : wonTxt(k.buy)) + '</span>' : '') + (hasRet ? '<span class="num">' + rv + '</span>' : '') +
+          (hasQt ? '<span class="qt">' + esc(k.quote || '') + '</span>' : '') + '</button>';
       }).join('') + '</div>' : '<p class="t2-empty">이번 주에 정리된 방송 종목이 아직 없어요. 방송이 끝나면 전문가별 종목과 가격을 여기 표로 보여 드려요.</p>';
     var WDN = ['', '월', '화', '수', '목', '금', '토', '일'];
     var left = '<section class="t2-sec"><div class="t2-h" style="cursor:default">이번 주 방송 종목<span class="n">' + rows.length + '</span></div>' +
