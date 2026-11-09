@@ -535,5 +535,5 @@
   // 회원: 약관 동의 · 마이페이지(닉네임·내 활동·탈퇴): 같은 폴더의 ln-member.js
   try { var me4 = document.currentScript && document.currentScript.src; var ms = document.createElement('script'); ms.src = (me4 ? new URL('ln-member.js?v=2', me4).href : 'ln-member.js?v=2'); ms.defer = true; (document.head || document.documentElement).appendChild(ms); } catch (e) {}
   // 시간대별 홈 · 종목 화면 보강 (리딩 모음): 같은 폴더의 ln-home.js
-  try { var me3 = document.currentScript && document.currentScript.src; var hs = document.createElement('script'); hs.src = (me3 ? new URL('ln-home.js?v=9', me3).href : 'ln-home.js?v=9'); hs.defer = true; (document.head || document.documentElement).appendChild(hs); } catch (e) {}
+  try { var me3 = document.currentScript && document.currentScript.src; var hs = document.createElement('script'); hs.src = (me3 ? new URL('ln-home.js?v=10', me3).href : 'ln-home.js?v=10'); hs.defer = true; (document.head || document.documentElement).appendChild(hs); } catch (e) {}
 })();

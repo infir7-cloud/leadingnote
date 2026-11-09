@@ -131,7 +131,11 @@
     '.hm-ex{padding:.875rem 0;border-top:1px solid var(--line)}.hm-ex:first-of-type{border-top:0}',
     '.hm-exh{display:flex;align-items:center;gap:.6rem;margin-bottom:.35rem}',
     '.hm-av{flex:none;width:2.5rem;height:2.5rem;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;background:var(--sa-soft,#EEEBFF);color:var(--t2-acc-ink,#5B4CF0)}',
-    '.hm-pk{display:flex;align-items:center;gap:.6rem;padding:.6rem 0}',
+    '.hm-pk{display:flex;align-items:center;gap:.6rem;padding:.6rem 0 .6rem .875rem;margin-left:1.25rem;border-left:3px solid var(--line)}'+
+    '.hm-pk.sec{border-left-color:var(--t2-acc-ink,#5B4CF0)}'+
+    '.hm-exh .hm-mid b{font-size:1.125rem;font-weight:800}.hm-exh .xtl{margin-left:.3rem;font-size:.8125rem;font-weight:600;color:var(--ink2)}'+
+    '.hm-tag{display:inline-block;vertical-align:.1em;margin-right:.4rem;padding:.1rem .45rem;border-radius:.4rem;font-size:.75rem;font-weight:800;line-height:1.5;background:var(--raise);color:var(--ink2);border:1px solid var(--line)}'+
+    '.hm-tag.sec{background:var(--t2-acc-ink,#5B4CF0);color:#fff;border-color:transparent}',
     '.hm-pk .hm-mid b{font-size:1.0625rem}',
     '.hm-cb{flex:none;font:inherit;font-size:.8125rem;font-weight:800;color:#0B7A5A;background:#E6FCF5;border:0;border-radius:.6rem;padding:.5rem .65rem;cursor:pointer}',
     'html:not(.lite) .hm-cb{background:#0E2A22;color:#5FD3A8}',
@@ -517,12 +521,13 @@
   function afterPicksHTML(S){
     var e = S.ep; if (!e || !e.published) return '';
     var by = {}, order = [];
-    (e.picks || []).forEach(function(k){ var id = k.expert_id || k.expert_name; if (!by[id]) { by[id] = { name: k.expert_name || '', open: [], lock: 0 }; order.push(id); } if (k.kind === 'secret' && !k.revealed) by[id].lock++; else if (k.stock_code || k.stock_name) by[id].open.push(k); });
+    (e.picks || []).forEach(function(k){ var id = k.expert_id || k.expert_name; if (!by[id]) { by[id] = { id: k.expert_id || '', name: k.expert_name || '', open: [], lock: 0 }; order.push(id); } if (k.kind === 'secret' && !k.revealed) by[id].lock++; else if (k.stock_code || k.stock_name) by[id].open.push(k); });
     if (!order.length) return '';
     var h = order.map(function(id){ var x = by[id];
-      return '<div class="hm-ex"><div class="hm-exh"><span class="hm-av">' + esc(x.name.charAt(0)) + '</span><div class="hm-mid"><b>' + esc(x.name) + '</b><span>종목 ' + (x.open.length + x.lock) + '개' + (x.lock ? ' · 히든주 ' + x.lock : '') + '</span></div></div>' +
+      return '<div class="hm-ex"><div class="hm-exh"><span class="hm-av">' + esc(x.name.charAt(0)) + '</span><div class="hm-mid"><b>' + esc(x.name) + '<small class="xtl">' + esc(typeof xTitle === 'function' ? xTitle({ id: x.id }) : '자문역') + '</small></b></div></div>' +
         x.open.map(function(k){ var tgt = k.target ? ' · 목표 ' + won(k.target) + '원' : '', bp = k.buy ? '방송 매수가 ' + won(k.buy) + '원' : '방송에서 말한 종목';
-          return '<div class="hm-pk"><button class="hm-mid" style="border:0;background:none;font:inherit;color:inherit;text-align:left;cursor:pointer;padding:0" data-a="' + (k.stock_code ? 'stock' : 'pBc') + '" data-v="' + esc(k.stock_code || (e.program_id + '|' + e.air_date)) + '"><b>' + esc(k.stock_name) + '</b><span>' + bp + tgt + '</span></button>' +
+          var sec = k.kind === 'secret', tag = '<span class="hm-tag' + (sec ? ' sec' : '') + '">' + esc(sec ? '히든주' : ((S.p && S.p.open_label) || '공개 종목')) + '</span>';
+          return '<div class="hm-pk' + (sec ? ' sec' : '') + '"><button class="hm-mid" style="border:0;background:none;font:inherit;color:inherit;text-align:left;cursor:pointer;padding:0" data-a="' + (k.stock_code ? 'stock' : 'pBc') + '" data-v="' + esc(k.stock_code || (e.program_id + '|' + e.air_date)) + '"><b>' + tag + esc(k.stock_name) + '</b><span>' + bp + tgt + '</span></button>' +
             (k.buy ? '<button class="hm-cb" data-a="hmCalc" data-v="' + k.buy + ',' + (k.target || k.buy) + ',">수익 계산</button>' : '') + '</div>'; }).join('') +
         (x.lock ? '<div class="hm-lock">' + IC.lock + '<span>[히든주] ' + x.lock + '개 · 공개되면 여기에 보여요</span></div>' : '') + '</div>'; }).join('');
     return '<section class="t2-sec hm-sec"><div class="hm-sh"><div><h2>전문가별 종목</h2><small>성적은 다음 장 마감 뒤부터 쌓여요</small></div></div>' + h + '<p class="hm-note">방송에서 전문가가 직접 한 말과 가격을 옮겼어요. 사거나 팔라는 권유가 아니에요.</p></section>';

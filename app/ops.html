@@ -869,7 +869,7 @@ function openEp(box,key){
     '<label class="f"><b>재방송(다시보기) 영상 주소</b><input type="url" class="vu" value="'+esc(ep.video_url||'')+'" placeholder="https://www.youtube.com/watch?v=… (공식 채널 영상)"><i>앱의 \'재방송\' 단추와 종목별 \'영상 시각\'이 이 주소로 열려요</i></label>'+
     '<b style="font-size:14px;display:block;margin:4px 0 6px">전문가별 추천 종목</b><p class="hint" style="margin:0 0 8px">전문가마다 '+esc(LB0.open)+'·'+esc(LB0.secret)+'을 하나씩 이상 넣어요. '+esc(LB0.secret)+'은 공개여부를 체크하기 전까지 앱에 종목 이름과 가격이 보이지 않아요. 방송 전에 넣어 두면 사이트 방송 정보에 바로 보여요.</p><div class="pks"></div><button class="btn s pka" type="button">+ 종목 추가</button>'+
     '<label class="f" style="margin-top:12px"><b>메모 (사이트에 안 보여요)</b><input type="text" class="nt" value="'+esc(ep.note||'')+'"></label>'+
-    '<div class="acts"><label class="chk"><input type="checkbox" class="pub"'+(ep.published?' checked':'')+'> 종목을 사이트에 공개</label><label class="chk"><input type="checkbox" class="cn"'+(ep.canceled?' checked':'')+'> 결방</label>'+
+    '<div class="acts"><label class="chk"><input type="checkbox" class="pub"'+(ep.published!==false?' checked':'')+'> 종목을 사이트에 공개</label><label class="chk"><input type="checkbox" class="cn"'+(ep.canceled?' checked':'')+'> 결방</label>'+
     '<span style="flex:1"></span><button class="btn p s sv">저장</button><button class="btn s cl">닫기</button></div></div>';
   var pks=$('.pks',box);
   function names(){return $('.ex',box).value.split(/[,，]/).map(function(s){return s.trim()}).filter(Boolean)}
@@ -921,7 +921,7 @@ function openEp(box,key){
       return o}).filter(Boolean);
     if(bad){flash('warn',bad);return}
     var vu=$('.vu',box).value.trim();if(vu&&!/^https:\/\//.test(vu)){flash('warn','영상 주소는 https:// 로 시작해야 해요');return}
-    var pub=$('.pub',box).checked;if(pub&&!picks.length){flash('warn','공개할 종목이 없어요. 종목을 넣거나 공개 체크를 풀어 주세요');return}
+    var pub=$('.pub',box).checked;if(pub&&!picks.length)pub=false;   /* 종목이 아직 없으면(방송 전 출연자만) 공개 없이 저장 — 종목을 넣고 저장하면 그때 공개돼요 */
     var p2={program_id:pid,air_date:date,experts:names().map(function(n){var x=bcExpert(n);return {id:x?x.id:null,name:n}}),picks:picks,video_url:vu,canceled:$('.cn',box).checked,published:pub,note:$('.nt',box).value.trim()};
     b.disabled=true;sb.rpc('ops_bc_episode_save',{p:p2}).then(function(r){if(r.error)throw r.error;return reload('ok',p.name+' '+bcLbl(date)+' 회차를 저장했어요.'+(pub?' 사이트에 바로 보여요.':''))}).catch(function(e){b.disabled=false;flash('bad',errText(e))});
   };
