@@ -64,6 +64,25 @@
     '.p-bc-top{border-radius:1.125rem;padding:.9rem 1rem;margin:.25rem 0 .5rem;background:var(--accent-soft)}',
     '.p-bc-main{display:block;width:100%;text-align:left;border:0;background:none;color:var(--ink);font:inherit;padding:0;cursor:pointer}',
     '.p-bcbs{display:flex;gap:.4rem;margin-top:.6rem}',
+    // 방송 시간 칩: 평소엔 다음 방송 시각만, 방송 중일 때만 누르는 단추
+    '.p-airs{display:flex;flex-wrap:wrap;gap:.35rem;margin-top:.55rem}',
+    '.p-air{display:inline-flex;align-items:center;gap:.25rem;min-height:2rem;padding:.2rem .7rem;border-radius:999px;background:var(--sunk);color:var(--ink2);font-size:.875rem;font-weight:700;white-space:nowrap;text-decoration:none}',
+    '.p-bc-top .p-air{background:var(--surface)}',
+    '.p-air svg{width:.75rem;height:.75rem;fill:currentColor}',
+    'a.p-air.live,span.p-air.live{background:var(--live,#F04452);color:#fff;min-height:2.5rem;padding:.3rem .95rem;font-weight:800}',
+    // 종목 한 줄 (홈 어제 방송 · 이번 주 방송): 줄 전체를 누르면 종목 미리보기
+    '.p-prh{display:flex;align-items:baseline;justify-content:space-between;gap:.5rem;margin:.9rem 0 .25rem;font-size:.9375rem;font-weight:800}.p-prh small{font-size:.8125rem;color:var(--sn);font-weight:600}',
+    '.p-prs{display:flex;flex-direction:column;border-radius:1rem;background:var(--raise);overflow:hidden}',
+    '.p-pr{display:flex;align-items:center;gap:.6rem;width:100%;min-height:3.5rem;padding:.6rem .9rem;border:0;border-top:1px solid var(--line);background:none;color:var(--ink);font:inherit;text-align:left;cursor:pointer}',
+    '.p-prs>.p-pr:first-child,.p-prs>details:first-child>.p-pr:first-child{border-top:0}',
+    '.p-pr:active{background:var(--sunk)}',
+    '.p-pr .nm{flex:1;min-width:0;display:flex;flex-direction:column;gap:.1rem}.p-pr .nm b{font-size:1rem;font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.p-pr .nm small{font-size:.8125rem;color:var(--ink2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
+    '.p-pr .nm b .hd{display:inline-flex;align-items:center;vertical-align:.08em;margin-right:.3rem;font-size:.75rem;font-weight:800;color:var(--on-accent);background:var(--accent);border-radius:.35rem;padding:.05rem .4rem}',
+    '.p-pr.lk .nm b{color:var(--t2-acc-ink)}',
+    '.p-pr .pr{flex:none;display:flex;flex-direction:column;align-items:flex-end;gap:.1rem;font-variant-numeric:tabular-nums}.p-pr .pr b{font-size:.9375rem;font-weight:700;white-space:nowrap}.p-pr .pr em{font-style:normal;font-size:.875rem;font-weight:800}.p-pr .pr em.up{color:var(--up)}.p-pr .pr em.down{color:var(--down)}.p-pr .pr small{font-size:.75rem;color:var(--sn);white-space:nowrap}',
+    '.p-pr .ch{flex:none;width:1rem;height:1rem;fill:none;stroke:var(--sn);stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}',
+    '.p-prs details>summary{list-style:none;display:flex;align-items:center;justify-content:center;min-height:3rem;border-top:1px solid var(--line);font-size:.9375rem;font-weight:700;color:var(--t2-acc-ink);cursor:pointer}.p-prs details>summary::-webkit-details-marker{display:none}.p-prs details[open]>summary{display:none}',
+    '.p-yt2{display:inline-flex;align-items:center;gap:.3rem;margin-top:.55rem;font-size:.9375rem;font-weight:700;color:var(--t2-acc-ink);text-decoration:none}.p-yt2 svg{width:.8rem;height:.8rem;fill:currentColor}',
     '.p-bcb{display:inline-flex;align-items:center;justify-content:center;gap:.25rem;height:2.25rem;padding:0 .8rem;border-radius:.65rem;border:0;background:var(--raise);color:var(--ink);font:inherit;font-size:.875rem;font-weight:800;text-decoration:none;cursor:pointer}',
     '.p-bcb svg{width:.8rem;height:.8rem;fill:currentColor}.p-bcb.on{background:var(--live,#F04452);color:#fff}.p-bcb:disabled{opacity:.45;cursor:default}',
     '.p-bc-top .p-bcb{background:var(--surface)}.p-bc-top .p-bcb.on{background:var(--live,#F04452)}',
@@ -233,7 +252,9 @@
   function load(){
     var c = sb(), L = window.__lnLive;
     if (!c || !L || !L.ready) return setTimeout(load, 300);
-    Promise.all([q(c.rpc('mention_feed')), q(c.from('ai_notes').select('kind,key,body,line,by,made_at,facts').in('kind', ['stock', 'expert']).limit(1000)), q(c.rpc('bc_feed')), q(c.from('site_config').select('value').eq('key', 'daily_brief').maybeSingle()), q(c.rpc('rank_feed')), q(c.from('site_config').select('value').eq('key', 'help').maybeSingle()), q(c.from('site_config').select('value').eq('key', 'expert_titles').maybeSingle())]).then(function(rs){
+    Promise.all([q(c.rpc('mention_feed')), q(c.from('ai_notes').select('kind,key,body,line,by,made_at,facts').in('kind', ['stock', 'expert']).limit(1000)), q(c.rpc('bc_feed')), q(c.from('site_config').select('value').eq('key', 'daily_brief').maybeSingle()), q(c.rpc('rank_feed')), q(c.from('site_config').select('value').eq('key', 'help').maybeSingle()), q(c.from('site_config').select('value').eq('key', 'expert_titles').maybeSingle()), q(c.from('bc_sched').select('at,program_id,first').not('program_id', 'is', null).gte('day', ymdOf(nowK() - 2 * 864e5)).lte('day', ymdOf(nowK() + 3 * 864e5)).order('at').limit(400))]).then(function(rs){
+      // SBS Biz 편성표(본방송·재방송 시각): 방송 시간 칩에 써요
+      if (rs[7] && !rs[7].error && rs[7].data) X.sched = rs[7].data;
       // 전문가 호칭(자문역 · 전문가): 운영실 '전문가'에서 정해요 · 없으면 자문역
       if (rs[6] && !rs[6].error && rs[6].data && rs[6].data.value) { X.xt = rs[6].data.value; try { var lf = lnFrame(); if (lf) lf.contentWindow.XT = X.xt; } catch (e) {} }
       if (!rs[4].error && rs[4].data) X.rank = rs[4].data;
@@ -383,23 +404,68 @@
       avg: rs.length ? rs.reduce(function(s, r){ return s + r.v; }, 0) / rs.length : null, nr: rs.length };
   }
   var PLAY = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>';
-  function bcBtns(sl, live){
-    var lu = sl.p.live_url, vu = sl.ep && sl.ep.published ? sl.ep.video_url : '';
-    var b = function(url, label, on){ return url ? '<a class="p-bcb' + (on ? ' on' : '') + '" href="' + esc(url) + '" target="_blank" rel="noopener noreferrer">' + PLAY + label + '</a>' : '<button class="p-bcb" disabled>' + label + '</button>'; };
-    return '<div class="p-bcbs">' + b(lu, '본방송', live) + b(vu, '재방송', false) + '</div>';
+  // 본방송·재방송 단추 대신 시간 칩: 평소엔 24시간 안의 다음 방송 시각만 보여 주고, 실제 방송 중일 때만 누르는 단추가 돼요
+  function airLbl(ms, now){
+    var d = ymdOf(ms), td = ymdOf(now), tm = ymdOf(kstMs(td) + 864e5), dt = new Date(ms), h = dt.getUTCHours(), t = (h % 12 || 12) + ':' + ('0' + dt.getUTCMinutes()).slice(-2);
+    if (d === td) return (h >= 18 ? '오늘밤 ' : h < 6 ? '오늘 새벽 ' : h < 12 ? '오늘 오전 ' : '오늘 오후 ') + t;
+    if (d === tm) return (h < 6 ? '새벽 ' : h < 12 ? '내일 오전 ' : h >= 18 ? '내일 밤 ' : '내일 오후 ') + t;
+    return dLbl(d) + ' ' + hmK(ms);
+  }
+  function bcAir(sl){
+    var now = nowK(), p = sl.p, dur = (+p.duration_min || 60) * 60000, on = null, up = [];
+    (X.sched || []).forEach(function(s){
+      if (s.program_id !== p.id) return;
+      var st = kstMs(String(s.at || '').replace(' ', 'T')); if (!st) return;
+      if (now >= st && now < st + dur) on = { first: !!s.first };
+      else if (st > now && st - now <= 24 * 3600e3) up.push({ first: !!s.first, st: st });
+    });
+    if (!on && sl.state === 'live') on = { first: true };
+    up.sort(function(a, b){ return a.st - b.st; });
+    return { on: on, up: up };
+  }
+  function bcBtns(sl){
+    var A0 = bcAir(sl), p = sl.p, out = '';
+    if (A0.on) { var lb = '지금 방송 중 (' + (A0.on.first ? '본' : '재') + ')'; out += p.live_url ? '<a class="p-air live" href="' + esc(p.live_url) + '" target="_blank" rel="noopener noreferrer">' + PLAY + lb + '</a>' : '<span class="p-air live">' + lb + '</span>'; }
+    A0.up.slice(0, A0.on ? 1 : 2).forEach(function(u){ out += '<span class="p-air">' + airLbl(u.st, nowK()) + ' (' + (u.first ? '본' : '재') + ')</span>'; });
+    return out ? '<div class="p-airs">' + out + '</div>' : '';
+  }
+  // 방송 목록 칩: 공개 전 히든주는 '[히든주] 공개 전' 한 칸으로 묶어요 (이름 없는 칩이 여러 개 붙지 않게)
+  function pkChips(pk, max){
+    if (!pk.length) return '';
+    var lock = pk.filter(function(k){ return k.kind === 'secret' && !k.revealed; }).length, rest = secretFirst(pk).filter(function(k){ return !(k.kind === 'secret' && !k.revealed); });
+    var L = (lock ? ['<span class="hd">[히든주] ' + (lock > 1 ? lock + '개 ' : '') + '공개 전</span>'] : []).concat(rest.map(function(k){ return k.kind === 'secret' ? '<span class="hd">[히든주] ' + esc(k.stock_name || '') + '</span>' : '<span>' + esc(k.stock_name) + '</span>'; }));
+    return '<span class="pk">' + L.slice(0, max).join('') + (L.length > max ? '<span>+' + (L.length - max) + '</span>' : '') + '</span>';
+  }
+  // 종목 한 줄: 줄 전체가 단추 (종목 미리보기 · 공개 전 히든주는 방송 상세로)
+  var CHV = '<svg class="ch" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>';
+  function pickRow(k, sl, opt){
+    opt = opt || {};
+    var lock = k.kind === 'secret' && !k.revealed, r = lock ? null : pickRet(k), lbl = '';
+    try { lbl = pkLabel(k, sl.p.id); } catch (e) {}
+    var sub = [nameOnly(k.expert_name || '')].concat(lock ? ['공개되면 바로 정리해요'] : opt.prog ? [sl.p.name + ' ' + (+sl.date.slice(5, 7)) + '.' + (+sl.date.slice(8, 10))] : (lbl && k.kind !== 'secret' ? [lbl] : [])).filter(Boolean).join(' · ');
+    var act = !lock && k.stock_code ? 'data-a="stock" data-v="' + esc(k.stock_code) + '"' : 'data-a="pBc" data-v="' + esc(sl.key) + '"';
+    var nm = lock ? '<span class="hd">히든주</span>공개 전' : (k.kind === 'secret' ? '<span class="hd">히든주</span>' : '') + esc(k.stock_name || '');
+    var pr = lock ? '' : (k.buy ? '<b>매수 ' + wonS(k.buy) + '원</b>' : '<small>가격 미공개</small>') + (r ? '<em class="' + tone(r.v) + '">' + pctS(r.v) + '</em>' : '');
+    return '<button type="button" class="p-pr' + (lock ? ' lk' : '') + '" ' + act + '><span class="nm"><b>' + nm + '</b><small>' + esc(sub) + '</small></span><span class="pr">' + pr + '</span>' + CHV + '</button>';
+  }
+  function pickRows(items, max){
+    if (!items.length) return '';
+    var h = items.slice(0, max).map(function(it){ return pickRow(it.k, it.sl, it.opt); }).join('');
+    if (items.length > max) h += '<details><summary>' + (items.length - max) + '개 더 보기</summary>' + items.slice(max).map(function(it){ return pickRow(it.k, it.sl, it.opt); }).join('') + '</details>';
+    return '<div class="p-prs">' + h + '</div>';
   }
   function bcTopCard(sl, now){
     if (!sl) return '';
     var live = sl.state === 'live', who = lineup(sl) || sl.p.lineup_note || '';
     return '<div class="p-bc-top' + (live ? ' live' : '') + '"><button class="p-bc-main" data-a="pBc" data-v="' + esc(sl.key) + '"><span class="p-bc-st">' + (live ? '● 지금 방송 중' : '오늘 방송 예정') + '</span>' +
-      '<b>' + esc(sl.p.channel || '') + ' ' + esc(sl.p.name) + '</b><span class="s">' + (live ? hmK(sl.end) + '까지 · ' : '오늘 ' + hmK(sl.start) + ' · ' + leftTxt(sl.start - now) + ' 남았어요 · ') + esc(who) + '</span></button>' + bcBtns(sl, true) + '</div>';
+      '<b>' + esc(sl.p.channel || '') + ' ' + esc(sl.p.name) + '</b><span class="s">' + (live ? hmK(sl.end) + '까지 · ' : '오늘 ' + hmK(sl.start) + ' · ' + leftTxt(sl.start - now) + ' 남았어요 · ') + esc(who) + '</span></button>' + bcBtns(sl) + '</div>';
   }
   function bcRow(sl){
     var ep = sl.ep, pk = ep && ep.published ? ep.picks || [] : [], who = lineup(sl), st = epStat(ep);
-    var chipsH = pk.length ? '<span class="pk">' + secretFirst(pk).slice(0, 4).map(function(k){ return k.kind === 'secret' ? '<span class="hd">[히든주]' + (k.revealed && k.stock_name ? ' ' + esc(k.stock_name) : '') + '</span>' : '<span>' + esc(k.stock_name) + '</span>'; }).join('') + (pk.length > 4 ? '<span>+' + (pk.length - 4) + '</span>' : '') + '</span>' : '<span class="wait">' + (ep && ep.published ? '이 회차에 정리된 종목이 없어요' : '방송에서 나온 종목을 정리하는 중이에요') + '</span>';
+    var chipsH = pk.length ? pkChips(pk, 4) : '<span class="wait">' + (ep && ep.published ? '이 회차에 정리된 종목이 없어요' : '방송에서 나온 종목을 정리하는 중이에요') + '</span>';
     var sum = st.avg != null ? '<span class="sum">추천 ' + st.nr + '종목 평균 <b class="' + tone(st.avg) + '">' + pctS(st.avg) + '</b></span>' : '';
     return '<div class="p-bc"><button class="p-bc-main" data-a="pBc" data-v="' + esc(sl.key) + '"><span class="h"><b>' + esc(sl.p.name) + '</b><small>' + dLbl(sl.date) + ' ' + hmK(sl.start) + '</small></span>' +
-      (who ? '<span class="who">' + esc(who) + '</span>' : '') + chipsH + sum + '</button>' + bcBtns(sl, false) + '</div>';
+      (who ? '<span class="who">' + esc(who) + '</span>' : '') + chipsH + sum + '</button>' + bcBtns(sl) + '</div>';
   }
   // 홈 '방송 속 고수 종목' 맨 위: 오늘 방송 예고는 위 '오늘밤' 카드가 이미 보여 주니, 여기선 가장 최근 방송 재방송을 크게 보여 줘요
   function bcReplayCard(sl, now){
@@ -408,23 +474,23 @@
     var today = ymdOf(now), yday = ymdOf(kstMs(today) - 864e5);
     var when = sl.date === today ? '오늘 방송' : sl.date === yday ? '어제 방송' : dLbl(sl.date) + ' 방송';
     var vu = ep && ep.published ? ep.video_url : '';
-    var chipsH = pk.length ? '<span class="pk">' + secretFirst(pk).slice(0, 4).map(function(k){ return k.kind === 'secret' ? '<span class="hd">[히든주]' + (k.revealed && k.stock_name ? ' ' + esc(k.stock_name) : '') + '</span>' : '<span>' + esc(k.stock_name) + '</span>'; }).join('') + (pk.length > 4 ? '<span>+' + (pk.length - 4) + '</span>' : '') + '</span>' : '';
     var sum = st.avg != null ? '<span class="sum">추천 ' + st.nr + '종목 평균 <b class="' + tone(st.avg) + '">' + pctS(st.avg) + '</b></span>' : '';
-    var play = vu ? '<a class="p-rp-play" href="' + esc(vu) + '" target="_blank" rel="noopener noreferrer">' + PLAY + '재방송 보기</a>' : '<button class="p-rp-play" disabled>재방송 영상 준비 중이에요</button>';
+    var play = vu ? '<a class="p-rp-play" href="' + esc(vu) + '" target="_blank" rel="noopener noreferrer">' + PLAY + '유튜브로 다시 보기</a>' : '<button class="p-rp-play" disabled>다시 보기 영상 준비 중이에요</button>';
     return '<div class="p-rp"><button class="p-bc-main" data-a="pBc" data-v="' + esc(sl.key) + '"><span class="p-rp-st">' + PLAY + when + ' 다시 보기</span>' +
-      '<b class="t">' + esc(sl.p.channel || '') + ' ' + esc(sl.p.name) + '</b><span class="s">' + dLbl(sl.date) + ' ' + hmK(sl.start) + ' 본방송' + (who ? ' · ' + esc(who) : '') + '</span>' + chipsH + sum + '</button>' +
-      '<div class="p-rp-act">' + play + '<button class="p-rp-sub" data-a="pBc" data-v="' + esc(sl.key) + '">추천 종목</button></div></div>';
+      '<b class="t">' + esc(sl.p.channel || '') + ' ' + esc(sl.p.name) + '</b><span class="s">' + dLbl(sl.date) + ' ' + hmK(sl.start) + ' 본방송' + (who ? ' · ' + esc(who) : '') + '</span>' + sum + '</button>' +
+      bcBtns(sl) + '<div class="p-rp-act">' + play + '<button class="p-rp-sub" data-a="pBc" data-v="' + esc(sl.key) + '">방송 자세히</button></div>' +
+      (pk.length ? '<p class="p-prh">' + when + '에서 나온 종목 <small>' + pk.length + '개 · 줄을 누르면 자세히</small></p>' + pickRows(secretFirst(pk).map(function(k){ return { k: k, sl: sl }; }), 6) : '') + '</div>';
   }
   function bcHome(){
     if (!X.bc || !(X.bc.programs || []).length) return '';
     var now = nowK(), r = bcSlots(X.bc, now); X.bcSig = bcSig(r);
     if (!r.past.length) return '';
-    return '<section class="t2-sec"><div class="t2-h" style="cursor:default">방송 속 고수 종목</div>' + bcReplayCard(r.past[0], now) + r.past.slice(1, 5).map(bcRow).join('') +
+    return '<section class="t2-sec"><div class="t2-h" style="cursor:default">방송 속 고수 종목</div>' + bcReplayCard(r.past[0], now) + r.past.slice(1, 3).map(bcRow).join('') +
       '<button class="p-go" data-a="pBcAll" style="margin:.5rem 0 0;background:var(--raise)"><span>지난 방송 · 출연 전문가 · 추천 종목 모두 보기</span>' + IC.chev + '</button>' +
       '<p class="p-disc">SBS Biz 본방송에서 전문가가 직접 한 말과 가격을 원본 영상과 함께 정리해요. 수익률은 방송에서 말한 매수가 기준이에요. 사거나 팔라는 권유가 아니에요.</p></section>';
   }
   // B안 메뉴(shell-b.js)의 '이번 주 방송' 화면과 PC 오른쪽 칸이 같이 써요
-  X.api = { progOn: progOn, pkLabel: pkLabel, bcSlots: bcSlots, bcTopCard: bcTopCard, bcRow: bcRow, nowK: nowK, ymdOf: ymdOf, kstMs: kstMs, wdOf: wdOf, pickRet: pickRet, bcNorm: bcNorm };
+  X.api = { progOn: progOn, pkLabel: pkLabel, bcSlots: bcSlots, bcTopCard: bcTopCard, bcRow: bcRow, nowK: nowK, ymdOf: ymdOf, kstMs: kstMs, wdOf: wdOf, pickRet: pickRet, bcNorm: bcNorm, pickRows: pickRows, secretFirst: secretFirst };
   function bcSig(r){ return (r.top ? r.top.key + r.top.state : '') + '/' + r.past.slice(0, 5).map(function(x){ return x.key; }).join(','); }
   function wonP(n){ return n ? wonS(n) + '원' : '-'; }
   function pickCard(k, ep, w, showWho){
@@ -436,7 +502,7 @@
         (x0 ? '<button class="p-btn" data-a="pBcFollow" data-v="' + esc(x0.id) + '" style="margin-top:.5rem">' + esc(nameOnly(x0.name)) + ' 방송 정리 받기</button>' : '') + '</div>';
     }
     var hasS = k.stock_code && w && w.STOCKS && w.STOCKS[k.stock_code], r = pickRet(k);
-    var stock = hasS ? '<button data-a="stock" data-v="' + esc(k.stock_code) + '">' + esc(k.stock_name) + '</button>' : k.stock_code ? '<a href="https://finance.naver.com/item/main.naver?code=' + esc(k.stock_code) + '" target="_blank" rel="noopener noreferrer">' + esc(k.stock_name) + '</a>' : esc(k.stock_name);
+    var stock = k.stock_code ? '<button data-a="stock" data-v="' + esc(k.stock_code) + '">' + esc(k.stock_name) + '</button>' : esc(k.stock_name);
     var px = [];
     if (k.buy) px.push('<span>매수 <b>' + wonP(k.buy) + '</b></span>');
     if (k.target) px.push('<span>목표 <b>' + wonP(k.target) + '</b>' + (k.buy ? ' <em class="up">' + pctS((k.target / k.buy - 1) * 100) + '</em>' : '') + '</span>');
@@ -458,7 +524,8 @@
     pk.forEach(function(k){ if (!lineupL.some(function(l){ return bcNorm(l.name) === bcNorm(k.expert_name); })) lineupL.push({ name: k.expert_name, x: bcX(w, k.expert_id, k.expert_name) }); });
     var chips = lineupL.length ? '<div class="p-lu">' + lineupL.map(function(l){ return l.x ? '<button data-a="expert" data-v="' + esc(l.x.id) + '">' + esc(l.name) + '<span>전문가 홈</span></button>' : '<span>' + esc(l.name) + '</span>'; }).join('') + '</div>' : '<p style="font-size:.9375rem;color:var(--ink2);margin-top:.35rem">' + esc(sl.p.lineup_note || '') + '</p>';
     var head = '<section class="t2-sec" style="padding-top:1.25rem"><p style="font-size:.9375rem;color:var(--ink2)">' + esc(sl.p.channel || '') + ' · ' + dLbl(sl.date) + ' ' + hmK(sl.start) + (sl.state === 'soon' ? ' 방송 예정' : sl.state === 'live' ? ' · 지금 방송 중' : '') + '</p>' +
-      '<h2 style="font-size:1.75rem;font-weight:800;letter-spacing:-.03em;margin-top:.1rem">' + esc(sl.p.name) + '</h2>' + chips + bcBtns(sl, sl.state !== 'done') +
+      '<h2 style="font-size:1.75rem;font-weight:800;letter-spacing:-.03em;margin-top:.1rem">' + esc(sl.p.name) + '</h2>' + chips + bcBtns(sl) +
+      (ep && ep.published && ep.video_url ? '<a class="p-yt2" href="' + esc(ep.video_url) + '" target="_blank" rel="noopener noreferrer">' + PLAY + '유튜브로 다시 보기</a>' : '') +
       (st.avg != null ? '<div class="p-kv"><div><span>추천 종목</span><b>' + st.n + '개</b></div><div><span>방송일 이후 평균</span><b class="' + tone(st.avg) + '">' + pctS(st.avg) + '</b></div><div><span>공개 대기</span><b>' + st.lock + '개</b></div></div><p class="t2-basis2" style="padding:.25rem 0 .5rem">방송에서 말한 매수가 기준 · 수익률이 계산된 ' + st.nr + '종목 평균이에요</p>' : '') + '</section>';
     var body;
     var pre = sl.state !== 'done' && pk.length ? '<p class="p-pre">' + (sl.state === 'soon' ? '방송 전에 미리 알려진 종목이에요' : '지금 방송 중 · 미리 알려진 종목이에요') + '</p>' : '';

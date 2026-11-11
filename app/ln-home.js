@@ -44,7 +44,7 @@
   };
 
   var CSS = [
-    '.hm-hero{position:relative;overflow:hidden;border-radius:1.75rem;margin:0 0 .75rem;padding:1.375rem 1.25rem 1.25rem;color:#fff}',
+    '.hm-hero{position:relative;overflow:hidden;border-radius:1.5rem;margin:0 0 .5rem;padding:1.05rem 1.15rem 1rem;color:#fff}',
     '.hm-hero .bl{position:absolute;border-radius:50%;background:#fff;opacity:.14;pointer-events:none}',
     '.hm-hero .in{position:relative}',
     '.hm-k{display:flex;flex-wrap:wrap;align-items:center;gap:.4rem;font-size:.875rem;font-weight:700;opacity:.9}',
@@ -407,7 +407,7 @@
     var n = S.n;
     if (S.k === 'morning') {
       var open = kms(S.today + 'T09:00');
-      return hero(G('#1E2A44', '#3B4A6B'), IC.sun + '장 시작까지 ' + left(open - n), '좋은 아침이에요.<br>오늘 알아둘 5가지예요', '1분이면 다 읽어요' + (S.p ? ' · 오늘 밤 ' + esc(S.p.air_time) + ' ' + esc(S.p.name) : ''));
+      return hero(G('#1E2A44', '#3B4A6B'), IC.sun + '장 시작까지 ' + left(open - n), '좋은 아침이에요', '어제 방송 종목부터 오늘의 5줄까지 아래에 정리했어요' + (S.p ? ' · 오늘 밤 ' + esc(S.p.air_time) + ' ' + esc(S.p.name) : ''));
     }
     if (S.k === 'market') {
       var rows = (window.__lnNews && window.__lnNews.rows) || [], top = rows.filter(function(r){ return r.kind !== '시황' && Array.isArray(r.stocks) && r.stocks[0]; }).slice(0, 3);
@@ -586,12 +586,12 @@
     return '';
   }
   var ORDER = {
-    morning: ['hero', 'five', 'sc4', 'news', 'bc', 'talk', 'recent', 'top3', 'calc', 'hello', 'one', 'mention', 'data'],
-    market: ['hero', 'news', 'data', 'calc', 'talk', 'recent', 'fold5', 'sc4', 'bc', 'mention', 'hello', 'one', 'top3'],
+    morning: ['hero', 'bc', 'five', 'sc4', 'news', 'talk', 'recent', 'top3', 'calc', 'hello', 'one', 'mention', 'data'],
+    market: ['hero', 'bc', 'news', 'data', 'calc', 'talk', 'recent', 'fold5', 'sc4', 'mention', 'hello', 'one', 'top3'],
     pre: ['hero', 'bc', 'lastweek', 'calc', 'talk', 'mention', 'news', 'sc4', 'recent', 'fold5', 'top3', 'data', 'hello', 'one'],
     live: ['hero', 'bc', 'talk', 'vote', 'lastweek', 'calc', 'recent', 'sc4', 'mention', 'news', 'fold5', 'data', 'one'],
     after: ['hero', 'picks', 'vote', 'calc', 'talk', 'bc', 'recent', 'sc4', 'mention', 'news', 'fold5', 'top3', 'data', 'one'],
-    weekend: ['hero', 'bars', 'top3', 'calc', 'talk', 'next', 'sc4', 'recent', 'news', 'five', 'bc', 'mention', 'data', 'one']
+    weekend: ['hero', 'bc', 'bars', 'top3', 'calc', 'talk', 'next', 'sc4', 'recent', 'news', 'five', 'mention', 'data', 'one']
   };
   function frag(d, html){ var t = d.createElement('template'); t.innerHTML = html; return t.content; }
   function decorateRecent(d, sec){

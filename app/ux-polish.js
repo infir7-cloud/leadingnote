@@ -112,7 +112,10 @@
     '.hx-join button{margin-top:.4rem;min-height:3rem;border:0;border-radius:.8rem;background:#FEE500;color:#191600;font:inherit;font-weight:800;font-size:1.0625rem;cursor:pointer}',
     '.hx-foot{display:flex;flex-direction:column;gap:.1rem}.hx-foot button{min-height:2.9rem;border:0;background:transparent;color:var(--ink2);font:inherit;font-size:1rem;text-align:left;padding:0 .2rem;cursor:pointer}',
 
-    '#ux-onb{position:fixed;inset:0;z-index:95;background:var(--bg);color:var(--ink);overflow:auto;-webkit-overflow-scrolling:touch}',
+    '#ux-onb{position:fixed;inset:0;z-index:95;background:rgba(0,0,0,.45);color:var(--ink);display:flex;align-items:flex-end;justify-content:center;overflow:hidden}' +
+'#ux-onb .uo-in{width:100%;max-height:86%;overflow:auto;-webkit-overflow-scrolling:touch;background:var(--bg);border-radius:1.5rem 1.5rem 0 0;min-height:0!important;gap:1.1rem!important;box-shadow:0 -8px 30px rgba(0,0,0,.18)}' +
+'@media (min-width:768px){#ux-onb{align-items:center}#ux-onb .uo-in{border-radius:1.5rem;max-height:90%}}' +
+'#ux-onb .uo-foot{margin-top:.25rem}',
     '#ux-onb *{box-sizing:border-box}',
     '.uo-in{max-width:30rem;margin:0 auto;min-height:100%;display:flex;flex-direction:column;gap:1.5rem;padding:calc(1.5rem + env(safe-area-inset-top,0px)) 20px calc(1.5rem + env(safe-area-inset-bottom,0px))}',
     '.uo-top{display:flex;align-items:center;justify-content:space-between;gap:1rem}',
@@ -222,11 +225,11 @@
     var sizes = [['m', '보통', '16px'], ['l', '크게', '19px'], ['xl', '아주 크게', '22px']], cur = sizes.filter(function(x){ return x[0] === C.size; })[0] || sizes[1];
     return '<div class="uo-in" role="dialog" aria-modal="true" aria-labelledby="uo-h">' +
       '<div class="uo-top"><p class="uo-k">리딩노트 사용법</p><button class="uo-skip" data-uo="skip">닫기</button></div>' +
-      '<div><h1 class="uo-h" id="uo-h">전문가 추천이 실제로<br>맞았는지 보여 드려요</h1><p class="uo-p">방송·유튜브·텔레그램에서 공개된 추천을 날짜와 가격 그대로 모아 정리해요. 무료예요.</p></div>' +
+      '<div><h1 class="uo-h" id="uo-h">방송 속 고수들의 종목을<br>한곳에 정리해 드려요</h1><p class="uo-p">SBS Biz 증권 방송에서 전문가가 말한 종목과 가격을 방송이 끝나면 바로 정리해요. 무료예요.</p></div>' +
       '<ol class="uo-steps">' +
-        '<li><span class="n">1</span><div><b>전문가를 골라요</b><span class="d">성적표에서 적중률·수익률을 비교해 보세요</span></div></li>' +
-        '<li><span class="n">2</span><div><b>\'지금 리딩 중\'을 봐요</b><span class="d">지금 추천 중인 종목이 전문가 화면 맨 위에 있어요</span></div></li>' +
-        '<li><span class="n">3</span><div><b>관심 전문가로 받아요</b><span class="d">새 추천이 나오면 알려 드려요 · 카카오로 3초 가입</span></div></li>' +
+        '<li><span class="n">1</span><div><b>방송 종목을 봐요</b><span class="d">어제·오늘 방송에서 나온 종목이 홈 맨 위에 있어요</span></div></li>' +
+        '<li><span class="n">2</span><div><b>종목·전문가를 눌러요</b><span class="d">바로 요약이 뜨고, 같은 종목을 다룬 다른 전문가도 보여요</span></div></li>' +
+        '<li><span class="n">3</span><div><b>관심 전문가로 받아요</b><span class="d">새 방송 정리가 나오면 알려 드려요 · 카카오로 3초 가입</span></div></li>' +
       '</ol>' +
       '<div class="uo-foot"><button class="uo-main" data-uo="start">시작하기</button><p class="uo-note">이 안내는 왼쪽 위 <b>메뉴</b>에서 다시 볼 수 있어요.</p></div></div>';
   }
@@ -243,6 +246,7 @@
     onb = document.createElement('div'); onb.id = 'ux-onb'; onb.className = 'anim'; setTimeout(function(){ if (onb) onb.className = ''; }, 400);
     document.body.appendChild(onb); document.body.style.overflow = 'hidden'; drawOnb();
     onb.addEventListener('click', function(e){
+      if (e.target === onb) { closeOnb(null); return; } // 바깥(어두운 곳)을 누르면 닫혀요
       var b = e.target.closest && e.target.closest('[data-uo]'); if (!b) return;
       var a = b.getAttribute('data-uo'), v = b.getAttribute('data-v');
       if (a === 'size') { SH().C.size = v; applyAllX(); drawOnb(); }

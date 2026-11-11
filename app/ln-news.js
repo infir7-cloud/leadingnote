@@ -34,6 +34,7 @@
     '.mn-st{display:flex;flex-wrap:wrap;align-items:center;gap:.25rem .5rem;font-size:.9375rem}',
     '.mn-st a,.mn-st span.nm{font-weight:700;color:var(--ink);text-decoration:underline;text-decoration-color:var(--line);text-decoration-thickness:2px;text-underline-offset:.25em}',
     '.mn-st span.nm{text-decoration:none}',
+    '.mn-st button.nm{border:0;background:none;padding:.35rem 0;margin:-.35rem 0;font:inherit;font-weight:700;color:var(--ink);cursor:pointer;text-decoration:underline;text-decoration-color:var(--line);text-decoration-thickness:2px;text-underline-offset:.25em}',
     '.mn-st .mn-dot{color:var(--sn)}',
     '.mn-c{font-size:.8125rem;font-weight:800;border-radius:.3rem;padding:.05rem .4rem;font-variant-numeric:tabular-nums}',
     '.mn-c.up{color:var(--up);background:var(--up-soft)}.mn-c.down{color:var(--down);background:var(--down-soft)}',
@@ -46,8 +47,8 @@
     '.mn-cta a{display:inline-flex;align-items:center;gap:.2rem;font-size:.8125rem;font-weight:700;text-decoration:none;border-radius:.45rem;padding:.3rem .65rem;white-space:nowrap}',
     '.mn-cta button{display:inline-flex;align-items:center;font:inherit;font-size:.8125rem;font-weight:700;border-radius:.45rem;padding:.3rem .65rem;white-space:nowrap;background:none;cursor:pointer}',
     '.mn-cta a svg{width:.85rem;height:.85rem;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}',
-    '.mn-cta .s{color:#03A94D;border:1px solid #03A94D}',
-    'html.lite .mn-cta .s{color:#018A3E;border-color:#018A3E}',
+    '.mn-cta .s{color:var(--t2-acc-ink,#5B4CF0);border:1px solid currentColor}',
+    'html.lite .mn-cta .s{color:var(--t2-acc-ink,#5B4CF0);border-color:currentColor}',
     '.mn-cta button.s,html.lite .mn-cta button.s{color:var(--t2-acc-ink,#5B4CF0);border:1px solid currentColor}',
     '.mn-cta .o{color:var(--ink2);border:1px solid var(--line)}',
     '.mn-all{display:flex;align-items:center;justify-content:space-between;width:100%;padding:.85rem 0 1rem;border:0;border-top:1px solid var(--line);background:none;color:var(--ink);font:inherit;font-weight:700;font-size:.9375rem;cursor:pointer}',
@@ -90,7 +91,7 @@
 
   function item(r){
     var st = Array.isArray(r.stocks) ? r.stocks : [];
-    var names = st.map(function(s){ var u = stockUrl(s); return '<a href="' + esc(u) + '" target="_blank" rel="noopener noreferrer">' + esc(s.n) + '</a>'; }).join('<span class="mn-dot">·</span>');
+    var names = st.map(function(s){ if (s.c && !s.idx && /^[0-9A-Z]{6}$/.test(String(s.c))) return '<button type="button" class="nm" data-a="mnStock" data-v="' + esc(s.c) + '|' + esc(s.n || '') + '">' + esc(s.n) + '</button>'; var u = stockUrl(s); return '<a href="' + esc(u) + '" target="_blank" rel="noopener noreferrer">' + esc(s.n) + '</a>'; }).join('<span class="mn-dot">·</span>');
     var chg = r.chg != null && r.chg !== '' ? '<span class="mn-c ' + (Number(r.chg) >= 0 ? 'up' : 'down') + '">' + fmt(r.chg) + '</span>' : '';
     var th = (r.themes || []).map(function(t){ return '<a class="mn-th" href="' + esc(search(t + ' 관련주')) + '" target="_blank" rel="noopener noreferrer">' + esc(t) + '</a>'; }).join('');
     var main = st[0];
@@ -156,7 +157,7 @@
     w.A.mnOpen = function(){ w.pushView('mnews', ''); w.render(); top0(); if (Date.now() - N.at > 5 * 60e3) load(); };
     w.A.mnStock = function(v){ var p = String(v || '').split('|'), c = p[0]; if (!/^[0-9A-Z]{6}$/.test(c)) return;
       try { var H = window.__lnHome; if (H) { H.names = H.names || {}; H.names[c] = p.slice(1).join('|'); } } catch (e) {}
-      w.A.stock(c); top0(); };
+      w.A.stock(c); };
     w.A.mnKind = function(v){ N.kind = v || '전체'; w.render(); };
     var ogo = w.__site && w.__site.go;
     if (ogo) w.__site.go = function(r){ if (r === 'news') { w.S.stack = [{ t: 'mnews', id: '' }]; w.S.sheet = null; w.S.tab = 'home'; w.render(); top0(); return; } return ogo.apply(this, arguments); };

@@ -1878,7 +1878,7 @@ function pollHTML(id,mini){
   var lab='<div class="plab"><span class="up">▲ 오를 것 '+p.up+'%</span><span class="down">내릴 것 '+p.down+'% ▼</span></div>';
   if(mini)return '<div class="mini-poll">'+lab+bar+'</div>';
   var v=P.votes[id];
-  return '<div class="poll">'+lab+bar+'<p class="small">'+p.t.toLocaleString('ko-KR')+'명 참여'+(v?' · 내 생각: '+(v==='up'?'오를 것':'내릴 것'):'')+'</p>'+
+  return '<div class="poll">'+lab+bar+'<p class="small">'+(p.t>=5?p.t.toLocaleString('ko-KR')+'명 참여':'먼저 한 표 남겨 보세요')+(v?' · 내 생각: '+(v==='up'?'오를 것':'내릴 것'):'')+'</p>'+
     '<div class="pvote"><button class="vbtn vu" data-a="vote" data-v="'+id+':up" aria-pressed="'+(v==='up')+'">'+IC.upTri+'오를 것 같아요</button>'+
     '<button class="vbtn vd" data-a="vote" data-v="'+id+':down" aria-pressed="'+(v==='down')+'">'+IC.downTri+'내릴 것 같아요</button></div></div>';
 }
