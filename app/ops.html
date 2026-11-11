@@ -39,6 +39,16 @@ input:focus,select:focus,textarea:focus{border-color:var(--acc);box-shadow:0 0 0
 textarea{min-height:72px;resize:vertical}
 .paste{border-color:var(--acc);background:linear-gradient(var(--acc-soft),var(--card) 70%)}
 #pz{min-height:96px}
+.pzdrop{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:10px;padding:10px 12px;border:1.5px dashed var(--line);border-radius:10px;background:var(--card)}
+.pzdrop.over{border-color:var(--acc);background:var(--acc-soft)}
+.pzdrop .hint{margin:0;flex:1;min-width:200px}
+.pzthumbs{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.pzthumbs:empty{display:none}
+.pzthumbs figure{position:relative;margin:0;width:72px;height:96px;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--bg)}
+.pzthumbs img{width:100%;height:100%;object-fit:cover;object-position:top;display:block}
+.pzthumbs button{position:absolute;top:2px;right:2px;width:24px;height:24px;border:0;border-radius:50%;background:rgba(0,0,0,.62);color:#fff;font-size:15px;line-height:1;cursor:pointer}
+.pzinfo{margin-top:10px;padding:10px 12px;border-radius:10px;background:var(--card);border:1px solid var(--line);font-size:14px}
+.pzinfo b{font-weight:700}
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:1px solid var(--line);background:var(--card);border-radius:10px;padding:10px 16px;font-weight:600;cursor:pointer}
 .btn.p{background:var(--acc);border-color:var(--acc);color:#fff}
 .btn.ok{background:var(--ok);border-color:var(--ok);color:#fff}
@@ -372,9 +382,11 @@ function vAdd(m){
   var d=S.addDraft||{};
   m.innerHTML='<h2>기록 올리기</h2><p class="lead">방송·유튜브·게시글에서 전문가가 한 말을 그대로 옮겨요. 올리면 검수 대기로 들어가요. 검수 대기에서 확인하고 공개해요.</p>'+
   '<div id="kkBox"></div>'+
-  '<div class="card paste"><b style="font-size:15px">✨ 붙여넣기로 채우기</b><p class="hint" style="margin:4px 0 10px">텔레그램·카카오톡·자막에서 전문가가 쓴 문장을 그대로 붙여 넣으면 AI가 아래 칸을 채워 줘요. 채운 뒤 꼭 원문과 맞는지 확인해 주세요.</p>'+
-  '<textarea id="pz" maxlength="6000" placeholder="예) 삼전 6만원 초반 분할매수, 목표 7만 / 손절 5.5만"></textarea>'+
-  '<div class="acts"><button class="btn p s" id="pzb" type="button">AI로 채우기</button><span class="hint" id="pzm" style="margin:0;align-self:center"></span></div><div id="pzr"></div></div>'+
+  '<div class="card paste" id="pzc"><b style="font-size:15px">✨ 붙여넣기·이미지로 채우기</b><p class="hint" style="margin:4px 0 10px">텔레그램·카카오톡·자막에서 전문가가 쓴 문장을 붙여 넣거나, 리포트·방송 화면 이미지를 올리면 AI가 아래 칸을 채워 줘요. 채운 뒤 꼭 원문과 맞는지 확인해 주세요.</p>'+
+  '<textarea id="pz" maxlength="6000" placeholder="예) 삼전 6만원 초반 분할매수, 목표 7만 / 손절 5.5만">'+esc(S.pzText||'')+'</textarea>'+
+  '<div class="pzdrop" id="pzd"><input type="file" id="pzf" accept="image/png,image/jpeg,image/webp" multiple hidden><button class="btn s" id="pzfb" type="button">🖼 이미지 올리기</button><span class="hint">이미지를 여기로 끌어다 놓거나, 복사한 이미지를 Ctrl+V로 붙여 넣어도 돼요. 한 번에 4장까지, 긴 이미지도 그대로 올리면 돼요.</span></div>'+
+  '<div class="pzthumbs" id="pzt"></div>'+
+  '<div class="acts"><button class="btn p s" id="pzb" type="button">AI로 채우기</button><button class="btn s hide" id="pzx" type="button">결과 지우기</button><span class="hint" id="pzm" style="margin:0;align-self:center"></span></div><div id="pzn"></div><div id="pzr"></div></div>'+
   (d.ingest?'<div class="msg warn">가져온 글로 채웠어요: <a href="'+esc(d.url||'')+'" target="_blank" rel="noopener noreferrer">원문 보기 ↗</a> · 원문과 맞는지 확인해 주세요</div>':'')+
   '<div class="card"><form id="af" autocomplete="off">'+
   '<div class="row"><label class="f"><b>전문가</b><select id="aex">'+S.experts.filter(function(x){return x.status==='active'}).map(function(x){return '<option value="'+esc(x.id)+'"'+(d.ex===x.id?' selected':'')+'>'+esc(x.name)+'</option>'}).join('')+'</select></label>'+
@@ -426,14 +438,53 @@ function vAdd(m){
   if(d.t){var ti=$('#aty input[value="'+d.t+'"]');if(ti&&!ti.disabled){ti.checked=true;fields()}else if(ti){flash('warn','AI가 고른 종류('+T[d.t]+')는 지금 이 종목 상태에서 쓸 수 없어요. 종류를 다시 골라 주세요')}}
   [['pb','buy'],['pt','target'],['ps','stop'],['pl','sell']].forEach(function(k){var i=$('#'+k[0]);if(i&&d[k[1]])i.value=Number(d[k[1]]).toLocaleString('ko-KR')});
   if(window.kkMount)try{kkMount($('#kkBox'),{sb:sb,S:S,flash:flash,reload:reload})}catch(e){}
+  // 이미지 올리기: 파일 고르기 · 끌어다 놓기 · Ctrl+V
+  S.pzImgs=S.pzImgs||[];
+  function pzThumbs(){
+    $('#pzt').innerHTML=S.pzImgs.map(function(x,i){return '<figure title="'+esc(x.name)+'"><img src="'+x.u+'" alt="올린 이미지 '+(i+1)+'"><button type="button" data-i="'+i+'" aria-label="이미지 빼기">×</button></figure>'}).join('');
+    $$('#pzt button').forEach(function(b){b.onclick=function(){var x=S.pzImgs.splice(+b.dataset.i,1)[0];try{URL.revokeObjectURL(x.u)}catch(e){}pzThumbs()}});
+  }
+  function pzAdd(files){
+    var bad=0;
+    [].slice.call(files||[]).forEach(function(f){
+      if(!/^image\/(png|jpeg|webp)$/.test(f.type)){bad++;return}
+      if(S.pzImgs.length>=4){bad++;return}
+      S.pzImgs.push({file:f,name:f.name||'붙여넣은 이미지',u:URL.createObjectURL(f)});
+    });
+    pzThumbs();
+    if(bad)flash('warn','이미지는 JPG·PNG·WEBP만, 한 번에 4장까지 올릴 수 있어요');
+  }
+  $('#pzfb').onclick=function(){$('#pzf').click()};
+  $('#pzf').onchange=function(){pzAdd(this.files);this.value=''};
+  var pzd=$('#pzc');
+  pzd.ondragover=function(ev){ev.preventDefault();$('#pzd').classList.add('over')};
+  pzd.ondragleave=function(){$('#pzd').classList.remove('over')};
+  pzd.ondrop=function(ev){ev.preventDefault();$('#pzd').classList.remove('over');pzAdd(ev.dataTransfer&&ev.dataTransfer.files)};
+  pzd.onpaste=function(ev){var L=[],it=(ev.clipboardData&&ev.clipboardData.items)||[];for(var i=0;i<it.length;i++){if(it[i].kind==='file'){var f=it[i].getAsFile();if(f)L.push(f)}}if(L.length){ev.preventDefault();pzAdd(L)}};
+  $('#pz').oninput=function(){S.pzText=this.value};
+  pzThumbs();
+  function pzShow(){
+    var L=S.pzLast;$('#pzx').classList.toggle('hide',!L);
+    if(!L){$('#pzn').innerHTML='';$('#pzr').innerHTML='';return}
+    $('#pzn').innerHTML=L.info?'<div class="pzinfo">'+L.info+'</div>':'';
+    showItems($('#pzr'),L.items,L.base);
+  }
+  $('#pzx').onclick=function(){S.pzLast=null;pzShow()};
   $('#pzb').onclick=function(){
-    var tx=$('#pz').value.trim();if(tx.length<4){flash('warn','해석할 글을 붙여 넣어 주세요');return}
-    var b=this;b.disabled=true;$('#pzm').textContent='읽는 중…';
-    aiParse(tx,'운영자가 붙여 넣은 글 · 전문가: '+exName($('#aex').value)).then(function(out){
+    var tx=$('#pz').value.trim(),imgs=S.pzImgs.slice();
+    if(!imgs.length&&tx.length<4){flash('warn','해석할 글을 붙여 넣거나 이미지를 올려 주세요');return}
+    var b=this,tiles=null;b.disabled=true;$('#pzm').textContent=imgs.length?'이미지 준비 중…':'읽는 중…';
+    (imgs.length?imgTiles(imgs.map(function(x){return x.file})):Promise.resolve(null)).then(function(t){
+      tiles=t;if(t)$('#pzm').textContent='AI가 이미지를 읽는 중… (조각 '+t.length+'개 · 보통 20~60초)';
+      return aiParse(tx,t?'운영자가 올린 리포트·방송 화면 이미지':'운영자가 붙여 넣은 글 · 전문가: '+exName($('#aex').value),t);
+    }).then(function(out){
       b.disabled=false;$('#pzm').textContent='';
-      showItems($('#pzr'),out.items||[],{text:tx});
+      var base={text:tx},info='';
+      if(tiles){var r=imgMeta(out);info=r.info;if(r.expert)base.expert=r.expert;if(r.at)base.at=r.at;if(out.title)base.title=out.title}
+      S.pzLast={items:out.items||[],base:base,info:info};pzShow();
     }).catch(function(e){b.disabled=false;$('#pzm').textContent='';flash('bad',e.message||String(e))});
   };
+  pzShow();
   $('#af').onsubmit=function(ev){ev.preventDefault();
     var t=($('#aty input:checked')||{}).value;
     if(!pick){flash('warn','종목을 검색해서 골라 주세요');return}
@@ -456,8 +507,55 @@ function vAdd(m){
 }
 
 // ── AI 해석 · 채우기
-function aiParse(text,hint){
-  return sb.functions.invoke('ops-parse',{body:{text:text,hint:hint}}).then(function(r){
+// 이미지 → AI에 보낼 조각. 가로를 1100px로 맞추고 세로 1400px씩(120px 겹침) 잘라요.
+// 긴 리포트 이미지를 통째로 보내면 AI 쪽에서 줄여 읽어 작은 글자(가격)를 놓치기 때문이에요.
+function imgLoad(file){return new Promise(function(ok,no){var u=URL.createObjectURL(file),im=new Image();
+  im.onload=function(){ok({im:im,u:u})};im.onerror=function(){URL.revokeObjectURL(u);no(new Error('이미지를 열지 못했어요: '+(file.name||'')))};im.src=u})}
+function imgPlan(L,W){var TH=1400,OV=120,n=0;
+  var P=L.map(function(o){var w=o.im.naturalWidth,h=o.im.naturalHeight,sc=Math.min(1,W/w),sh=Math.max(1,Math.round(h*sc));
+    var c=sh<=TH?1:Math.ceil((sh-OV)/(TH-OV));n+=c;return {o:o,sc:sc,sw:Math.max(1,Math.round(w*sc)),sh:sh,c:c}});
+  return {P:P,n:n,TH:TH,OV:OV}}
+function imgCut(pl,q){var out=[];
+  pl.P.forEach(function(p){for(var k=0;k<p.c;k++){
+    var y=k*(pl.TH-pl.OV),th=Math.min(pl.TH,p.sh-y);if(th<=0)break;
+    var cv=document.createElement('canvas');cv.width=p.sw;cv.height=th;var cx=cv.getContext('2d');
+    cx.fillStyle='#fff';cx.fillRect(0,0,p.sw,th);
+    cx.drawImage(p.o.im,0,y/p.sc,p.o.im.naturalWidth,th/p.sc,0,0,p.sw,th);
+    out.push({mime:'image/jpeg',data:cv.toDataURL('image/jpeg',q).split(',')[1]});
+  }});return out}
+function imgTiles(files){
+  return Promise.all(files.map(imgLoad)).then(function(L){
+    try{
+      var pl=imgPlan(L,1100);if(pl.n>12)pl=imgPlan(L,900);
+      if(pl.n>12)throw new Error('이미지가 너무 길어요 (조각 '+pl.n+'개). 이미지를 2~3장으로 나누거나 장수를 줄여서 올려 주세요');
+      var size=function(T){return T.reduce(function(a,t){return a+t.data.length},0)};
+      var T=imgCut(pl,0.82);if(size(T)>6200000)T=imgCut(pl,0.6);
+      if(size(T)>6200000)throw new Error('이미지 용량이 너무 커요. 장수를 줄여서 올려 주세요');
+      return T;
+    }finally{L.forEach(function(o){try{URL.revokeObjectURL(o.u)}catch(e){}})}
+  });
+}
+// 이미지에서 읽은 전문가·추천일을 등록된 전문가·시각 칸에 맞춰요
+function exKey(s){return String(s||'').replace(/\s+/g,'').replace(/(자문역|대표이사|대표|전문가|위원|소장|팀장|본부장|이사|매니저|멘토)$/,'')}
+function imgMeta(out){
+  var r={info:'',expert:null,at:null},bits=[];
+  if(out.expert_name){
+    var k=exKey(out.expert_name),hit=S.experts.filter(function(x){return x.status==='active'&&exKey(x.name)===k});
+    if(hit.length===1){r.expert=hit[0].id;bits.push('전문가 <b>'+esc(hit[0].name)+'</b> (채울 때 자동 선택)')}
+    else bits.push('전문가 <b>'+esc(out.expert_name)+'</b> — '+(hit.length?'같은 이름이 여러 명이라 직접 골라 주세요':'아직 등록되지 않은 전문가예요. 전문가 탭에서 먼저 등록해 주세요'));
+  }else bits.push('전문가 이름을 찾지 못했어요. 직접 골라 주세요');
+  if(out.date){
+    var today=nowLocal().slice(0,10);
+    if(out.date>today)bits.push('추천일 '+esc(out.date)+' — 오늘보다 뒤라서 반영하지 않았어요');
+    else{r.at=out.date===today?nowLocal():out.date+'T09:00';bits.push('추천일 <b>'+esc(out.date)+'</b>'+(out.date===today?'':' (시각은 09:00으로 넣어요. 필요하면 고쳐 주세요)'))}
+  }else bits.push('추천일을 찾지 못했어요. 시각 칸을 직접 확인해 주세요');
+  if(out.title)bits.push('제목 '+esc(out.title));
+  r.info='이미지에서 읽은 내용: '+bits.join(' · ')+'<br><span style="color:var(--sub)">AI가 읽은 값이에요. 가격은 이미지와 꼭 한 번 대조해 주세요.</span>';
+  return r;
+}
+function aiParse(text,hint,images){
+  var body={text:text,hint:hint};if(images&&images.length)body.images=images;
+  return sb.functions.invoke('ops-parse',{body:body}).then(function(r){
     if(!r.error)return r.data;
     var c=r.error.context;
     return (c&&c.json?c.json().catch(function(){return {}}):Promise.resolve({})).then(function(j){
@@ -478,7 +576,7 @@ function showItems(box,items,base){
       (!it.stock_code?'<div class="hint" style="margin:6px 0 0">종목을 찾지 못했어요. 채운 뒤 종목 칸에서 직접 검색해 주세요.</div>':'');
     return '<div class="card it" style="margin:10px 0 0;background:var(--bg)"><div class="ev"><div class="top">'+itemLine(it)+'</div>'+
       (it.text?'<div class="quote">'+esc(it.text)+'</div>':'')+(it.note?'<div class="src">AI 메모: '+esc(it.note)+'</div>':'')+cand+
-      '<div class="acts"><button class="btn p s fill" type="button" data-i="'+i+'">이 내용으로 채우기</button></div></div></div>';
+      '<div class="acts"><button class="btn '+(it.used?'':'p ')+'s fill" type="button" data-i="'+i+'">'+(it.used?'채웠어요 ✓ · 다시 채우기':'이 내용으로 채우기')+'</button></div></div></div>';
   }).join('');
   $$('.pk',box).forEach(function(b){b.onclick=function(){var it=items[+b.dataset.i];it.stock_code=b.dataset.c;it.stock_name=b.dataset.n;showItems(box,items,base)}});
   $$('.fill',box).forEach(function(b){b.onclick=function(){
@@ -486,7 +584,7 @@ function showItems(box,items,base){
     var nd={ex:base.expert||($('#aex')&&$('#aex').value)||cur.ex,sk:base.sk||cur.sk,sc:base.sc||cur.sc,t:it.t,buy:it.buy,target:it.target,stop:it.stop,sell:it.sell,
       text:(it.text||'').slice(0,300),at:base.at||($('#aat')&&$('#aat').value)||null,url:base.url||($('#asu')&&$('#asu').value)||'',title:base.title||'',ingest:base.ingest||null};
     if(it.stock_code){nd.code=it.stock_code;nd.name=it.stock_name;nd.label=it.stock_name+' ('+it.stock_code+')';S.names[it.stock_code]=it.stock_name}
-    S.addDraft=nd;go('add');window.scrollTo(0,0);
+    it.used=true;S.addDraft=nd;go('add');window.scrollTo(0,0);
   }});
 }
 
