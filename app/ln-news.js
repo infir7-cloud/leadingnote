@@ -59,6 +59,7 @@
     '.mn-chip[aria-pressed="true"]{background:var(--accent);color:var(--on-accent)}',
     '.mn-disc{font-size:.75rem;color:var(--sn);padding:.6rem 0 .9rem;border-top:1px solid var(--line);line-height:1.5;margin:0}',
     '.mn-empty{font-size:.9375rem;color:var(--ink2);padding:.75rem 0 1rem}',
+    '.mn-bc{display:inline-block;vertical-align:.12em;margin-left:.3rem;font-size:.6875rem;font-weight:800;color:#fff;background:var(--t2-acc-ink,#5B4CF0);border-radius:.4rem;padding:.12rem .4rem}' +
     '.mn-old{margin:0 0 .5rem;padding:.5rem .75rem;border-radius:12px;background:var(--t2-ys,#FFF4DB);color:var(--warn,#B25E00);font-size:.875rem;font-weight:700}'
   ].join('\n');
 
@@ -90,7 +91,7 @@
   function redraw(){ var w = W(); try { if (w && w.__mn) { var v = w.view(); if ((v && v.t === 'mnews') || (!v && w.S.tab === 'home')) w.render(); } } catch (e) {} }
 
   function item(r){
-    var st = Array.isArray(r.stocks) ? r.stocks : [];
+    var st = Array.isArray(r.stocks) ? r.stocks : [], bcTag = bcOf(r, bcMap());
     var names = st.map(function(s){ if (s.c && !s.idx && /^[0-9A-Z]{6}$/.test(String(s.c))) return '<button type="button" class="nm" data-a="mnStock" data-v="' + esc(s.c) + '|' + esc(s.n || '') + '">' + esc(s.n) + '</button>'; var u = stockUrl(s); return '<a href="' + esc(u) + '" target="_blank" rel="noopener noreferrer">' + esc(s.n) + '</a>'; }).join('<span class="mn-dot">·</span>');
     var chg = r.chg != null && r.chg !== '' ? '<span class="mn-c ' + (Number(r.chg) >= 0 ? 'up' : 'down') + '">' + fmt(r.chg) + '</span>' : '';
     var th = (r.themes || []).map(function(t){ return '<a class="mn-th" href="' + esc(search(t + ' 관련주')) + '" target="_blank" rel="noopener noreferrer">' + esc(t) + '</a>'; }).join('');
@@ -99,7 +100,7 @@
         : '<a class="s" href="' + esc(stockUrl(main)) + '" target="_blank" rel="noopener noreferrer">' + (main.idx ? '지수 보기' : '종목 보기') + '</a>') : '') +
       '<a class="o" href="' + esc(r.url) + '" target="_blank" rel="noopener noreferrer">기사 원문' + IC.out + '</a>';
     return '<article class="mn-it">' +
-      '<h3 class="mn-hd"><span class="mn-k">' + esc(r.kind) + '</span>' + esc(r.headline) + '</h3>' +
+      '<h3 class="mn-hd"><span class="mn-k">' + esc(r.kind) + '</span>' + esc(r.headline) + (bcTag ? '<span class="mn-bc">' + esc(bcTag) + '</span>' : '') + '</h3>' +
       (names || chg ? '<div class="mn-st">' + names + chg + '</div>' : '') +
       (r.summary ? '<p class="mn-sm">' + esc(r.summary) + '</p>' : '') +
       '<div class="mn-ft"><span class="mn-src">' + esc(r.press) + '</span>' + th + '</div>' +
@@ -115,10 +116,35 @@
     var when = wd === 0 || wd === 6 ? '주말이라 마지막 평일 기사예요' : hm < 9 * 60 + 50 ? '오늘 기사는 오전 10시쯤 올라와요' : '오늘 기사를 정리하는 중이에요';
     return '<p class="mn-old">' + esc(dayLbl(N.day)) + ' 기사예요 · ' + when + '</p>';
   }
+  // 최근 7일 방송 종목 (코드 → '어제 고수외전' 같은 이름) · 홈 스크립트(ln-home.js)가 받아 둔 방송 자료를 써요
+  function bcMap(){
+    var out = {}, bc = window.__lnHome && window.__lnHome.bc; if (!bc || !bc.episodes) return out;
+    var P = {}; (bc.programs || []).forEach(function(p){ P[p.id] = p.name; });
+    var today = todayK(), from = new Date(Date.now() + 9 * 3600e3 - 7 * 864e5).toISOString().slice(0, 10), yest = new Date(Date.now() + 9 * 3600e3 - 864e5).toISOString().slice(0, 10);
+    bc.episodes.filter(function(e){ return e.published && !e.canceled && e.air_date >= from && e.air_date <= today; })
+      .sort(function(a, b){ return a.air_date < b.air_date ? 1 : -1; })
+      .forEach(function(e){ (e.picks || []).forEach(function(k){
+        if (!k.stock_code || (k.kind === 'secret' && !k.revealed) || out[k.stock_code]) return;
+        var p = String(e.air_date).split('-'), when = e.air_date === today ? '오늘' : e.air_date === yest ? '어제' : (+p[1]) + '.' + (+p[2]);
+        out[k.stock_code] = when + ' ' + (P[e.program_id] || '방송') + ' 종목';
+      }); });
+    return out;
+  }
+  function bcOf(r, M){ var st = Array.isArray(r.stocks) ? r.stocks : []; for (var i = 0; i < st.length; i++) { if (st[i] && st[i].c && !st[i].idx && M[st[i].c]) return M[st[i].c]; } return ''; }
+  // 홈 위쪽에 올릴 기사: 특징주·공시·이번주 + 국내 종목이 붙은 시황(해외 이슈가 국내 종목을 움직일 때) · 최근 방송 종목 관련 기사는 2건까지 맨 앞으로
+  function pickTop(n){
+    if (!N.rows || !N.rows.length) return [];
+    var M = bcMap(), domestic = function(r){ return (r.stocks || []).some(function(s){ return s && s.c && !s.idx; }); };
+    var C = N.rows.filter(function(r){ return r.kind !== '시황' || domestic(r); });
+    if (!C.length) C = N.rows.slice();
+    var hot = C.filter(function(r){ return bcOf(r, M); }).slice(0, 2);
+    return hot.concat(C.filter(function(r){ return hot.indexOf(r) < 0; })).slice(0, n);
+  }
+  N.top = pickTop;
+  function homeN(){ var d = new Date(Date.now() + 9 * 3600e3), wd = d.getUTCDay(), m = d.getUTCHours() * 60 + d.getUTCMinutes(); return wd >= 1 && wd <= 5 && m >= 540 && m < 930 ? 6 : HOME_N; }   // 장중(09:00~15:30)엔 6건
   function homeSec(){
     if (!N.rows || !N.rows.length) return '';
-    var top = N.rows.filter(function(r){ return r.kind !== '시황'; }).slice(0, HOME_N);
-    if (!top.length) top = N.rows.slice(0, HOME_N);
+    var top = pickTop(homeN());
     return '<section class="t2-sec mn-home"><div class="t2-h" style="cursor:default">오늘의 재료 뉴스<span class="mn-day">' + esc(dayLbl(N.day)) + '</span></div>' +
       '<p class="mn-sub">개인투자자가 눈여겨볼 기사만 골랐어요</p>' + staleNote() +
       '<div class="mn-list">' + top.map(item).join('') + '</div>' +

@@ -719,7 +719,7 @@ function xPicks(box,x){
       var nm=k.stock_name||(sec?'(히든주 · 종목 미정)':'-');
       var px=[k.buy?'매수 '+won(k.buy):'',k.target?'목표 '+won(k.target):'',k.stop?'손절 '+won(k.stop):'',k.sell?'매도 '+won(k.sell):''].filter(Boolean).join(' · ');
       return '<div class="room xpr" data-j="'+j+'"><div style="display:flex;gap:8px;align-items:baseline;flex-wrap:wrap"><b>'+esc(nm)+'</b>'+(k.stock_code?'<small class="src">'+esc(k.stock_code)+'</small>':'')+
-        '<span class="tag">'+esc(pkLbl(k,o.ep.program_id))+(sec&&k.revealed?' · 공개됨':'')+'</span>'+(o.ep.published?'':'<span class="tag">사이트 미공개 회차</span>')+
+        '<span class="tag">'+esc(pkLbl(k,o.ep.program_id))+(sec&&k.revealed?' · 공개됨':'')+esc(opnTag(k))+'</span>'+(o.ep.published?'':'<span class="tag">사이트 미공개 회차</span>')+
         '<span class="src" style="margin-left:auto">'+esc(pgName(o.ep.program_id))+' · '+esc(bcLbl(k.pick_date||o.ep.air_date))+'</span></div>'+
         (px?'<div style="font-size:14px;margin-top:2px">'+px+'</div>':'')+(k.quote?'<div class="hint" style="margin:2px 0 0">'+esc(k.quote)+'</div>':'')+
         '<div class="acts" style="margin-top:6px"><button class="btn s pe">고치기</button><button class="btn s bad pdl">이 종목 빼기</button></div><div class="pfx"></div></div>'}).join('')}
@@ -742,7 +742,7 @@ function pickEdit(f,o,x){
   var pf=function(c,l,v,ph){return '<label class="f"><b>'+l+'</b><input type="text" inputmode="numeric" class="'+c+'" value="'+esc(v==null?'':Number(v).toLocaleString('ko-KR'))+'" placeholder="'+(ph||'원')+'"></label>'};
   var LB=pgLabels(o.ep.program_id);
   var xn=(o.ep.experts||[]).map(function(z){return z.name}).filter(Boolean),k0=k.expert_name||x.name||'';if(k0&&xn.indexOf(k0)<0)xn.unshift(k0);
-  f.innerHTML='<div class="pkr" style="margin-top:8px"><div class="row"><label class="f" style="flex:0 1 170px"><b>말한 전문가</b><select class="kx">'+xn.map(function(n){return '<option'+(n===k0?' selected':'')+'>'+esc(n)+'</option>'}).join('')+'</select></label><label class="f" style="flex:0 1 170px"><b>구분</b><select class="kk"><option value="open"'+(sec?'':' selected')+'>'+esc(LB.open)+' (공개)</option><option value="secret"'+(sec?' selected':'')+'>'+esc(LB.secret)+' (비공개)</option></select></label>'+
+  f.innerHTML='<div class="pkr" style="margin-top:8px"><div class="row"><label class="f" style="flex:0 1 170px"><b>말한 전문가</b><select class="kx">'+xn.map(function(n){return '<option'+(n===k0?' selected':'')+'>'+esc(n)+'</option>'}).join('')+'</select></label><label class="f" style="flex:0 1 200px"><b>구분</b>'+kindSel(LB,k.kind)+'</label>'+opnSel(k.opinion,k.kind)+
     '<label class="f" style="flex:0 1 150px"><b>방송에서 부른 이름</b><input type="text" class="klb" maxlength="20" value="'+esc(k.label||'')+'" placeholder="비우면 기본 이름"></label>'+
     '<label class="f" style="flex:0 1 160px"><b>추천일</b><input type="date" class="kd2" value="'+esc(k.pick_date||o.ep.air_date)+'"></label>'+
     '<label class="f" style="flex:0 1 110px"><b>영상 시각</b><input type="text" class="kt" value="'+esc(k.ts||'')+'" placeholder="12:34"></label></div>'+
@@ -754,15 +754,16 @@ function pickEdit(f,o,x){
     '<div class="acts" style="justify-content:flex-end"><button class="btn p s ksv" type="button">저장</button><button class="btn s kcl" type="button">닫기</button></div></div>';
   stockSearch($('.ks',f),$('ul',f),function(v){pick=v});
   $$('input[inputmode=numeric]',f).forEach(function(i){i.oninput=function(){i.value=wonIn(i.value);if(i.classList.contains('ke'))$('.kse-w',f).classList.toggle('hide',!i.value)}});
-  $('.kk',f).onchange=function(){$('.kr-w',f).classList.toggle('hide',this.value!=='secret')};
+  $('.kk',f).onchange=function(){$('.kr-w',f).classList.toggle('hide',this.value!=='secret');$('.kop-w',f).classList.toggle('hide',this.value!=='consult')};
   $('.kcl',f).onclick=function(){f.innerHTML=''};
   $('.ksv',f).onclick=function(){
     var nm=$('.ks',f).value.trim(),pk=pick&&pick.name===nm?pick:null,kind=$('.kk',f).value,rev=kind==='secret'?$('.kr',f).checked:true;
     var xs=$('.kx',f).value||k.expert_name||x.name,xid=xs===(k.expert_name||x.name)?x.id:((bcExpert(xs)||{}).id||null);
-    var n={expert_id:xid,expert_name:xs,kind:kind,revealed:rev,stock_code:pk?pk.code:(nm===k.stock_name?(k.stock_code||''):''),stock_name:nm,pick_date:$('.kd2',f).value,
+    var n={expert_id:xid,expert_name:xs,kind:kind,opinion:kind==='consult'?$('.kop',f).value:'',revealed:rev,stock_code:pk?pk.code:(nm===k.stock_name?(k.stock_code||''):''),stock_name:nm,pick_date:$('.kd2',f).value,
       buy:num($('.kb',f).value),target:num($('.kg',f).value),stop:num($('.kl',f).value),sell:num($('.ke',f).value),sell_date:$('.kse',f).value,quote:$('.kq',f).value.trim(),ts:$('.kt',f).value.trim(),label:$('.klb',f).value.trim()};
     if(!nm&&!(kind==='secret'&&!rev)){flash('warn','종목 이름을 넣어 주세요');return}
     if(kind==='secret'&&rev&&!nm){flash('warn','공개된 히든주는 종목 이름을 넣어 주세요');return}
+    if(kind==='consult'&&!n.opinion){flash('warn','상담 답변(매수·유지·손절)을 골라 주세요');return}
     if(n.ts&&!/^\d{1,2}:[0-5]\d(:[0-5]\d)?$/.test(n.ts)){flash('warn','영상 시각은 12:34 처럼 써 주세요');return}
     if(n.buy&&n.target&&n.target<=n.buy){flash('warn','목표가는 매수가보다 높아야 해요');return}
     if(n.buy&&n.stop&&n.stop>=n.buy){flash('warn','손절가는 매수가보다 낮아야 해요');return}
@@ -860,7 +861,12 @@ function kHm(ms){var d=new Date(ms);return ('0'+d.getUTCHours()).slice(-2)+':'+(
 function kNow(){return Date.now()+9*3600e3}
 // 프로그램별 종목 이름 (예: 고수외전 관심종목·히든관심주) · 비워 두면 공개 종목·히든주 (사이트 좁은 칸엔 늘 [히든주])
 function pgLabels(pid){var p=(S.bcP||[]).filter(function(z){return z.id===pid})[0]||{};return {open:p.open_label||'공개 종목',secret:p.secret_label||'히든주'}}
-function pkLbl(k,pid){var L=pgLabels(pid);return k.label||(k.kind==='secret'?L.secret:L.open)}
+function pkLbl(k,pid){var L=pgLabels(pid);return k.label||(k.kind==='secret'?L.secret:k.kind==='consult'?'상담종목':L.open)}
+// 상담종목: 방송 중 시청자 문의에 전문가가 답한 종목 · 답변(매수·유지·손절)은 꼭, 가격은 넣고 싶을 때만 (가격을 넣으면 수익률 통계에도 들어가요)
+var OPN={buy:'매수',hold:'유지',stop:'손절'};
+function kindSel(LB,kind){return '<select class="kk"><option value="open"'+(kind==='open'||!kind?' selected':'')+'>'+esc(LB.open)+' (공개)</option><option value="secret"'+(kind==='secret'?' selected':'')+'>'+esc(LB.secret)+' (비공개)</option><option value="consult"'+(kind==='consult'?' selected':'')+'>상담종목 (시청자 문의 답변)</option></select>'}
+function opnSel(v,kind){return '<label class="f kop-w'+(kind==='consult'?'':' hide')+'" style="flex:0 1 170px"><b>상담 답변 (꼭 골라요)</b><select class="kop"><option value="">선택</option>'+['buy','hold','stop'].map(function(o){return '<option value="'+o+'"'+(v===o?' selected':'')+'>'+OPN[o]+'</option>'}).join('')+'</select></label>'}
+function opnTag(k){return k.kind==='consult'&&k.opinion?' · 답변 '+(OPN[k.opinion]||k.opinion):''}
 // 몇 주마다 하는 방송(예: 이슈가 머니 3주마다)과, 그날 같은 시간을 내주는 매주 방송 (사이트와 같은 규칙)
 function progOn(p,ymd,all){
   if(+p.weekday!==kWd(ymd))return false;
@@ -892,7 +898,7 @@ function bcStateTag(sl){
   if(sl.state==='soon')return '<span class="tag" style="background:var(--acc-soft);color:var(--acc)">예정</span>'+(sl.ep&&(sl.ep.picks||[]).length?' <span class="tag">미리 입력한 종목 '+sl.ep.picks.length+'개 · 사이트에 보여요</span>':'');
   if(sl.state==='live')return '<span class="tag" style="background:var(--bad-soft);color:var(--bad)">방송 중</span>';
   var ep=sl.ep;if(!ep||!(ep.picks||[]).length)return '<span class="tag" style="background:var(--warn-soft);color:var(--warn)">종목 입력 전</span>';
-  var L0=pgLabels(sl.p.id),nO=ep.picks.filter(function(k){return k.kind!=='secret'}).length,nS=ep.picks.length-nO,cnt=L0.open+' '+nO+(nS?' · '+L0.secret+' '+nS:'');
+  var L0=pgLabels(sl.p.id),nS=ep.picks.filter(function(k){return k.kind==='secret'}).length,nC=ep.picks.filter(function(k){return k.kind==='consult'}).length,nO=ep.picks.length-nS-nC,cnt=L0.open+' '+nO+(nS?' · '+L0.secret+' '+nS:'')+(nC?' · 상담 '+nC:'');
   return ep.published?'<span class="tag" style="background:var(--ok-soft);color:var(--ok)">사이트 공개 중 · '+cnt+'</span>':'<span class="tag" style="background:var(--warn-soft);color:var(--warn)">사이트 공개 전 · '+cnt+'</span>';
 }
 function bcSlotRow(sl,label){
@@ -928,7 +934,7 @@ function bcFindList(){
   (S.bcE||[]).forEach(function(ep){
     if(f.pg&&ep.program_id!==f.pg)return;if(String(ep.air_date)<from)return;
     (ep.picks||[]).forEach(function(k,i){
-      if(f.st==='pub'&&!ep.published)return;if(f.st==='unpub'&&ep.published)return;if(f.st==='hid'&&!(k.kind==='secret'&&!k.revealed))return;
+      if(f.st==='pub'&&!ep.published)return;if(f.st==='unpub'&&ep.published)return;if(f.st==='hid'&&!(k.kind==='secret'&&!k.revealed))return;if(f.st==='cs'&&k.kind!=='consult')return;
       if(q&&[k.stock_name,k.stock_code,k.expert_name,k.label,k.quote,pgName(ep.program_id)].map(nk).join('|').indexOf(q)<0)return;
       out.push({ep:ep,i:i,k:k})})});
   out.sort(function(a,b){var da=String(a.ep.air_date),db=String(b.ep.air_date);return da<db?1:da>db?-1:a.i-b.i});
@@ -940,7 +946,7 @@ function bcFind(el){
     '<div class="card"><div class="row"><label class="f"><b>찾기</b><input type="search" class="bfq" value="'+esc(f.q)+'" placeholder="종목 이름·코드, 전문가 이름"></label>'+
     '<label class="f" style="flex:0 1 170px"><b>프로그램</b><select class="bfp"><option value="">전체</option>'+(S.bcP||[]).map(function(p){return '<option value="'+esc(p.id)+'"'+(p.id===f.pg?' selected':'')+'>'+esc(p.name)+'</option>'}).join('')+'</select></label>'+
     '<label class="f" style="flex:0 1 130px"><b>기간</b><select class="bfd">'+[['7','최근 7일'],['30','최근 30일'],['90','최근 90일'],['400','1년']].map(function(o){return '<option value="'+o[0]+'"'+(o[0]===f.days?' selected':'')+'>'+o[1]+'</option>'}).join('')+'</select></label>'+
-    '<label class="f" style="flex:0 1 150px"><b>상태</b><select class="bfs">'+[['','전체'],['pub','사이트 공개 회차'],['unpub','공개 전 회차'],['hid','가려진 히든주']].map(function(o){return '<option value="'+o[0]+'"'+(o[0]===f.st?' selected':'')+'>'+o[1]+'</option>'}).join('')+'</select></label></div>'+
+    '<label class="f" style="flex:0 1 150px"><b>상태</b><select class="bfs">'+[['','전체'],['pub','사이트 공개 회차'],['unpub','공개 전 회차'],['hid','가려진 히든주'],['cs','상담종목']].map(function(o){return '<option value="'+o[0]+'"'+(o[0]===f.st?' selected':'')+'>'+o[1]+'</option>'}).join('')+'</select></label></div>'+
     '<div class="bfo"></div></div>';
   var out=$('.bfo',el),tm;
   function draw(){
@@ -949,7 +955,7 @@ function bcFind(el){
       var nm=k.stock_name||(sec?'(히든주 · 종목 미정)':'-');
       var px=[k.buy?'매수 '+won(k.buy):'',k.target?'목표 '+won(k.target):'',k.stop?'손절 '+won(k.stop):'',k.sell?'매도 '+won(k.sell):''].filter(Boolean).join(' · ');
       return '<div class="room bfr" data-j="'+j+'"><div style="display:flex;gap:8px;align-items:baseline;flex-wrap:wrap"><b>'+esc(nm)+'</b>'+(k.stock_code?'<small class="src">'+esc(k.stock_code)+'</small>':(k.stock_name?'<span class="tag late">코드 없음</span>':''))+
-        '<span class="tag">'+esc(pkLbl(k,o.ep.program_id))+(sec?(k.revealed?' · 공개됨':' · 가려짐'):'')+'</span>'+(o.ep.published?'':'<span class="tag" style="background:var(--warn-soft);color:var(--warn)">공개 전 회차</span>')+
+        '<span class="tag">'+esc(pkLbl(k,o.ep.program_id))+(sec?(k.revealed?' · 공개됨':' · 가려짐'):'')+esc(opnTag(k))+'</span>'+(o.ep.published?'':'<span class="tag" style="background:var(--warn-soft);color:var(--warn)">공개 전 회차</span>')+
         '<span class="src" style="margin-left:auto">'+esc(pgName(o.ep.program_id))+' · '+esc(bcLbl(String(o.ep.air_date)))+'</span></div>'+
         '<div style="font-size:14px;margin-top:2px">'+esc(k.expert_name||'전문가 미정')+(px?' · '+px:'')+'</div>'+(k.quote?'<div class="hint" style="margin:2px 0 0">'+esc(k.quote)+'</div>':'')+
         '<div class="acts" style="margin-top:6px"><button class="btn s pe">고치기</button><button class="btn s po">회차 전체 열기</button><button class="btn s bad pdl">이 종목 빼기</button></div><div class="pfx bcx"></div></div>'}).join(''):'<p class="hint" style="margin:0;padding:8px 0">찾는 종목이 없어요. 기간을 늘리거나 다른 이름으로 찾아보세요.</p>')+
@@ -1056,8 +1062,8 @@ function openEp(box,key){
     var sec=k.kind==='secret';
     var pf=function(c,l,v,ph){return '<label class="f"><b>'+l+'</b><input type="text" inputmode="numeric" class="'+c+'" value="'+esc(v==null?'':Number(v).toLocaleString('ko-KR'))+'" placeholder="'+(ph||'원')+'"></label>'};
     d.innerHTML='<div class="row"><label class="f"><b>말한 전문가</b><select class="kx"><option value="">선택</option>'+nm.map(function(n){return '<option'+(n===k.expert_name?' selected':'')+'>'+esc(n)+'</option>'}).join('')+'</select></label>'+
-      '<label class="f" style="flex:0 1 170px"><b>구분</b><select class="kk"><option value="open"'+(sec?'':' selected')+'>'+esc(LB.open)+' (공개)</option><option value="secret"'+(sec?' selected':'')+'>'+esc(LB.secret)+' (비공개)</option></select></label>'+
-      '<label class="f" style="flex:0 1 150px"><b>방송에서 부른 이름</b><input type="text" class="klb" maxlength="20" value="'+esc(k.label||'')+'" placeholder="비우면 \''+esc(sec?LB.secret:LB.open)+'\'"></label>'+
+      '<label class="f" style="flex:0 1 200px"><b>구분</b>'+kindSel(LB,k.kind)+'</label>'+opnSel(k.opinion,k.kind)+
+      '<label class="f" style="flex:0 1 150px"><b>방송에서 부른 이름</b><input type="text" class="klb" maxlength="20" value="'+esc(k.label||'')+'" placeholder="비우면 \''+esc(sec?LB.secret:k.kind==='consult'?'상담종목':LB.open)+'\'"></label>'+
       '<label class="f" style="flex:0 1 160px"><b>추천일</b><input type="date" class="kd2" value="'+esc(k.pick_date||date)+'"></label></div>'+
       '<label class="chk kr-w'+(sec?'':' hide')+'" style="margin:-4px 0 10px"><input type="checkbox" class="kr"'+(k.revealed?' checked':'')+'> 공개여부 (체크 전에는 앱에 종목 이름·가격이 가려져요)</label>'+
       '<div class="row"><label class="f sug"><b>종목</b><input type="text" class="ks" autocomplete="off" value="'+esc(k.stock_name||'')+'" placeholder="'+(sec?'공개 전이면 비워 둬도 돼요':'종목 이름이나 코드')+'"><ul class="hide"></ul></label>'+
@@ -1070,7 +1076,7 @@ function openEp(box,key){
     stockSearch($('.ks',d),$('ul',d),function(v){d._pick=v;pxWarn(d)});
     $$('input[inputmode=numeric]',d).forEach(function(i){i.oninput=function(){i.value=wonIn(i.value);if(i.classList.contains('ke'))$('.kse-w',d).classList.toggle('hide',!i.value);if(i.classList.contains('kb')){clearTimeout(d._pxT);d._pxT=setTimeout(function(){pxWarn(d)},400)}}});
     setTimeout(function(){pxWarn(d)},0);
-    $('.kk',d).onchange=function(){var s2=this.value==='secret';$('.kr-w',d).classList.toggle('hide',!s2);$('.ks',d).placeholder=s2?'공개 전이면 비워 둬도 돼요':'종목 이름이나 코드';$('.klb',d).placeholder='비우면 \''+(s2?LB.secret:LB.open)+'\''};
+    $('.kk',d).onchange=function(){var s2=this.value==='secret',c2=this.value==='consult';$('.kr-w',d).classList.toggle('hide',!s2);$('.kop-w',d).classList.toggle('hide',!c2);$('.ks',d).placeholder=s2?'공개 전이면 비워 둬도 돼요':'종목 이름이나 코드';$('.klb',d).placeholder='비우면 \''+(s2?LB.secret:c2?'상담종목':LB.open)+'\''};
     $('.kdel',d).onclick=function(){d.remove()};
     pks.appendChild(d);
   }
@@ -1081,11 +1087,12 @@ function openEp(box,key){
   $('.cl',box).onclick=function(){box.innerHTML=''};
   $('.sv',box).onclick=function(){var b=this,bad='';
     var picks=$$('.pkr',box).map(function(d){var nm=$('.ks',d).value.trim(),pk=d._pick&&d._pick.name===nm?d._pick:null,kind=$('.kk',d).value;
-      var o={expert_name:$('.kx',d).value,kind:kind,revealed:kind==='secret'?$('.kr',d).checked:true,stock_code:pk?pk.code:'',stock_name:nm,pick_date:$('.kd2',d).value,
+      var o={expert_name:$('.kx',d).value,kind:kind,opinion:kind==='consult'?$('.kop',d).value:'',revealed:kind==='secret'?$('.kr',d).checked:true,stock_code:pk?pk.code:'',stock_name:nm,pick_date:$('.kd2',d).value,
         buy:num($('.kb',d).value),target:num($('.kg',d).value),stop:num($('.kl',d).value),sell:num($('.ke',d).value),sell_date:$('.kse',d).value,quote:$('.kq',d).value.trim(),ts:$('.kt',d).value.trim(),label:$('.klb',d).value.trim()};
       if(!o.stock_name&&!(kind==='secret'&&!o.revealed))return null;
       if(!o.expert_name)bad=bad||'종목마다 말한 전문가를 골라 주세요';
       if(kind==='secret'&&o.revealed&&!o.stock_name)bad=bad||'공개된 히든주는 종목 이름을 넣어 주세요';
+      if(kind==='consult'&&!o.opinion)bad=bad||(nm+' 상담 답변(매수·유지·손절)을 골라 주세요');
       if(o.ts&&!/^\d{1,2}:[0-5]\d(:[0-5]\d)?$/.test(o.ts))bad=bad||'영상 시각은 12:34 처럼 써 주세요';
       if(o.buy&&o.target&&o.target<=o.buy)bad=bad||(nm+' 목표가는 매수가보다 높아야 해요');
       if(o.buy&&o.stop&&o.stop>=o.buy)bad=bad||(nm+' 손절가는 매수가보다 낮아야 해요');
@@ -1099,7 +1106,7 @@ function openEp(box,key){
   };
 }
 // ── 텍스트로 한 번에 넣기: 엑셀·구글시트에서 복사한 표(탭) · AI가 준 표(| 칸 |) · CSV를 붙여 넣으면 회차·전문가·종목을 자동으로 채워요
-// 칸 순서: 날짜 | 방송 | 전문가명 | 공개종목 | 공개종목 매매전략 | 비공개종목명(히든주) | 히든주 전략·힌트  (첫 줄 제목은 있어도 없어도 돼요)
+// 칸 순서: 날짜 | 방송 | 전문가명 | 공개종목 | 공개종목 매매전략 | 비공개종목명(히든주) | 히든주 전략·힌트 | 상담종목 | 상담 답변(매수·유지·손절 + 가격은 선택)  (첫 줄 제목은 있어도 없어도 돼요)
 var BP={rows:null,eps:null,codes:{},nameMap:{},busy:false,pub:true};
 function bpCells(text){
   text=String(text||'').replace(/\r\n?/g,'\n');
@@ -1131,6 +1138,7 @@ function bpPrices(s){var o={buy:null,target:null,stop:null};s=String(s||'');var 
     else if(/목표|^단기|^중장기/.test(seg)){var re=/(단기\s*목표|중장기\s*목표|단기|중장기|목표)\s*([^단중]+)/g,m;
       while((m=re.exec(seg))){if(/\d/.test(m[2])&&!/pt|방어|홀딩/.test(m[2])&&o.target==null)o.target=bpRange(m[2])}}});
   if(o.buy&&o.target&&o.target<=o.buy)o.target=null;if(o.buy&&o.stop&&o.stop>=o.buy)o.stop=null;return o}
+function bpOpn(s){var m=String(s||'').trim().match(/^\[?\s*(매수|유지|보유|홀딩|손절|매도)/);return m?({매수:'buy',유지:'hold',보유:'hold',홀딩:'hold',손절:'stop',매도:'stop'})[m[1]]:''}
 function bpNote(s){s=String(s||'').trim();if(!s||/^상세\s*가격\s*미언급$/.test(s))return null;if(/해외|비상장/.test(s)&&s.length<12)return '해외·비상장 종목';return s.split('\n').map(function(l){return l.trim()}).filter(Boolean).join(' / ').slice(0,200)}
 // 이름 비교: 같은 성 + 한 글자만 다르면 등록된 전문가 후보로 보여 줘요 (예: 김동아 → 김동화)
 function bpCands(n){var k=bcNorm(n);if(bcExpert(n))return [];
@@ -1146,6 +1154,10 @@ function bpBuild(text){
     var op=String(r[3]||'').trim(),sc=String(r[5]||'').trim();
     if(op&&!/^(-|없음|none)$/i.test(op)){var a=bpPrices(r[4]);e.picks.push({expert_name:x,kind:'open',stock_name:op,buy:a.buy,target:a.target,stop:a.stop,quote:bpNote(r[4])})}
     if(sc&&!/^(-|없음|none)$/i.test(sc)){var b=bpPrices(r[6]);e.picks.push({expert_name:x,kind:'secret',stock_name:sc,buy:b.buy,target:b.target,stop:b.stop,quote:bpNote(r[6])})}
+    var cs=String(r[7]||'').trim();
+    if(cs&&!/^(-|없음|none)$/i.test(cs)){var on=bpOpn(r[8]),rest=String(r[8]||'').trim().replace(/^\[?\s*(매수|유지|보유|홀딩|손절|매도)\s*\]?\s*[:·,\/]?\s*/,''),c3=bpPrices(rest);
+      if(!on)bad.push((i+1)+'번째 줄: 상담종목 '+esc(cs)+'의 답변(매수·유지·손절)을 알아보지 못해 뺐어요');
+      else e.picks.push({expert_name:x,kind:'consult',opinion:on,stock_name:cs,buy:c3.buy,target:c3.target,stop:c3.stop,quote:bpNote(rest)})}
   });
   return {eps:order.map(function(k){return eps[k]}).sort(function(a,b){return a.date<b.date?1:-1}),bad:bad};
 }
@@ -1160,7 +1172,7 @@ function bpResolve(eps){
   });
 }
 function bpView(box){
-  var h='<div class="card" id="bp-card"><b style="font-size:16px">텍스트로 한 번에 넣기</b><p class="hint" style="margin:6px 0 10px">엑셀·구글시트 표를 복사해 붙여 넣거나, AI가 정리해 준 표를 그대로 붙여 넣으세요. 칸 순서: <b>날짜 · 방송 · 전문가 · 공개종목 · 공개종목 전략 · 히든주 · 히든주 전략/힌트</b>. 같은 날짜·방송은 한 회차로 묶여 그 회차 종목을 <b>통째로 바꿔요</b> (영상 시각은 그대로 이어받아요).</p>'+
+  var h='<div class="card" id="bp-card"><b style="font-size:16px">텍스트로 한 번에 넣기</b><p class="hint" style="margin:6px 0 10px">엑셀·구글시트 표를 복사해 붙여 넣거나, AI가 정리해 준 표를 그대로 붙여 넣으세요. 칸 순서: <b>날짜 · 방송 · 전문가 · 공개종목 · 공개종목 전략 · 히든주 · 히든주 전략/힌트 · 상담종목 · 상담 답변</b> (상담 답변은 \'유지\'·\'손절 / 손절 3.6만원\'처럼 매수·유지·손절로 시작, 가격은 넣고 싶을 때만). 같은 날짜·방송은 한 회차로 묶여 그 회차 종목을 <b>통째로 바꿔요</b> (영상 시각은 그대로 이어받아요).</p>'+
     '<textarea id="bp-t" style="min-height:140px;font-size:14px" placeholder="2026-11-04\t투자앵글\t최원석\tOCI홀딩스\t매수 4만원 / 목표 5만원 / 손절 3.6만원\t한중엔시에스\t수냉식 열관리 기술"></textarea>'+
     '<div class="acts" style="margin-top:8px"><button class="btn p s" id="bp-go" type="button">미리 보기</button><button class="btn s" id="bp-clr" type="button">지우기</button></div><div id="bp-out"></div></div>';
   box.insertAdjacentHTML('afterbegin',h);
@@ -1182,7 +1194,7 @@ function bpDraw(){
     return '<div class="room" style="margin-top:10px"><div style="display:flex;gap:8px;align-items:baseline;flex-wrap:wrap"><b>'+esc(e.p.name)+'</b><span class="src">'+bcLbl(e.date)+'</span>'+(ex?'<span class="tag" style="background:var(--warn-soft);color:var(--warn)">기존 종목 '+(ex.picks||[]).length+'개 → 바꿔요</span>':'<span class="tag" style="background:var(--acc-soft);color:var(--acc)">새 회차</span>')+'</div>'+
       '<div class="src" style="margin:2px 0 6px">출연: '+esc(e.experts.map(function(n){return BP.nameMap[n]||n}).join(', '))+'</div>'+
       '<div style="overflow-x:auto"><table><thead><tr><th>전문가</th><th>구분</th><th>종목</th><th>매수</th><th>목표</th><th>손절</th></tr></thead><tbody>'+e.picks.map(function(k){var c=BP.codes[k.stock_name];if(!c)warn.push(e.p.name+' '+bcLbl(e.date)+' '+k.stock_name);
-        return '<tr><td style="white-space:nowrap">'+esc(BP.nameMap[k.expert_name]||k.expert_name)+'</td><td style="white-space:nowrap">'+(k.kind==='secret'?'<span class="tag">'+esc(L.secret)+'</span>':esc(L.open))+'</td><td>'+esc(c?c.name:k.stock_name)+(c?' <span class="hint" style="margin:0">'+c.code+'</span>':' <span class="tag late">코드 없음</span>')+(k.quote?'<div class="src">'+esc(k.quote)+'</div>':'')+'</td><td>'+wonT(k.buy)+'</td><td>'+wonT(k.target)+'</td><td>'+wonT(k.stop)+'</td></tr>'}).join('')+'</tbody></table></div></div>'}).join('');
+        return '<tr><td style="white-space:nowrap">'+esc(BP.nameMap[k.expert_name]||k.expert_name)+'</td><td style="white-space:nowrap">'+(k.kind==='secret'?'<span class="tag">'+esc(L.secret)+'</span>':k.kind==='consult'?'<span class="tag">상담 · '+esc(OPN[k.opinion]||'')+'</span>':esc(L.open))+'</td><td>'+esc(c?c.name:k.stock_name)+(c?' <span class="hint" style="margin:0">'+c.code+'</span>':' <span class="tag late">코드 없음</span>')+(k.quote?'<div class="src">'+esc(k.quote)+'</div>':'')+'</td><td>'+wonT(k.buy)+'</td><td>'+wonT(k.target)+'</td><td>'+wonT(k.stop)+'</td></tr>'}).join('')+'</tbody></table></div></div>'}).join('');
   if(BP.bad&&BP.bad.length)h+='<div class="msg warn" style="margin-top:10px">건너뛴 줄<br>'+BP.bad.join('<br>')+'</div>';
   if(warn.length)h+='<p class="hint" style="margin-top:8px">코드를 못 찾은 종목('+esc(warn.join(', '))+')은 이름 그대로 저장돼요. 해외·비상장이면 괜찮고, 오타라면 위 글을 고쳐 다시 미리 보기를 눌러 주세요.</p>';
   h+='<div class="acts" style="margin-top:12px"><label class="chk" style="margin-right:auto"><input type="checkbox" id="bp-pub"'+(BP.pub?' checked':'')+'> 저장하면 바로 사이트에 공개</label><button class="btn p" id="bp-save" type="button">'+eps.length+'개 회차 저장</button></div>';
@@ -1200,7 +1212,7 @@ function bpSave(){
     var e=eps.shift(),ex=(S.bcE||[]).filter(function(z){return z.program_id===e.p.id&&z.air_date===e.date})[0]||{};
     var picks=e.picks.map(function(k){var c=BP.codes[k.stock_name],x=nm(k.expert_name),sn=c?c.name:k.stock_name,
         old=(ex.picks||[]).filter(function(o){return bcNorm(o.expert_name)===bcNorm(x)&&(o.stock_name===sn||(c&&o.stock_code===c.code))})[0]||{},xr=bcExpert(x);
-      return {expert_id:xr?xr.id:null,expert_name:x,kind:k.kind,revealed:true,stock_code:c?c.code:'',stock_name:sn,buy:k.buy,target:k.target,stop:k.stop,
+      return {expert_id:xr?xr.id:null,expert_name:x,kind:k.kind,opinion:k.opinion||'',revealed:true,stock_code:c?c.code:'',stock_name:sn,buy:k.buy,target:k.target,stop:k.stop,
         sell:old.sell||null,sell_date:old.sell_date||'',pick_date:e.date,quote:k.quote||old.quote||'',ts:old.ts||'',label:old.label||''}});
     var xs=e.experts.map(function(n){var x=nm(n),r=bcExpert(x);return {id:r?r.id:null,name:x}});
     var p2={program_id:e.p.id,air_date:e.date,experts:xs,picks:picks,video_url:ex.video_url||'',canceled:false,published:BP.pub||!!ex.published,note:ex.note||''};
@@ -1309,7 +1321,7 @@ function vBcai(m){
     if(j.status==='done'||j.status==='applied'){
       h+='<div class="hint" style="margin:8px 0 4px">'+(res.edited_at?'<span class="tag mine">운영자가 고침 '+esc(kst(res.edited_at))+'</span> ':'')+'출연: '+esc((res.experts||[]).map(function(x){return x.name}).join(', ')||'-')+(res.note?' · 메모: '+esc(res.note):'')+'</div>';
       h+=picks.length?'<div style="overflow-x:auto"><table><thead><tr><th style="white-space:nowrap">전문가</th><th>종목</th><th>매수</th><th>매도</th><th>목표</th><th>장면</th></tr></thead><tbody>'+picks.map(function(p){
-        var stk=(p.label?'<span class="tag">'+esc(p.label)+'</span> ':'')+(p.kind==='secret'&&!p.revealed?'<span class="tag">히든주</span>'+(p.guess?' 추정 <b>'+esc(p.guess)+'</b>'+(p.guess_code?' <span class="hint" style="margin:0">'+esc(p.guess_code)+'</span>':'')+(p.guess_reason?'<div class="src">근거: '+esc(p.guess_reason)+'</div>':''):''):esc(p.stock_name||'-')+(p.stock_code?' <span class="hint" style="margin:0">'+esc(p.stock_code)+'</span>':' <span class="tag late">코드 확인</span>'+((p.candidates||[]).length?'<div class="src">후보: '+p.candidates.map(function(c){return esc(c.name)+' '+esc(c.code)}).join(', ')+'</div>':'')));
+        var stk=(p.label?'<span class="tag">'+esc(p.label)+'</span> ':'')+(p.kind==='consult'?'<span class="tag">상담'+(p.opinion?' · '+esc(OPN[p.opinion]||p.opinion):' · <b>답변 확인</b>')+'</span> ':'')+(p.kind==='secret'&&!p.revealed?'<span class="tag">히든주</span>'+(p.guess?' 추정 <b>'+esc(p.guess)+'</b>'+(p.guess_code?' <span class="hint" style="margin:0">'+esc(p.guess_code)+'</span>':'')+(p.guess_reason?'<div class="src">근거: '+esc(p.guess_reason)+'</div>':''):''):esc(p.stock_name||'-')+(p.stock_code?' <span class="hint" style="margin:0">'+esc(p.stock_code)+'</span>':' <span class="tag late">코드 확인</span>'+((p.candidates||[]).length?'<div class="src">후보: '+p.candidates.map(function(c){return esc(c.name)+' '+esc(c.code)}).join(', ')+'</div>':'')));
         return '<tr><td style="white-space:nowrap">'+esc(p.expert_name)+'</td><td>'+stk+((p.desc||p.quote)?'<div class="src">'+esc(p.desc||p.quote)+'</div>':'')+'</td><td>'+wonT(p.buy)+'</td><td>'+wonT(p.sell)+'</td><td>'+wonT(p.target)+'</td><td>'+(p.ts?'<a href="'+esc(tsUrl(j.video_url,p.ts))+'" target="_blank" rel="noopener noreferrer">'+esc(p.ts)+' ↗</a>':'-')+'</td></tr>'}).join('')+'</tbody></table></div>':'<p class="hint">뽑힌 종목이 없어요.</p>';
     }
     h+='<div class="acts" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">'+
@@ -1352,7 +1364,7 @@ function bcaiApply(j,res,btn){
   var ps=(ep.picks||[]).slice(),pk={};ps.forEach(function(p){pk[nn(p.expert_name)+'|'+nn(p.stock_name||'')]=1});
   var added=0;(res.picks||[]).forEach(function(p){var k=nn(p.expert_name)+'|'+nn(p.stock_name||'');if(p.stock_name&&pk[k])return;pk[k]=1;added++;
     var dsc=String(p.desc||p.quote||'');if(p.kind==='secret'&&!p.revealed&&p.guess)dsc='[추정 '+p.guess+'] '+dsc;
-    ps.push({expert_id:null,expert_name:p.expert_name,kind:p.kind,revealed:p.revealed,stock_code:p.stock_code||null,stock_name:p.stock_name||'',buy:p.buy,target:p.target,stop:p.stop,sell:p.buy?p.sell:null,pick_date:j.air_date,quote:dsc.slice(0,200),ts:p.ts||'',label:p.label||''})});
+    ps.push({expert_id:null,expert_name:p.expert_name,kind:p.kind,opinion:p.kind==='consult'?(p.opinion||''):'',revealed:p.revealed,stock_code:p.stock_code||null,stock_name:p.stock_name||'',buy:p.buy,target:p.target,stop:p.stop,sell:p.buy?p.sell:null,pick_date:j.air_date,quote:dsc.slice(0,200),ts:p.ts||'',label:p.label||''})});
   var t0=btn?btn.textContent:'';if(btn){btn.disabled=true;btn.textContent='넣는 중…'}
   return sb.rpc('ops_bc_episode_save',{p:{program_id:j.program_id,air_date:j.air_date,experts:xs,picks:ps,video_url:ep.video_url||j.video_url,canceled:!!ep.canceled,published:!!ep.published,note:ep.note||''}}).then(function(r){
     if(r.error)throw r.error;return sb.from('bc_ai_jobs').update({status:'applied',updated_at:new Date().toISOString()}).eq('id',j.id);
@@ -1374,7 +1386,7 @@ function bcaiEdit(box,j){
     d._pick=p.stock_name?{code:p.stock_code||'',name:p.stock_name}:null;
     var pf=function(c,l,v,ph){return '<label class="f"><b>'+l+'</b><input type="text" inputmode="numeric" class="'+c+'" value="'+esc(v==null||v===''?'':Number(v).toLocaleString('ko-KR'))+'" placeholder="'+(ph||'원')+'"></label>'};
     d.innerHTML='<div class="row"><label class="f"><b>말한 전문가</b><select class="kx">'+xOpts(p.expert_name||'')+'</select></label>'+
-      '<label class="f" style="flex:0 1 170px"><b>구분</b><select class="kk"><option value="open"'+(sec?'':' selected')+'>'+esc(LB.open)+' (공개)</option><option value="secret"'+(sec?' selected':'')+'>'+esc(LB.secret)+' (비공개)</option></select></label>'+
+      '<label class="f" style="flex:0 1 200px"><b>구분</b>'+kindSel(LB,p.kind)+'</label>'+opnSel(p.opinion,p.kind)+
       '<label class="f" style="flex:0 1 150px"><b>방송에서 부른 이름</b><input type="text" class="klb" maxlength="20" value="'+esc(p.label||'')+'"></label>'+
       '<label class="f" style="flex:0 1 110px"><b>장면 시각</b><input type="text" class="kt" value="'+esc(p.ts||'')+'" placeholder="12:34"></label></div>'+
       '<label class="chk kr-w'+(sec?'':' hide')+'" style="margin:-4px 0 10px"><input type="checkbox" class="kr"'+(p.revealed?' checked':'')+'> 공개여부 (방송에서 종목 이름을 밝혔어요)</label>'+
@@ -1387,7 +1399,7 @@ function bcaiEdit(box,j){
     stockSearch($('.ks',d),$('ul',d),function(v){d._pick=v});
     $$('.kcd',d).forEach(function(b){b.onclick=function(){$('.ks',d).value=b.dataset.n;d._pick={code:b.dataset.c,name:b.dataset.n};b.parentNode.remove()}});
     $$('input[inputmode=numeric]',d).forEach(function(i){i.oninput=function(){i.value=wonIn(i.value)}});
-    function kv(){var s2=$('.kk',d).value==='secret',rv=$('.kr',d).checked;$('.kr-w',d).classList.toggle('hide',!s2);$('.kg-w',d).classList.toggle('hide',!(s2&&!rv))}
+    function kv(){var s2=$('.kk',d).value==='secret',rv=$('.kr',d).checked;$('.kr-w',d).classList.toggle('hide',!s2);$('.kg-w',d).classList.toggle('hide',!(s2&&!rv));$('.kop-w',d).classList.toggle('hide',$('.kk',d).value!=='consult')}
     $('.kk',d).onchange=kv;$('.kr',d).onchange=kv;
     $('.kdel',d).onclick=function(){d.remove()};
     d._src=p;wrap.appendChild(d);
@@ -1399,12 +1411,13 @@ function bcaiEdit(box,j){
   function collect(){
     var bad='',picks=$$('.pkr',wrap).map(function(d){
       var nm=$('.ks',d).value.trim(),pk=d._pick&&d._pick.name===nm?d._pick:null,kind=$('.kk',d).value,rev=kind==='secret'?$('.kr',d).checked:true,src=d._src||{};
-      var o=Object.assign({},src,{expert_name:$('.kx',d).value,kind:kind,revealed:rev,stock_name:nm,stock_code:pk?pk.code:(nm&&nm===src.stock_name?(src.stock_code||''):''),
+      var o=Object.assign({},src,{expert_name:$('.kx',d).value,kind:kind,opinion:kind==='consult'?$('.kop',d).value:'',revealed:rev,stock_name:nm,stock_code:pk?pk.code:(nm&&nm===src.stock_name?(src.stock_code||''):''),
         label:$('.klb',d).value.trim(),ts:$('.kt',d).value.trim(),guess:kind==='secret'&&!rev?$('.kgs',d).value.trim():'',
         buy:num($('.kb',d).value),sell:num($('.ke',d).value),target:num($('.kg',d).value),stop:num($('.kl',d).value),desc:$('.kq',d).value.trim()});
       delete o.quote;if(o.stock_code)delete o.candidates;if(!o.guess){delete o.guess_code;delete o.guess_reason}
       if(!o.stock_name&&!(kind==='secret'&&!rev))bad=bad||'종목 이름이 빈 줄이 있어요 (필요 없으면 \'이 종목 빼기\')';
       if(!o.expert_name)bad=bad||'종목마다 말한 전문가를 골라 주세요';
+      if(kind==='consult'&&!o.opinion)bad=bad||((nm||'상담종목')+' 상담 답변(매수·유지·손절)을 골라 주세요');
       if(o.ts&&!/^\d{1,2}:[0-5]\d(:[0-5]\d)?$/.test(o.ts))bad=bad||'장면 시각은 12:34 처럼 써 주세요';
       if(o.buy&&o.target&&o.target<=o.buy)bad=bad||((nm||'히든주')+' 목표가는 매수가보다 높아야 해요');
       if(o.buy&&o.stop&&o.stop>=o.buy)bad=bad||((nm||'히든주')+' 손절가는 매수가보다 낮아야 해요');

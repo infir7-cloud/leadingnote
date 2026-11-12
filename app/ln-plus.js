@@ -347,7 +347,9 @@
   // 프로그램별 종목 이름: 종목에 적힌 이름 → 프로그램 기본 이름 → '공개 종목'·'히든주'
   // 좁은 칸(방송 목록 칩 · 카드 이름표)은 늘 3글자 '[히든주]'로 줄여요
   function bcProg(pid){ var L = (X.bc && X.bc.programs) || []; for (var i = 0; i < L.length; i++) if (L[i].id === pid) return L[i]; return null; }
-  function pkLabel(k, pid){ var p = bcProg(pid) || {}; return String(k.label || (k.kind === 'secret' ? p.secret_label : p.open_label) || (k.kind === 'secret' ? '히든주' : '공개 종목')); }
+  // 상담종목: 방송 중 시청자 문의에 전문가가 답한 종목 (답변 매수·유지·손절)
+  var OPN = { buy: '매수', hold: '유지', stop: '손절' };
+  function pkLabel(k, pid){ if (k && k.kind === 'consult') return '상담' + (OPN[k.opinion] ? ' · ' + OPN[k.opinion] : ''); var p = bcProg(pid) || {}; return String(k.label || (k.kind === 'secret' ? p.secret_label : p.open_label) || (k.kind === 'secret' ? '히든주' : '공개 종목')); }
   function secretFirst(L){ return L.slice().sort(function(a, b){ return (b.kind === 'secret' ? 1 : 0) - (a.kind === 'secret' ? 1 : 0); }); }
   // 몇 주마다 하는 방송(이슈가 머니 3주마다)과, 그날 같은 시간을 내주는 매주 방송
   function progOn(p, ymd, all){
@@ -445,7 +447,7 @@
     var sub = [nameOnly(k.expert_name || '')].concat(lock ? ['공개되면 바로 정리해요'] : opt.prog ? [sl.p.name + ' ' + (+sl.date.slice(5, 7)) + '.' + (+sl.date.slice(8, 10))] : (lbl && k.kind !== 'secret' ? [lbl] : [])).filter(Boolean).join(' · ');
     var act = !lock && k.stock_code ? 'data-a="stock" data-v="' + esc(k.stock_code) + '"' : 'data-a="pBc" data-v="' + esc(sl.key) + '"';
     var nm = lock ? '<span class="hd">히든주</span>공개 전' : (k.kind === 'secret' ? '<span class="hd">히든주</span>' : '') + esc(k.stock_name || '');
-    var pr = lock ? '' : (k.buy ? '<b>매수 ' + wonS(k.buy) + '원</b>' : '<small>가격 미공개</small>') + (r ? '<em class="' + tone(r.v) + '">' + pctS(r.v) + '</em>' : '');
+    var pr = lock ? '' : (k.buy ? '<b>매수 ' + wonS(k.buy) + '원</b>' : k.kind === 'consult' && OPN[k.opinion] ? '<small>답변 ' + OPN[k.opinion] + '</small>' : '<small>가격 미공개</small>') + (r ? '<em class="' + tone(r.v) + '">' + pctS(r.v) + '</em>' : '');
     return '<button type="button" class="p-pr' + (lock ? ' lk' : '') + '" ' + act + '><span class="nm"><b>' + nm + '</b><small>' + esc(sub) + '</small></span><span class="pr">' + pr + '</span>' + CHV + '</button>';
   }
   function pickRows(items, max){

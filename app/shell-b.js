@@ -558,7 +558,7 @@
       rows.map(function(it, i){
         var k = it.k, rv = it.ret ? '<span class="bn-rt ' + (it.ret.v > 0 ? 'up' : it.ret.v < 0 ? 'down' : '') + '">' + pctTxt(it.ret.v) + '</span>' : '<span class="mute">—</span>';
         return '<button type="button" class="bn-tr' + (i === BCSEL ? ' on' : '') + '" role="row" data-bn-pk="' + i + '" aria-pressed="' + (i === BCSEL) + '" style="' + gcol + '">' +
-          '<span class="nm">' + (k.kind === 'secret' ? '<span class="bn-hd">히든주</span>' : '') + '<b>' + (it.lock ? '공개 전' : esc(k.stock_name || '')) + '</b><small>' + esc(k.expert_name || '') + '</small></span>' +
+          '<span class="nm">' + (k.kind === 'secret' ? '<span class="bn-hd">히든주</span>' : k.kind === 'consult' ? '<span class="bn-kd">' + esc(A.pkLabel ? A.pkLabel(k) : '상담') + '</span>' : '') + '<b>' + (it.lock ? '공개 전' : esc(k.stock_name || '')) + '</b><small>' + esc(k.expert_name || '') + '</small></span>' +
           '<span class="pg">' + esc(it.sl.p.name) + '<small>' + (+it.sl.date.slice(5, 7)) + '.' + (+it.sl.date.slice(8, 10)) + '</small></span>' +
           (hasBuy ? '<span class="num">' + (it.lock ? '—' : k.buy ? wonTxt(k.buy) : '<small>미공개</small>') + '</span>' : '') + (hasRet ? '<span class="num">' + rv + '</span>' : '') +
           (hasQt ? '<span class="qt">' + esc(k.quote || '') + '</span>' : '') + '</button>';
