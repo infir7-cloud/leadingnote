@@ -747,6 +747,8 @@
   function mentionsHome(){
     var M = X.mention; if (!M) return '';
     var items = M.items || [], isToday = M.day === M.today;
+    // 평일 장 마감 정리(15:30 이후) 전에는 홈에서 아예 숨겨요
+    if (M.weekday && !M.opened) return '';
     if (M.weekday && !M.opened) {
       var h = '<section class="t2-sec"><div class="t2-h" style="cursor:default">오늘의 언급 종목' + qBtn('오늘의 언급 종목') + '</div><div class="p-lock">' + IC.lock + '<b>장 마감 뒤 15:40에 정리돼요</b><span>장 중에는 따라 사기 신호처럼 보이지 않도록<br>공개하지 않아요</span></div>';
       if (M.day && items.length) h += '<div class="t2-h" style="cursor:default;font-size:1.0625rem;margin-top:.25rem">지난 정리<span class="p-day">' + dayLbl(M.day) + '</span></div>' + rows(items, 3) + LEG;

@@ -212,7 +212,7 @@
       return Promise.all([q(c.rpc('ln_px', { p_codes: codes })), q(c.rpc('stock_vote_tally', { p_codes: codes }))]).then(function(r2){
         if (r2[0] && !r2[0].error && r2[0].data) H.px = r2[0].data;
         if (r2[1] && !r2[1].error && r2[1].data) H.votes = r2[1].data;
-        H.at = Date.now(); redraw();
+        H.at = Date.now(); needRecent(); redraw();
       });
     }).catch(function(e){ H.err = String(e && e.message || e); });
   }
@@ -357,6 +357,26 @@
     if (base) o.ret = (px.c / base - 1) * 100;
     if (o.target && px.c) o.toTarget = (o.target / px.c - 1) * 100;
     return o;
+  }
+  // 최근 추천 줄 수익률: 매수가(없으면 추천한 날 종가) 대비 최근 종가 · ln-theme.js 최근 추천이 불러 써요
+  H.retOf = function(code, base, date, cur){
+    var px = pxOf(code); cur = cur || (px && px.c) || null;
+    if (!cur) { needRecent(); return null; }
+    var fromBuy = !!base;
+    if (!base && px && date) { if (px.asof && date >= px.asof) return { pend: true }; var i = tradingIdx(px, date), cl = px.closes || []; if (i > -1 && i < cl.length) base = cl[i]; }
+    if (!base) return null;
+    return { ret: (cur / base - 1) * 100, base: base, cur: cur, fromBuy: fromBuy, asof: px && px.asof };
+  };
+  var recentAsked = {};
+  function needRecent(){
+    var w = lnWin(), c = client(); if (!w || !w.LEADINGS || !c) return;
+    var from = ymd(nowK() - 21 * 864e5), want = [];
+    w.LEADINGS.forEach(function(L){ var code = L.stock; if (!/^[0-9A-Z]{6}$/.test(String(code)) || recentAsked[code] || (H.px && H.px.s && H.px.s[code])) return;
+      if ((L.events || []).some(function(e){ return String(e.at || '').slice(0, 10) >= from; })) { recentAsked[code] = 1; want.push(code); } });
+    if (!want.length) return;
+    q(c.rpc('ln_px', { p_codes: want.slice(0, 80) })).then(function(r){
+      if (r && r.data) { H.px = H.px || { days: [], s: {} }; if (r.data.days && r.data.days.length) H.px.days = r.data.days; Object.assign(H.px.s, r.data.s || {}); redraw(); }
+    });
   }
   function statusOf(o){
     if (!priceOn()) return null;
@@ -583,17 +603,18 @@
     if (t.indexOf('방송속고수종목') === 0) return 'bc';
     if (t.indexOf('오늘의언급종목') === 0 || t.indexOf('최근언급종목') === 0) return 'mention';
     if (t.indexOf('데이터로본종목') === 0) return 'data';
-    if (t.indexOf('최근추천') === 0) return 'recent';
+    if (t.indexOf('최근추천') === 0 || t.indexOf('오늘새추천') === 0) return 'recent';
     return '';
   }
+  // 5줄·한 줄 요약은 맨 위 안내 카드 바로 아래 · 이야기방 미리보기(talk)는 이용자가 늘 때까지 숨겨요(다시 보이려면 순서에 'talk'만 넣으면 돼요)
   var ORDER = {
-    morning: ['hero', 'bc', 'five', 'sc4', 'news', 'talk', 'recent', 'top3', 'calc', 'hello', 'one', 'mention', 'data'],
+    morning: ['hero', 'five', 'one', 'bc', 'sc4', 'news', 'recent', 'top3', 'calc', 'hello', 'mention', 'data'],
     // 장중: 지금 시장을 움직이는 재료·뉴스가 먼저, 지난 방송 종목은 접어서 아래로 (시세가 하루 늦어 장중엔 방송 종목에 새 내용이 없어요)
-    market: ['hero', 'news', 'mention', 'data', 'foldbc', 'calc', 'talk', 'recent', 'fold5', 'sc4', 'hello', 'one', 'top3'],
-    pre: ['hero', 'bc', 'lastweek', 'calc', 'talk', 'mention', 'news', 'sc4', 'recent', 'fold5', 'top3', 'data', 'hello', 'one'],
-    live: ['hero', 'bc', 'talk', 'vote', 'lastweek', 'calc', 'recent', 'sc4', 'mention', 'news', 'fold5', 'data', 'one'],
-    after: ['hero', 'picks', 'vote', 'calc', 'talk', 'bc', 'recent', 'sc4', 'mention', 'news', 'fold5', 'top3', 'data', 'one'],
-    weekend: ['hero', 'bc', 'bars', 'top3', 'calc', 'talk', 'next', 'sc4', 'recent', 'news', 'five', 'mention', 'data', 'one']
+    market: ['hero', 'fold5', 'one', 'news', 'mention', 'data', 'foldbc', 'calc', 'recent', 'sc4', 'hello', 'top3'],
+    pre: ['hero', 'fold5', 'one', 'bc', 'lastweek', 'calc', 'mention', 'news', 'sc4', 'recent', 'top3', 'data', 'hello'],
+    live: ['hero', 'fold5', 'one', 'bc', 'vote', 'lastweek', 'calc', 'recent', 'sc4', 'mention', 'news', 'data'],
+    after: ['hero', 'fold5', 'one', 'picks', 'vote', 'calc', 'bc', 'recent', 'sc4', 'mention', 'news', 'top3', 'data'],
+    weekend: ['hero', 'five', 'one', 'bc', 'bars', 'top3', 'calc', 'next', 'sc4', 'recent', 'news', 'mention', 'data']
   };
   function frag(d, html){ var t = d.createElement('template'); t.innerHTML = html; return t.content; }
   function decorateRecent(d, sec){

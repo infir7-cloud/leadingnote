@@ -31,6 +31,12 @@
     /* 회색 화살표 알약 → 테두리 버튼 */
     P + '.p-go{min-height:56px;border-radius:var(--v2-btn-l)!important;background:var(--surface)!important;box-shadow:inset 0 0 0 1px var(--line)!important;padding:0 1.25rem!important}',
     P + '.t2-mkt a{min-height:48px;display:flex;align-items:center;border-radius:var(--v2-btn)!important;box-shadow:inset 0 0 0 1px var(--line)}',
+    /* 삼전닉스 칸: 좁은 휴대폰에서 이름·가격이 한 글자씩 꺾이지 않게 (이름 한 줄 · 등락률+가격 한 줄) */
+    P + '.t2-mkt a{display:grid!important;grid-template-columns:auto minmax(0,1fr);align-items:baseline;column-gap:.4rem;row-gap:.15rem}',
+    P + '.t2-mkt a>span{grid-column:1/-1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
+    P + '.t2-mkt a>b{white-space:nowrap}',
+    P + '.t2-mkt a>em{margin-left:0!important;text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
+    P + '.t2-mkt a>.go{align-self:center}',
     /* 버튼 */
     P + '.btn{border-radius:var(--v2-btn)!important;min-height:44px}',
     P + '.btn-primary,' + P + '.btn-ink,' + P + '.btn-block.btn-primary{min-height:56px;border-radius:var(--v2-btn-l)!important}',

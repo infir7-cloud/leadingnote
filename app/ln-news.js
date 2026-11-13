@@ -102,7 +102,7 @@
     return '<article class="mn-it">' +
       '<h3 class="mn-hd"><span class="mn-k">' + esc(r.kind) + '</span>' + esc(r.headline) + (bcTag ? '<span class="mn-bc">' + esc(bcTag) + '</span>' : '') + '</h3>' +
       (names || chg ? '<div class="mn-st">' + names + chg + '</div>' : '') +
-      (r.summary ? '<p class="mn-sm">' + esc(r.summary) + '</p>' : '') +
+      // 부연 설명(요약)은 빼고 제목만 보여요
       '<div class="mn-ft"><span class="mn-src">' + esc(r.press) + '</span>' + th + '</div>' +
       '<div class="mn-cta">' + cta + '</div></article>';
   }

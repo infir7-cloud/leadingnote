@@ -211,7 +211,16 @@
     function headStatic(title, n){ return '<div class="t2-h" style="cursor:default">' + title + (n != null ? '<span class="n">' + n + '</span>' : '') + '</div>'; }
     function evRight(s){
       var e = s.e;
-      if (e.t === 'buy') return '<b class="up">구매</b><span>' + won(e.buy) + '</span>';
+      // 구매·지켜보기·가격 변경: 매수가(없으면 추천한 날 종가) 대비 최근 종가 수익률
+      if (e.t === 'buy' || e.t === 'watch' || e.t === 'revise') {
+        var code = s.L.stock, stp = w.STOCKS[code] || {}, base = (s.cur && s.cur.buy) || e.buy || null, R = null;
+        try { R = window.__lnHome && window.__lnHome.retOf ? window.__lnHome.retOf(code, base, String(e.at || '').slice(0, 10), stp.price) : null; } catch (x) {}
+        if (!R && base && stp.price) R = { ret: (stp.price / base - 1) * 100, fromBuy: true };
+        if (R && R.ret != null) return '<b class="' + tone(R.ret) + '">' + pct(R.ret) + '</b><span>' + (R.fromBuy ? '매수가 대비' : '추천일 종가 대비') + '</span>';
+        if (R && R.pend) return '<b style="color:var(--ink2)">수익률</b><span>장 마감 뒤 계산</span>';
+        if (e.t === 'buy') return '<b class="up">구매</b><span>' + won(e.buy) + '</span>';
+        return '<b style="color:var(--ink2)">수익률</b><span>시세 준비 중</span>';
+      }
       if (e.t === 'sell') return '<b class="down">판매</b><span class="' + tone(s.ret) + '" style="font-weight:700">' + pct(s.ret) + '</span>';
       if (e.t === 'revise') { var c = s.changed[0]; return '<b>가격 변경</b><span>' + (c ? (w.FIELD_LABEL[c.k] || '').replace(' 가격', '') + ' ' + won(c.to) : '') + '</span>'; }
       if (e.t === 'watch') return '<b style="color:var(--ink2)">지켜보기</b><span>&nbsp;</span>';
@@ -529,11 +538,11 @@
   new MutationObserver(scan).observe(document.documentElement, { childList: true, subtree: true });
   scan();
   // 더하기 기능 (공유 카드 · 오늘의 언급 종목 · 표로 보기 · AI 요약): 같은 폴더의 ln-plus.js
-  try { var me = document.currentScript && document.currentScript.src; var ps = document.createElement('script'); ps.src = (me ? new URL('ln-plus.js?v=15', me).href : 'ln-plus.js?v=15'); ps.defer = true; (document.head || document.documentElement).appendChild(ps); } catch (e) {}
+  try { var me = document.currentScript && document.currentScript.src; var ps = document.createElement('script'); ps.src = (me ? new URL('ln-plus.js?v=16', me).href : 'ln-plus.js?v=16'); ps.defer = true; (document.head || document.documentElement).appendChild(ps); } catch (e) {}
   // 오늘의 재료 뉴스 (리딩 모음 홈 · #ln/news): 같은 폴더의 ln-news.js
-  try { var me2 = document.currentScript && document.currentScript.src; var ns = document.createElement('script'); ns.src = (me2 ? new URL('ln-news.js?v=6', me2).href : 'ln-news.js?v=6'); ns.defer = true; (document.head || document.documentElement).appendChild(ns); } catch (e) {}
+  try { var me2 = document.currentScript && document.currentScript.src; var ns = document.createElement('script'); ns.src = (me2 ? new URL('ln-news.js?v=7', me2).href : 'ln-news.js?v=7'); ns.defer = true; (document.head || document.documentElement).appendChild(ns); } catch (e) {}
   // 회원: 약관 동의 · 마이페이지(닉네임·내 활동·탈퇴): 같은 폴더의 ln-member.js
   try { var me4 = document.currentScript && document.currentScript.src; var ms = document.createElement('script'); ms.src = (me4 ? new URL('ln-member.js?v=2', me4).href : 'ln-member.js?v=2'); ms.defer = true; (document.head || document.documentElement).appendChild(ms); } catch (e) {}
   // 시간대별 홈 · 종목 화면 보강 (리딩 모음): 같은 폴더의 ln-home.js
-  try { var me3 = document.currentScript && document.currentScript.src; var hs = document.createElement('script'); hs.src = (me3 ? new URL('ln-home.js?v=13', me3).href : 'ln-home.js?v=13'); hs.defer = true; (document.head || document.documentElement).appendChild(hs); } catch (e) {}
+  try { var me3 = document.currentScript && document.currentScript.src; var hs = document.createElement('script'); hs.src = (me3 ? new URL('ln-home.js?v=14', me3).href : 'ln-home.js?v=14'); hs.defer = true; (document.head || document.documentElement).appendChild(hs); } catch (e) {}
 })();
