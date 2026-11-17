@@ -13,6 +13,11 @@
   function $(id){ return document.getElementById(id); }
   function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){ return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
   function W(id){ try { return SH.READY[id] && SH.F[id] ? SH.F[id].contentWindow : null; } catch (e) { return null; } }
+  // ---- 회차 바로가기 주소 (카톡방 공유용 짧은 주소 · land.html): 공개된 회차만 있어요
+  var LNK = window.__lnLinks = { ep: {} };
+  try { var CF = window.SB_CFG || (window.__SB && { url: 'https://' + window.__SB.projectId + '.supabase.co', key: window.__SB.anonKey }); if (CF && window.fetch) fetch(CF.url + '/rest/v1/ln_links?select=code,k&kind=eq.ep&limit=5000', { headers: { apikey: CF.key, Authorization: 'Bearer ' + CF.key } })
+    .then(function(r){ return r.ok ? r.json() : []; }).then(function(a){ (a || []).forEach(function(l){ LNK.ep[l.k] = l.code; }); }).catch(function(){}); } catch (e) {}
+  function epLand(key){ var c = LNK.ep[key]; if (!c) return false; try { window.location.href = new URL('land.html?c=' + encodeURIComponent(c), window.location.href).href; return true; } catch (e) { return false; } }
   var MQ_PC = window.matchMedia('(min-width:1024px)'), MQ_WIDE3 = window.matchMedia('(min-width:1280px)'), MQ_APPWIDE = window.matchMedia('(min-width:960px)');
 
   // ---- 아이콘 (선 아이콘 24px)
@@ -430,6 +435,9 @@
     w.document.addEventListener('click', function(e){
       var m = e.target.closest && e.target.closest('[data-bn-mb]');
       if (m) { e.preventDefault(); e.stopPropagation(); myBuyAct(w, m); return; }
+      // 방송(회차) 줄 → 회차 페이지 (공개된 회차에 한해요. 아직 없으면 예전 방송 상세가 열려요)
+      var bep = e.target.closest && (e.target.closest('[data-bn-ep]') || e.target.closest('[data-a="pBc"]'));
+      if (bep && epLand(bep.getAttribute('data-bn-ep') || bep.getAttribute('data-v'))) { e.preventDefault(); e.stopPropagation(); return; }
       var pk = e.target.closest && e.target.closest('[data-bn-pk]');
       if (pk) { e.preventDefault(); e.stopPropagation(); BCSEL = +pk.getAttribute('data-bn-pk') || 0; var sy = w.scrollY; try { w.render(); w.scrollTo(0, sy); } catch (er) {} return; }
       if (e.target.closest && e.target.closest('[data-bn-calc]')) { e.preventDefault(); e.stopPropagation(); go('tools', 'home'); return; }
@@ -559,7 +567,7 @@
         var k = it.k, rv = it.ret ? '<span class="bn-rt ' + (it.ret.v > 0 ? 'up' : it.ret.v < 0 ? 'down' : '') + '">' + pctTxt(it.ret.v) + '</span>' : '<span class="mute">—</span>';
         return '<button type="button" class="bn-tr' + (i === BCSEL ? ' on' : '') + '" role="row" data-bn-pk="' + i + '" aria-pressed="' + (i === BCSEL) + '" style="' + gcol + '">' +
           '<span class="nm">' + (k.kind === 'secret' ? '<span class="bn-hd">히든주</span>' : k.kind === 'consult' ? '<span class="bn-kd">' + esc(A.pkLabel ? A.pkLabel(k) : '상담') + '</span>' : '') + '<b>' + (it.lock ? '공개 전' : esc(k.stock_name || '')) + '</b><small>' + esc(k.expert_name || '') + '</small></span>' +
-          '<span class="pg">' + esc(it.sl.p.name) + '<small>' + (+it.sl.date.slice(5, 7)) + '.' + (+it.sl.date.slice(8, 10)) + '</small></span>' +
+          '<span class="pg" data-bn-ep="' + esc(it.sl.key) + '" title="이 회차 종목 모두 보기" style="cursor:pointer;text-decoration:underline;text-underline-offset:3px">' + esc(it.sl.p.name) + '<small>' + (+it.sl.date.slice(5, 7)) + '.' + (+it.sl.date.slice(8, 10)) + '</small></span>' +
           (hasBuy ? '<span class="num">' + (it.lock ? '—' : k.buy ? wonTxt(k.buy) : '<small>미공개</small>') + '</span>' : '') + (hasRet ? '<span class="num">' + rv + '</span>' : '') +
           (hasQt ? '<span class="qt">' + esc(k.quote || '') + '</span>' : '') + '</button>';
       }).join('') + '</div>' : '<p class="t2-empty">이번 주에 정리된 방송 종목이 아직 없어요. 방송이 끝나면 전문가별 종목과 가격을 여기 표로 보여 드려요.</p>';

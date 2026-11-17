@@ -1,0 +1,29 @@
+# 리딩노트 · 카톡 미리보기 카드 주소 파일을 30분마다 새로 만들어요.
+# 운영실에서 회차를 공개하면 DB에 짧은 주소가 생기고, 다음 실행 때 l/<코드>/ 파일이 올라가요.
+# 바뀐 게 없으면 아무것도 올리지 않아요. Actions 탭에서 'Run workflow'로 바로 돌릴 수도 있어요.
+name: ln-cards
+on:
+  schedule:
+    - cron: "7,37 * * * *"
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: ln-cards
+  cancel-in-progress: false
+jobs:
+  cards:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: node scripts/ln-cards.mjs
+      - name: 바뀐 주소 파일 올리기
+        run: |
+          git add l
+          if git diff --cached --quiet; then echo "바뀐 게 없어요"; exit 0; fi
+          git -c user.name="leadingnote-bot" -c user.email="leadingnote-bot@users.noreply.github.com" commit -m "미리보기 카드 주소 파일 갱신"
+          git push
