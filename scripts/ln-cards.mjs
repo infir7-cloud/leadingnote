@@ -19,10 +19,29 @@ const r = await fetch(URL_ + "/rest/v1/rpc/ln_link_cards", {
 if (!r.ok) { console.error("카드 정보를 못 받았어요", r.status, await r.text()); process.exit(1); }
 const rows = await r.json();
 
+// 카드 대표 이미지: og/<프로그램id>.jpg 가 있으면 그 프로그램(홈·회차·종목) 카드에, 없으면 og/default.jpg (있을 때만)
+// 이미지 규격: 1200×630 JPG, 300KB 이하. 파일을 og 폴더에 넣으면 다음 실행 때 자동으로 붙어요.
+const lr = await fetch(URL_ + "/rest/v1/ln_links?select=code,kind,k&limit=10000", { headers: { apikey: KEY, Authorization: "Bearer " + KEY } });
+if (!lr.ok) { console.error("주소 목록을 못 받았어요", lr.status); process.exit(1); }
+const progOf = {};
+for (const l of await lr.json()) progOf[l.code] = l.kind === "x" ? "" : String(l.k).split("|")[0];
+const imgOf = (code) => {
+  const pid = progOf[code] || "";
+  if (pid && /^[a-z0-9_-]+$/i.test(pid) && existsSync(`og/${pid}.jpg`)) return `${SITE}/og/${pid}.jpg`;
+  if (existsSync("og/default.jpg")) return `${SITE}/og/default.jpg`;
+  return "";
+};
+
 let made = 0, same = 0;
 for (const x of rows) {
   if (!/^[A-Za-z0-9]{6,8}$/.test(x.code) || !x.title) continue;
-  const t = esc(x.title), d = esc(x.descr || "가입 없이 바로 봐요"), c = x.code;
+  const t = esc(x.title), d = esc(x.descr || "가입 없이 바로 봐요"), c = x.code, img = imgOf(c);
+  const imgTags = img ? `<meta property="og:image" content="${img}">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="${t}">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="${img}">` : `<meta name="twitter:card" content="summary">`;
   const html = `<!doctype html>
 <html lang="ko"><head>
 <meta charset="utf-8">
@@ -35,7 +54,7 @@ for (const x of rows) {
 <meta property="og:title" content="${t}">
 <meta property="og:description" content="${d}">
 <meta property="og:url" content="${SITE}/l/${c}/">
-<meta name="twitter:card" content="summary">
+${imgTags}
 <script>location.replace('../../app/land.html?c=${c}' + (location.search ? '&' + location.search.slice(1) : ''));</script>
 <meta http-equiv="refresh" content="0; url=../../app/land.html?c=${c}">
 <style>body{margin:0;padding:24px;font-family:system-ui,sans-serif;background:#F2F4F6;color:#333D4B}a{color:#5B4CF0}</style>
