@@ -1,4 +1,4 @@
-<!doctype html><html lang="ko"><head><meta name="robots" content="noindex"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>[hidden]{display:none!important}</style></head><body><script src="tools-data.js?v=202610200807"></script><title>도구</title>
+<!doctype html><html lang="ko"><head><meta name="robots" content="noindex"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>[hidden]{display:none!important}</style></head><body><script>/* 시세 계약 스위치(app/config.js LN_PX): 꺼져 있으면 한국거래소 종가 파일을 아예 불러오지 않아요 */try{window.LN_PX=window.parent!==window&&window.parent.LN_PX===true}catch(e){window.LN_PX=false}if(window.LN_PX)document.write('<script src="tools-data.js?v=202610200807"><\/script>')</script><title>도구</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&amp;family=IBM+Plex+Sans+KR:wght@400;500;600;700&amp;display=swap">
 <style>
@@ -489,6 +489,7 @@ var STK=PXD.rows.map(function(r){
   return o;
 });
 var BYC={};STK.forEach(function(o){BYC[o.c]=o});
+var PXON=STK.length>0; /* 시세가 없으면 종목 검색·종목 진단을 숨기고 계산기·아카데미만 보여요 */
 function mkt(m){return m==='K'?'코스피':'코스닥'}
 function dt(s){if(!s)return '';var p=s.split('-');return (+p[1])+'월 '+(+p[2])+'일'}
 function chgText(o){if(o.halt)return '<span class="flat">거래 없음</span>';return '<span class="'+tone(o.ratio)+'">'+(o.ratio>0?'▲ ':o.ratio<0?'▼ ':'')+Math.abs(o.ratio).toFixed(2)+'%</span>'}
@@ -802,7 +803,7 @@ var IC={
   back:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>'
 };
 function viewHome(){
-  var h='<section class="sec"><h2 class="sech">오늘 흐름이 좋은 큰 회사<span class="meta">'+dt(PXD.asOf)+' 종가</span></h2><p class="small" style="margin-top:-.4rem">시가총액 1조 원 이상 중에서 가격 흐름이 꾸준히 오르고(정배열·20일선 위), 오늘 크게 튀지 않았고(과열 아님), 거래도 평소만큼 있는 종목을 최근 한 달 상승률 순으로 골랐어요. 추천이 아니라 공개된 기준에 맞는 종목이에요.</p>'+
+  var h=!PXON?'':'<section class="sec"><h2 class="sech">오늘 흐름이 좋은 큰 회사<span class="meta">'+dt(PXD.asOf)+' 종가</span></h2><p class="small" style="margin-top:-.4rem">시가총액 1조 원 이상 중에서 가격 흐름이 꾸준히 오르고(정배열·20일선 위), 오늘 크게 튀지 않았고(과열 아님), 거래도 평소만큼 있는 종목을 최근 한 달 상승률 순으로 골랐어요. 추천이 아니라 공개된 기준에 맞는 종목이에요.</p>'+
     PRESETS.filter(siteShowP).map(function(p){var sc={mkt:'all',size:p.size,on:{},sort:p.sort};p.on.forEach(function(k){sc.on[k]=true});var list=runScan(sc);
       return '<div class="pick"><h3>'+p.t+'<span class="mono">'+num(list.length)+'개</span></h3><div class="crit">'+[(SIZES.filter(function(s){return s[0]===p.size})[0]||[])[1]].concat(p.on.map(function(k){return CMAP[k].t})).map(function(t){return '<span class="tag">'+t+'</span>'}).join('')+'</div>'+
         (list.length?'<div class="rows">'+list.slice(0,p.id==='p0'?5:3).map(function(o){return rowHTML(o)}).join('')+'</div>':'<p class="small">오늘은 맞는 종목이 없어요.</p>')+
@@ -810,16 +811,17 @@ function viewHome(){
   h+='<div class="pagehead"><h2 class="sech">오늘 쓸 도구를 고르세요</h2><p>누르면 바로 계산돼요. 숫자는 −/+ 버튼이나 자주 쓰는 값 단추로 넣어도 돼요.</p></div>';
   var T=[[IC.pulse,'종목 진단','지금 흐름과 위치를 쉬운 말로','search','name'],[IC.filter,'조건 검색','조건에 맞는 종목 찾기','search','cond'],
          [IC.coin,'수익 계산','몇 년 뒤 얼마가 될까','calc','sim'],[IC.calc,'수수료·세금','사고팔면 실제로 얼마 남을까','calc','fee'],[IC.target,'목표·손절가','얼마에 팔지 미리 정하기','calc','tp'],[IC.water,'물타기 계산','더 사면 평균 단가는?','calc','avg']];
+  if(!PXON)T=T.filter(function(t){return t[3]!=='search'});
   h+='<div class="tiles">'+T.map(function(t){return '<button class="tile" data-act="gotool" data-v="'+t[3]+'" data-s="'+t[4]+'">'+t[0]+'<b>'+t[1]+'</b><span>'+t[2]+'</span></button>'}).join('')+'</div>';
   var nx=0;while(P.done.indexOf(nx)>-1&&nx<LESSONS.length-1)nx++;var d=P.done.length;
   h+='<section class="sec"><h2 class="sech">아카데미<span class="meta">'+d+' / '+LESSONS.length+'편</span></h2><button class="lesson-cta" data-lesson="'+nx+'"><span class="lnum">'+(nx+1)+'</span><span style="flex:1;min-width:0;display:flex;flex-direction:column;gap:.35rem"><span class="small">'+(d?'이어서 읽기':'처음이라면 여기서 시작하세요')+'</span><b style="font-size:1.125rem">'+LESSONS[nx].t+'</b><span class="prog"><span style="width:'+(d/LESSONS.length*100)+'%"></span></span></span></button>'+
     '<button class="link" data-act="tab" data-v="learn">10편 전체 보기 ›</button></section>';
-  h+='<p class="foot">시세 자료: 한국거래소 일별 종가 ('+dt(PXD.asOf)+' 기준, 실시간 아님). 모든 계산과 진단은 참고용이며 투자 권유가 아니에요. 투자 판단과 결과의 책임은 본인에게 있어요.</p>';
+  h+='<p class="foot">'+(PXON?'시세 자료: 한국거래소 일별 종가 ('+dt(PXD.asOf)+' 기준, 실시간 아님). ':'')+'모든 계산과 진단은 참고용이며 투자 권유가 아니에요. 투자 판단과 결과의 책임은 본인에게 있어요.</p>';
   return h;
 }
 
 /* ===== 화면 그리기 ===== */
-var TABS=[['home','홈',IC.home],['search','종목 검색',IC.search],['calc','계산기',IC.calc],['learn','아카데미',IC.book]];
+var TABS=[['home','홈',IC.home],['search','종목 검색',IC.search],['calc','계산기',IC.calc],['learn','아카데미',IC.book]].filter(function(t){return PXON||t[0]!=='search'});
 var TITLES={calc:'계산기',search:'종목 검색',learn:'아카데미'};
 var CALCS=[['sim',IC.coin,'수익 계산'],['fee',IC.calc,'수수료·세금'],['tp',IC.target,'목표·손절가'],['avg',IC.water,'물타기']];
 function calcTabs(cur){return '<div class="ctabs" role="group" aria-label="계산기 종류">'+CALCS.map(function(it){return '<button class="ctab" data-act="sub" data-n="calc" data-v="'+it[0]+'" aria-pressed="'+(cur===it[0])+'">'+it[1]+'<span>'+it[2]+'</span></button>'}).join('')+'</div>'}
@@ -843,6 +845,7 @@ function toolsCrumb(){
 }
 function render(){
   document.documentElement.setAttribute('data-size',P.size);
+  if(!PXON&&(P.tab==='search'||S.view==='stock')){if(P.tab==='search')P.tab='home';if(S.view==='stock')S.view=null}
   var t=P.tab,v=S.view,top='',main='';
   var sizeBtn='';
   if(v==='stock'){var o=BYC[S.stock];top='<button class="back" data-act="back" aria-label="뒤로">'+IC.back+'</button><h1 class="top-title">'+esc(o?o.n:'종목')+'</h1>'+sizeBtn;main=viewStock()}

@@ -15,6 +15,8 @@
   function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){ return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
   function sb(){ return window.__lnAuth && window.__lnAuth.sb; }
   function q(p){ return Promise.resolve(p).then(function(r){ return r || {}; }, function(e){ return { error: { message: String(e && e.message || e) } }; }); }
+  // 시세 계약 스위치(config.js LN_PX): 꺼져 있으면 종가·순위 시세를 쓰지 않아요
+  function pxOK(){ try { return window.LN_PX === true || (window.top !== window && window.top.LN_PX === true); } catch (e) { return window.LN_PX === true; } }
   function md(iso){ var d = new Date(new Date(iso).getTime() + 9 * 3600e3); return (d.getUTCMonth() + 1) + '.' + d.getUTCDate(); }
   function hm(iso){ var d = new Date(new Date(iso).getTime() + 9 * 3600e3); return ('0' + d.getUTCHours()).slice(-2) + ':' + ('0' + d.getUTCMinutes()).slice(-2); }
   function dayLbl(day){ var p = String(day || '').split('-'); return p.length === 3 ? (+p[1]) + '.' + (+p[2]) : ''; }
@@ -350,7 +352,9 @@
   // 상담종목: 방송 중 시청자 문의에 전문가가 답한 종목 (답변 매수·유지·손절)
   var OPN = { buy: '매수', hold: '유지', stop: '손절' };
   function pkLabel(k, pid){ if (k && k.kind === 'consult') return '상담' + (OPN[k.opinion] ? ' · ' + OPN[k.opinion] : ''); var p = bcProg(pid) || {}; return String(k.label || (k.kind === 'secret' ? p.secret_label : p.open_label) || (k.kind === 'secret' ? '히든주' : '공개 종목')); }
-  function secretFirst(L){ return L.slice().sort(function(a, b){ return (b.kind === 'secret' ? 1 : 0) - (a.kind === 'secret' ? 1 : 0); }); }
+  // 보여 주는 순서: 히든주 → 관심주(공개 종목) → 상담종목 (같은 종류 안에서는 원래 순서)
+  function pkRank(k){ return k && k.kind === 'secret' ? 0 : k && k.kind === 'consult' ? 2 : 1; }
+  function secretFirst(L){ return L.map(function(k, i){ return { k: k, i: i }; }).sort(function(a, b){ return pkRank(a.k) - pkRank(b.k) || a.i - b.i; }).map(function(o){ return o.k; }); }
   // 몇 주마다 하는 방송(이슈가 머니 3주마다)과, 그날 같은 시간을 내주는 매주 방송
   function progOn(p, ymd, all){
     if (+p.weekday !== wdOf(ymd)) return false;
@@ -397,7 +401,7 @@
   function pickRet(k){
     if (!k || !k.buy) return null;
     if (k.sell) return { v: (k.sell / k.buy - 1) * 100, done: true };
-    var px = X.bc && X.bc.price_on && X.bc.prices && k.stock_code ? X.bc.prices[k.stock_code] : null;
+    var px = pxOK() && X.bc && X.bc.price_on && X.bc.prices && k.stock_code ? X.bc.prices[k.stock_code] : null;
     return px && px.close ? { v: (px.close / k.buy - 1) * 100, done: false, asOf: px.as_of } : null;
   }
   function epStat(ep){
@@ -593,7 +597,7 @@
     var apps = (X.bc.episodes || []).filter(function(ep){ return ep.published && !ep.canceled && P[ep.program_id] && (ep.experts || []).some(function(e){ return e.id === id || bcNorm(e.name) === bcNorm(x.name); }); }).length;
     if (!rows.length && !apps) return '';
     var rs = rows.map(function(r){ return pickRet(r.k); }).filter(Boolean), avg = rs.length ? rs.reduce(function(s, r){ return s + r.v; }, 0) / rs.length : null;
-    rows.sort(function(a, b){ return String(b.ep.air_date) < String(a.ep.air_date) ? -1 : String(b.ep.air_date) > String(a.ep.air_date) ? 1 : (b.k.kind === 'secret' ? 1 : 0) - (a.k.kind === 'secret' ? 1 : 0); });
+    rows.sort(function(a, b){ return String(b.ep.air_date) < String(a.ep.air_date) ? -1 : String(b.ep.air_date) > String(a.ep.air_date) ? 1 : pkRank(a.k) - pkRank(b.k); });
     return '<section class="t2-sec"><div class="t2-h" style="cursor:default">방송 추천 종목<span class="n">' + rows.length + '</span></div>' +
       '<div class="p-kv" style="margin-top:.25rem"><div><span>방송 출연</span><b>' + Math.max(apps, 1) + '회</b></div><div><span>추천 종목</span><b>' + rows.length + '개</b></div><div><span>방송일 이후 평균</span><b class="' + (avg == null ? '' : tone(avg)) + '">' + (avg == null ? '-' : pctS(avg)) + '</b></div></div>' +
       rows.slice(0, 12).map(function(r){ var key = r.ep.program_id + '|' + r.ep.air_date;
@@ -636,7 +640,7 @@
     '적중률': '판매로 끝난 추천 중, 구매 가격보다 높게 판매한 비율이에요. 아직 진행 중인 추천은 세지 않아요.',
     '따라수익': '추천대로 사고팔았다면 얻었을 수익률을 단순히 더한 값이에요(복리 아님).',
     '주간 성적': '그 주(월~금)에 판매로 끝난 추천만 모아 계산해요. 한 주 성적은 운도 크게 작용하니 통산 성적을 함께 보세요.',
-    '반대지표': '통산 따라수익이 가장 낮은 전문가예요. 재미로 보는 지표예요.',
+    '통산 아쉬운 기록': '지금까지 추천을 그대로 따랐을 때 수익이 가장 낮았던 전문가예요. 기록일 뿐 평가가 아니에요.',
     '지금 수익률': '말한 매수 가격과 가장 최근 종가를 비교한 수익률이에요. 아직 팔지 않은 추천이에요.',
     '매도 수익률': '말한 매수 가격과 매도 가격으로 계산한 수익률이에요.',
     '방송일 이후 평균': '이 전문가가 방송에서 추천한 종목들의, 방송에서 말한 매수 가격 대비 수익률 평균이에요.',
@@ -668,8 +672,9 @@
   }
   function rankHome(w){
     var R = X.rank; if (!R || !R.lists) return '';
-    var tabs = RK_TABS.filter(function(t){ return (R.lists[t[0]] || []).length; }); if (!tabs.length) return '';
-    var k = tabs.some(function(t){ return t[0] === X.rkTab; }) ? X.rkTab : tabs[0][0], items = R.lists[k] || [], on = !!R.price_on;
+    // 계약 전에는 거래대금·급등처럼 시세로 만든 순위는 빼고, 리딩노트 기록으로 센 순위(언급·관심)만 보여요
+    var tabs = RK_TABS.filter(function(t){ return (R.lists[t[0]] || []).length && (pxOK() || t[0] === 'mention' || t[0] === 'watch'); }); if (!tabs.length) return '';
+    var k = tabs.some(function(t){ return t[0] === X.rkTab; }) ? X.rkTab : tabs[0][0], items = R.lists[k] || [], on = pxOK() && !!R.price_on;
     var mk = k === 'mention' || k === 'watch';
     var row = function(it){
       var nm = w && w.STOCKS && w.STOCKS[it.code] ? '<button data-a="stock" data-v="' + esc(it.code) + '">' + esc(it.name) + '</button>'
@@ -686,7 +691,7 @@
   }
 
   // ── ? 붙이기: 화면에 보이는 짧은 이름표(적중률 등) 옆에 자동으로
-  var AUTO_Q = ['적중률', '따라수익', '주간 성적', '반대지표', '지금 수익률', '매도 수익률', '방송일 이후 평균', '히든주', '오늘의 언급 종목', '최근 언급 종목', '방송 속 고수 종목'];
+  var AUTO_Q = ['적중률', '따라수익', '주간 성적', '통산 아쉬운 기록', '지금 수익률', '매도 수익률', '방송일 이후 평균', '히든주', '오늘의 언급 종목', '최근 언급 종목', '방송 속 고수 종목'];
   function attachQ(d){
     var els = d.querySelectorAll('span, b, small, dt, h2, .t2-h, .kd');
     for (var i = 0; i < els.length; i++) {

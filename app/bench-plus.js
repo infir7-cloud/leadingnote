@@ -254,9 +254,13 @@
     for (var i = 0; i < flows.length; i++) { var v = Number(flows[i][k] || 0), g = v > 0 ? 1 : v < 0 ? -1 : 0; if (!g) break; if (!sg) sg = g; if (g !== sg) break; s++; }
     return { n: s, sign: sg };
   }
+  function pxOK(){ try { return window.LN_PX === true || (window.top !== window && window.top.LN_PX === true); } catch (e) { return window.LN_PX === true; } }
   function detailHTML(code, w){
+    var nv = 'https://m.stock.naver.com/domestic/stock/' + code + '/total';
+    // 시세 계약 전: 수급·호가·지표는 거래소 자료라서 우리 화면에 띄우지 않고 네이버 증권으로 안내해요
+    if (!pxOK()) return '<details class="bp-det"' + (A.detailOpen ? ' open' : '') + '><summary><span>자세히 보기<small>투자 지표 · 수급 · 호가</small></span><i aria-hidden="true">▾</i></summary><div class="bp-db"><p class="bp-wait">투자 지표 · 수급 · 호가는 네이버 증권에서 볼 수 있어요.</p><a class="bp-nv" href="' + nv + '" target="_blank" rel="noopener noreferrer">네이버 증권에서 보기 ↗</a></div></details>';
     loadDetail(code);
-    var D = DET[code], nv = 'https://m.stock.naver.com/domestic/stock/' + code + '/total', body;
+    var D = DET[code], body;
     if (D === 'wait' || D === undefined) body = '<p class="bp-wait">불러오는 중이에요…</p>';
     else if (!D) body = '<p class="bp-wait">이 종목의 투자 지표 · 수급 · 호가는 자료 연결을 준비 중이에요. 준비되면 여기에 쉬운 말로 보여드릴게요.</p>' +
       '<a class="bp-nv" href="' + nv + '" target="_blank" rel="noopener noreferrer">지금은 네이버 증권에서 보기 ↗</a>';

@@ -6,6 +6,9 @@
    - 카카오 로그인(진짜 회원), 관심 전문가·관심종목 서버 저장, 종목 이야기방 서버 저장·실시간을 붙여요.
    - 리딩 모음 안의 예전 관리자 화면 대신 운영실(ops.html)을 새 창으로 열어요. */
 (function(){
+  // 압축된 배포본에서도 찾도록: 그대로 없으면 공백 차이를 무시하고 찾아요
+  function __lnFind(s,a){if(s.indexOf(a)>-1)return a;var m=s.match(new RegExp(a.replace(/[.*+?^${}()|[\]\\]/g,'\\$&').replace(/(\\s)+|\s+/g,'\\s*')));return m?m[0]:null}
+
   if (window.__lnLive) return;
   var LIB = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3/dist/umd/supabase.js';
   var L = window.__lnLive = { feed: null, talk: [], uid: null, user: null, member: null, follows: null, watch: null, ready: false, err: null };
@@ -56,9 +59,13 @@
       AUTH.ready.then(function(se){
         L.user = se && se.user || null; L.uid = L.user ? L.user.id : null;
         var real = L.user && !L.user.is_anonymous;
+        // 셸(index.html)이 미리 요청해 둔 공개 기록이 있으면 그걸 써요. 실패했거나 회원 로그인 상태면 예전처럼 요청해요
+        var pre = null; try { pre = window.__lnPre || topWin().__lnPre || null; } catch (e) {}
+        var feedP = function(){ return q(sb.rpc('rec_feed')); };
+        var talkP = function(){ return q(sb.from('ln_talk').select('id,stock_id,user_id,nickname,body,created_at').order('created_at', { ascending: false }).limit(1000)); };
         return Promise.all([
-          q(sb.rpc('rec_feed')),
-          q(sb.from('ln_talk').select('id,stock_id,user_id,nickname,body,created_at').order('created_at', { ascending: false }).limit(1000)),
+          (pre && !real) ? q(pre.feed).then(function(r){ return r.error || !r.data ? feedP() : r; }) : feedP(),
+          pre ? q(pre.talk).then(function(r){ return r.error || !r.data ? talkP() : r; }) : talkP(),
           real ? q(sb.from('user_follows').select('expert_id')) : Promise.resolve({ data: null }),
           real ? q(sb.from('user_watch').select('stock_code')) : Promise.resolve({ data: null })
         ]);
@@ -86,7 +93,7 @@
     try {
       var src = String(w[name]); if (src.indexOf('function') !== 0) return 0;
       var out = src, hit = 0;
-      pairs.forEach(function(p){ if (out.indexOf(p[0]) > -1) { out = out.split(p[0]).join(p[1]); hit++; } else log(name + ': 바꿀 곳을 못 찾았어요 →', p[0].slice(0, 60)); });
+      pairs.forEach(function(p){ var k = __lnFind(out, p[0]); if (k) { out = out.split(k).join(p[1]); hit++; } else log(name + ': 바꿀 곳을 못 찾았어요 →', p[0].slice(0, 60)); });
       if (hit) w.eval(name + ' = ' + out);
       return hit;
     } catch (e) { log(name + ' 바꾸기 실패', e); return 0; }
@@ -100,6 +107,8 @@
     '.ln-src a{color:inherit;text-decoration:underline;text-underline-offset:2px}',
     '.ln-flag{display:inline-block;margin-left:.35em;padding:0 .4em;border-radius:.35em;font-size:.85em;font-weight:700;background:rgba(245,158,11,.16);color:#b45309}',
     '.ln-flag.cor{background:rgba(59,130,246,.14);color:#1d4ed8}',
+    'button.ln-flag{border:0;font:inherit;font-size:.85em;cursor:pointer}',
+    '.ln-rep{display:inline-flex;align-items:center;min-height:2.75rem;border:0;background:none;padding:0 .3em;margin-left:.3em;font:inherit;font-size:.85em;color:inherit;opacity:.65;text-decoration:underline;text-underline-offset:2px;cursor:pointer}',
     'a.news{display:flex;flex-direction:column;text-decoration:none;color:inherit}',
     '.ln-naver{display:inline-flex;align-items:center;gap:.3em;font-weight:700;text-decoration:none;color:inherit;border:1px solid currentColor;border-radius:999px;padding:.25em .8em;opacity:.85}',
     '.ln-pxnote{display:block;margin-top:.4em;font-size:.85em;opacity:.75}',
@@ -119,7 +128,9 @@
   }
 
   function build(F){
-    var on = !!(F.price && F.price.on), ST = {};
+    // 시세 계약 스위치(config.js LN_PX)가 꺼져 있으면 서버가 가격을 보내도 쓰지 않아요
+    var lic = false; try { lic = window.LN_PX === true || (window.top !== window && window.top.LN_PX === true); } catch (e) { lic = window.LN_PX === true; }
+    var on = lic && !!(F.price && F.price.on), ST = {};
     Object.keys(F.stocks || {}).forEach(function(c){ var s = F.stocks[c]; ST[c] = { name: s.name, code: c, market: s.market, price: on && s.price != null ? s.price : null, chg: on && s.chg != null ? Number(s.chg) : null, closes: on ? (s.closes || []) : [] }; });
     var mine = L.follows || [];
     var EX = (F.experts || []).map(function(x){
@@ -186,7 +197,8 @@
       var h = '';
       if (e.url) h += ' · <span class="ln-src"><a href="' + escH(e.url) + '" target="_blank" rel="noopener noreferrer">원문 보기 ↗</a></span>';
       if (e.late) h += '<span class="ln-flag" title="방송·게시 다음 날 이후에 기록했어요">늦은 입력</span>';
-      if (e.corrected) h += '<span class="ln-flag cor" title="운영자가 이유를 남기고 고쳤어요">정정됨</span>';
+      if (e.corrected) h += (e._id ? '<button type="button" class="ln-flag cor" data-a="lnHist" data-v="' + escH(e._id) + '" title="눌러서 무엇을 고쳤는지 봐요">정정됨 ›</button>' : '<span class="ln-flag cor" title="운영자가 이유를 남기고 고쳤어요">정정됨</span>');
+      if (e._id) h += '<button type="button" class="ln-rep" data-a="lnRep" data-v="' + escH(e._id) + '">기록이 이상해요</button>';
       return h;
     };
     w.__lnNews = function(e){
@@ -282,6 +294,74 @@
         w.kakaoBtn('카카오로 시작하기') +
         '<p class="ln-kakao-note">카카오 계정의 <b>닉네임</b>만 받아요. 비밀번호를 따로 만들 필요가 없고, 가입비·이용료도 없어요.<br>처음 시작할 때 <a href="' + new URL('terms.html', d.URL).href + '" target="_blank" rel="noopener">이용약관</a>과 <a href="' + new URL('privacy.html', d.URL).href + '" target="_blank" rel="noopener">개인정보 처리방침</a> 동의를 받아요.</p>';
       return '<div class="scrim center" data-a="closeSheet" data-self="1"><div class="modal" role="dialog" aria-modal="true" aria-label="로그인 또는 회원가입">' + b + '</div></div>';
+    };
+    // ── 기록 신고 · 정정 내역 (오기록 대응)
+    var REP = [['stock', '종목이 달라요'], ['price', '가격이 달라요'], ['time', '날짜·방송이 달라요'], ['kind', '구매·판매가 바뀌었어요'], ['etc', '기타']];
+    var KL = { at: '방송·게시 시각', buy: '구매 가격', target: '목표 가격', stop: '손해 막는 가격', sell: '판매 가격', text: '한 말', src_url: '출처 주소' };
+    function fv(k, v){
+      if (v == null || v === '') return '-';
+      if (k === 'at') return new Date(new Date(v).getTime() + 9 * 3600e3).toISOString().slice(0, 16).replace('T', ' ');
+      if (/^(buy|target|stop|sell)$/.test(k)) return Number(v).toLocaleString('ko-KR') + '원';
+      return String(v);
+    }
+    function sheetWrap(title, body){
+      return '<div class="scrim" data-a="closeSheet" data-self="1"><div class="sheet gx" role="dialog" aria-modal="true" aria-label="' + escH(title) + '"><div class="mhead"><h2>' + escH(title) + '</h2><button class="jx" data-a="closeSheet" aria-label="닫기">' + w.IC.close + '</button></div>' + body + '</div></div>';
+    }
+    var osheet = w.sheetHTML;
+    w.sheetHTML = function(){
+      if (S.sheet === 'lnrep' && S.lnRep) {
+        var r = S.lnRep;
+        if (r.done) return sheetWrap('알려 주셔서 고마워요', '<p style="font-size:1.0625rem;line-height:1.6;margin:.5rem 0 1rem">운영자가 방송 다시보기와 맞춰 보고, 틀린 곳이 있으면 고칠게요. 고친 기록에는 <b>정정됨</b> 표시가 붙어요.</p><button class="btn btn-primary btn-block" data-a="closeSheet">닫기</button>');
+        return sheetWrap('기록이 이상해요', '<p style="font-size:1.0625rem;margin:.25rem 0 .75rem">어떤 점이 방송과 다른가요?</p>' +
+          '<div style="display:grid;gap:.5rem">' + REP.map(function(x){ return '<button class="chip" data-a="lnRepPick" data-v="' + x[0] + '" aria-pressed="' + (r.reason === x[0]) + '">' + x[1] + '</button>'; }).join('') + '</div>' +
+          '<label for="ln-rep-memo" style="display:block;margin:1rem 0 .35rem;font-weight:600">더 알려 주실 내용 (선택)</label>' +
+          '<textarea id="ln-rep-memo" class="field" maxlength="200" rows="3" style="width:100%;resize:vertical" placeholder="예: 방송에서는 목표가를 6만원이라고 했어요">' + escH(r.memo || '') + '</textarea>' +
+          '<button class="btn btn-primary btn-block" style="margin-top:1rem" data-a="lnRepSend"' + (r.reason && !r.busy ? '' : ' disabled') + '>' + (r.busy ? '보내는 중이에요' : '운영자에게 알리기') + '</button>' +
+          '<p class="small" style="margin-top:.6rem;opacity:.75">누가 알렸는지는 다른 회원에게 보이지 않아요. 같은 기록은 한 번만 알릴 수 있어요.</p>');
+      }
+      if (S.sheet === 'lnhist' && S.lnHist) {
+        var hs = S.lnHist, body;
+        if (hs.err) body = '<p>정정 내역을 불러오지 못했어요. 잠시 뒤 다시 열어 주세요.</p>';
+        else if (!hs.rows) body = '<p>불러오는 중이에요.</p>';
+        else if (!hs.rows.length) body = '<p>정정 내역이 없어요.</p>';
+        else body = hs.rows.map(function(x){
+          var ch = Object.keys(KL).filter(function(k){ return x.before && x.after && (k in x.after) && JSON.stringify(x.before[k]) !== JSON.stringify(x.after[k]); })
+            .map(function(k){ return '<li>' + KL[k] + ': ' + escH(fv(k, x.before[k])) + ' → <b>' + escH(fv(k, x.after[k])) + '</b></li>'; }).join('');
+          return '<div style="padding:.75rem 0;border-bottom:1px solid var(--line)"><div class="small" style="opacity:.75">' + escH(fv('at', x.at)) + ' ' + (x.action === 'retract' ? '철회' : '정정') + '</div>' +
+            (ch ? '<ul style="margin:.35rem 0;padding-left:1.1rem;line-height:1.6">' + ch + '</ul>' : '') + (x.reason ? '<p style="margin:.25rem 0 0">이유: ' + escH(x.reason) + '</p>' : '') + '</div>';
+        }).join('');
+        return sheetWrap('정정 내역', '<p class="small" style="opacity:.8;margin:.25rem 0 .5rem">처음 올린 값과 고친 값을 그대로 남겨 둬요.</p>' + body + '<button class="btn btn-block" style="margin-top:1rem" data-a="closeSheet">닫기</button>');
+      }
+      return osheet.apply(this, arguments);
+    };
+    function keepMemo(){ var t = d.getElementById('ln-rep-memo'); if (t && S.lnRep) S.lnRep.memo = t.value; }
+    A.lnRep = function(v){
+      if (!v) return;
+      if (w.needMember('기록이 이상하다고 알리려면 무료 가입이 필요해요')) return;
+      S.lnRep = { id: v, reason: null, memo: '' }; S.sheet = 'lnrep'; w.renderLayer();
+    };
+    A.lnRepPick = function(v){ if (!S.lnRep) return; keepMemo(); S.lnRep.reason = v; w.renderLayer(); };
+    A.lnRepSend = function(){
+      var r = S.lnRep, sb = AUTH && AUTH.sb; if (!r || !r.reason || r.busy) return;
+      if (!sb) { w.toast('잠시 뒤 다시 눌러 주세요'); return; }
+      keepMemo(); r.busy = true; w.renderLayer();
+      q(sb.rpc('rec_report', { p_event: r.id, p_reason: r.reason, p_memo: (r.memo || '').trim().slice(0, 200) || null })).then(function(x){
+        r.busy = false;
+        if (x.error) {
+          if (/duplicate|already|23505/i.test(String(x.error.message) + ' ' + String(x.error.code || ''))) { r.done = true; w.toast('이미 알려 주신 기록이에요'); }
+          else { w.toast('보내지 못했어요. 잠시 뒤 다시 해 주세요'); log('신고 실패', x.error.message); }
+        } else r.done = true;
+        w.renderLayer();
+      });
+    };
+    A.lnHist = function(v){
+      var sb = AUTH && AUTH.sb; S.lnHist = { id: v, rows: null }; S.sheet = 'lnhist'; w.renderLayer();
+      if (!sb) { S.lnHist.err = true; w.renderLayer(); return; }
+      q(sb.rpc('rec_history', { p_event: v })).then(function(x){
+        if (!S.lnHist || S.lnHist.id !== v) return;
+        if (x.error) { S.lnHist.err = true; log('정정 내역 실패', x.error.message); } else S.lnHist.rows = x.data || [];
+        w.renderLayer();
+      });
     };
     A.asRole = function(){};
     A.news = function(){};

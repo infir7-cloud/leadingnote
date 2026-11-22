@@ -30,7 +30,9 @@
   function hm(ms){ var d = new Date(ms); return ('0' + d.getUTCHours()).slice(-2) + ':' + ('0' + d.getUTCMinutes()).slice(-2); }
   function left(ms){ var m = Math.max(0, Math.round(ms / 60000)); return m >= 60 ? Math.floor(m / 60) + '시간' + (m % 60 ? ' ' + (m % 60) + '분' : '') : m + '분'; }
   function ago(iso){ var t = Date.parse(iso); if (isNaN(t)) return ''; var m = Math.round((Date.now() - t) / 60000); return m < 1 ? '방금' : m < 60 ? m + '분 전' : m < 1440 ? Math.round(m / 60) + '시간 전' : Math.round(m / 1440) + '일 전'; }
-  function priceOn(){ try { if (localStorage.getItem('ln.pxpreview') === '1') return true; } catch (e) {} return !!(H.bc && H.bc.price_on); }
+  // 시세 계약 스위치(config.js LN_PX)가 꺼져 있으면 서버 설정과 상관없이 가격을 안 보여 주고, 가격 요청도 안 보내요
+  function pxOK(){ try { return window.LN_PX === true || (window.top !== window && window.top.LN_PX === true); } catch (e) { return window.LN_PX === true; } }
+  function priceOn(){ if (!pxOK()) return false; try { if (localStorage.getItem('ln.pxpreview') === '1') return true; } catch (e) {} return !!(H.bc && H.bc.price_on); }
   function dev(){ var k = 'ln.dev', v = ''; try { v = localStorage.getItem(k) || ''; if (!/^[A-Za-z0-9-]{8,64}$/.test(v)) { v = 'v' + Date.now().toString(36) + Math.random().toString(36).slice(2, 10); localStorage.setItem(k, v); } } catch (e) { v = 'v' + Math.random().toString(36).slice(2, 12); } return v; }
   var HOLI = { '2026-09-24': 1, '2026-09-25': 1, '2026-10-05': 1, '2026-10-09': 1, '2026-12-25': 1, '2026-12-31': 1, '2027-01-01': 1 };
   var IC = {
@@ -157,6 +159,7 @@
     // 종목 화면
     '.hm-chart{display:block;width:100%;height:auto;margin-top:.25rem}',
     '.hm-bld{display:flex;flex-direction:column;gap:.3rem;margin:.5rem 0 0}',
+    '.hm-bsvg{display:block;width:100%;max-width:26rem;height:auto;margin:0 auto;font-family:inherit}',
     '.hm-fl{display:grid;grid-template-columns:5rem minmax(0,1fr) 5.5rem;align-items:center;gap:.6rem;min-height:2.6rem}',
     '.hm-fl .n{font-size:.875rem;font-weight:800;line-height:1.2}.hm-fl .n small{display:block;font-size:.6875rem;color:var(--sn);font-weight:700}',
     '.hm-fl .w{height:100%;min-height:2.4rem;border-radius:.5rem;background:var(--sunk);display:flex;align-items:center;justify-content:center;gap:.3rem;font-size:.8125rem;font-weight:800;color:var(--ink2);text-align:center;padding:0 .3rem}',
@@ -209,7 +212,7 @@
       t.sort(function(a, b){ return a.at < b.at ? 1 : -1; });
       H.talk = t;
       var codes = allCodes();
-      return Promise.all([q(c.rpc('ln_px', { p_codes: codes })), q(c.rpc('stock_vote_tally', { p_codes: codes }))]).then(function(r2){
+      return Promise.all([pxOK() ? q(c.rpc('ln_px', { p_codes: codes })) : null, q(c.rpc('stock_vote_tally', { p_codes: codes }))]).then(function(r2){
         if (r2[0] && !r2[0].error && r2[0].data) H.px = r2[0].data;
         if (r2[1] && !r2[1].error && r2[1].data) H.votes = r2[1].data;
         H.at = Date.now(); needRecent(); redraw();
@@ -272,7 +275,7 @@
     if (!code || !/^[0-9A-Z]{6}$/.test(code) || extra[code]) return;
     if (H.px && H.px.s && H.px.s[code]) return;
     extra[code] = 1; var c = client(); if (!c) return;
-    Promise.all([q(c.rpc('ln_px', { p_codes: [code] })), q(c.rpc('stock_vote_tally', { p_codes: [code] }))]).then(function(r){
+    Promise.all([pxOK() ? q(c.rpc('ln_px', { p_codes: [code] })) : null, q(c.rpc('stock_vote_tally', { p_codes: [code] }))]).then(function(r){
       if (r[0] && r[0].data) { H.px = H.px || { days: [], s: {} }; H.px.days = r[0].data.days || H.px.days; Object.assign(H.px.s, r[0].data.s || {}); }
       if (r[1] && r[1].data) Object.assign(H.votes, r[1].data);
       redraw();
@@ -369,6 +372,7 @@
   };
   var recentAsked = {};
   function needRecent(){
+    if (!pxOK()) return;
     var w = lnWin(), c = client(); if (!w || !w.LEADINGS || !c) return;
     var from = ymd(nowK() - 21 * 864e5), want = [];
     w.LEADINGS.forEach(function(L){ var code = L.stock; if (!/^[0-9A-Z]{6}$/.test(String(code)) || recentAsked[code] || (H.px && H.px.s && H.px.s[code])) return;
@@ -543,6 +547,9 @@
     var by = {}, order = [];
     (e.picks || []).forEach(function(k){ var id = k.expert_id || k.expert_name; if (!by[id]) { by[id] = { id: k.expert_id || '', name: k.expert_name || '', open: [], lock: 0 }; order.push(id); } if (k.kind === 'secret' && !k.revealed) by[id].lock++; else if (k.stock_code || k.stock_name) by[id].open.push(k); });
     if (!order.length) return '';
+    // 종목 순서: 히든주 → 관심주(공개 종목) → 상담종목
+    var rk = function(k){ return k.kind === 'secret' ? 0 : k.kind === 'consult' ? 2 : 1; };
+    order.forEach(function(id){ by[id].open = by[id].open.map(function(k, i){ return { k: k, i: i }; }).sort(function(a, b){ return rk(a.k) - rk(b.k) || a.i - b.i; }).map(function(o){ return o.k; }); });
     var h = order.map(function(id){ var x = by[id];
       return '<div class="hm-ex"><div class="hm-exh"><span class="hm-av">' + esc(x.name.charAt(0)) + '</span><div class="hm-mid"><b>' + esc(x.name) + '<small class="xtl">' + esc(typeof xTitle === 'function' ? xTitle({ id: x.id }) : '자문역') + '</small></b></div></div>' +
         x.open.map(function(k){ var tgt = k.target ? ' · 목표 ' + won(k.target) + '원' : '', bp = k.buy ? '방송 매수가 ' + won(k.buy) + '원' : '방송에서 말한 종목';
@@ -710,15 +717,76 @@
     return '<svg class="hm-chart" viewBox="0 0 ' + W + ' ' + Hh + '" role="img" aria-label="최근 ' + cl.length + '거래일 종가 흐름" style="color:var(--ink)"><polyline fill="none" stroke="' + col + '" stroke-width="2.4" stroke-linejoin="round" points="' + pts + '"/>' + g +
       '<circle cx="' + x(last).toFixed(1) + '" cy="' + y(cl[last]).toFixed(1) + '" r="5" fill="' + col + '" stroke="#fff" stroke-width="2"/></svg>';
   }
+  // 지금 몇 층? · 5층 건물 그림 (꼭대기 = 1년 최고, 1층 = 1년 최저)
+  //   지금 가격이 있는 층에 캐릭터가 있어요: 높은 층은 창밖으로 손 흔들며 "사람 있어요~", 중간은 덤덤, 낮은 층은 소파에서 느긋하게.
+  //   방송 때 가격이 있던 층에는 깃발을 꽂아요. 그림은 직접 그린 거예요(인터넷 짤 이미지를 쓰지 않아요).
   function floorsHTML(px, base){
     if (!px.hi || !px.lo || px.hi <= px.lo) return '';
     var F = [['꼭대기', '1년 최고', 1], ['높은 층', '', .8], ['중간 층', '', .6], ['낮은 층', '', .4], ['1층', '1년 최저', .2]];
     var lv = function(v){ var r = (v - px.lo) / (px.hi - px.lo); return Math.max(0, Math.min(4, 4 - Math.floor(Math.min(.9999, r) * 5))); };
     var nowF = lv(px.c), bcF = base ? lv(base) : -1;
-    var rows = F.map(function(f, i){ var lo = px.lo + (px.hi - px.lo) * (f[2] - .2), cls = (i === nowF ? ' now' : '') + (i === bcF ? ' bc' : '');
-      var lab = i === nowF && i === bcF ? '지금 · 방송 때 여기' : i === nowF ? '지금 여기' : i === bcF ? '방송 때 여기' : '';
-      return '<div class="hm-fl' + cls + '"><span class="n">' + f[0] + (f[1] ? '<small>' + f[1] + '</small>' : '') + '</span><span class="w">' + lab + '</span><span class="p">' + won(i === 0 ? px.hi : lo) + '원' + (i === 0 ? '' : '~') + '</span></div>'; }).join('');
-    return '<section class="t2-sec hm-sec"><div class="hm-sh"><div><h2>지금 이 종목은 몇 층?</h2><small>1년 가격 범위를 다섯 층으로 나눴어요</small></div></div><div class="hm-bld">' + rows + '</div><p class="hm-note">1층은 1년 중 가장 쌌던 가격, 꼭대기는 가장 비쌌던 가격이에요. 층이 높다고 좋고 낮다고 나쁜 건 아니에요.</p></section>';
+    var X0 = 14, BW = 176, TOP = 30, FH = 56, LX = 200, W = 362, H = TOP + FH * 5 + 22;
+    var ink = 'var(--ink,#191F28)', sunk = 'var(--sunk,#F2F4F6)', line = 'var(--line,#E5E8EB)', sn = 'var(--sn,#8B95A1)', on = '#12B886', sky = '#D7F5EA';
+    var s = '<svg class="hm-bsvg" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="5층 건물 그림. 지금 가격은 ' + F[nowF][0] + (bcF > -1 ? ', 방송 때 가격은 ' + F[bcF][0] : '') + '">';
+    // 지붕 · 옥상 난간
+    s += '<rect x="' + (X0 - 4) + '" y="' + (TOP - 10) + '" width="' + (BW + 8) + '" height="10" rx="3" fill="' + ink + '" opacity=".85"/>';
+    s += '<rect x="' + (X0 + BW - 40) + '" y="' + (TOP - 24) + '" width="22" height="14" rx="2" fill="' + line + '"/>';
+    function win(x, y, lit){ return '<rect x="' + x + '" y="' + y + '" width="34" height="26" rx="4" fill="' + (lit ? sky : '#fff') + '" stroke="' + line + '" stroke-width="1.5"/><line x1="' + (x + 17) + '" y1="' + y + '" x2="' + (x + 17) + '" y2="' + (y + 26) + '" stroke="' + line + '" stroke-width="1.2"/>'; }
+    // 캐릭터들 (선은 굵게, 색은 두 가지만)
+    function face(cx, cy, mood){
+      var f = '<circle cx="' + cx + '" cy="' + cy + '" r="9" fill="#FFE3C7" stroke="' + ink + '" stroke-width="1.6"/>';
+      f += '<circle cx="' + (cx - 3.2) + '" cy="' + (cy - 1.5) + '" r="1.2" fill="' + ink + '"/><circle cx="' + (cx + 3.2) + '" cy="' + (cy - 1.5) + '" r="1.2" fill="' + ink + '"/>';
+      if (mood === 'shout') f += '<ellipse cx="' + cx + '" cy="' + (cy + 3.6) + '" rx="2.6" ry="2.2" fill="' + ink + '"/>';
+      else if (mood === 'calm') f += '<path d="M' + (cx - 3.4) + ' ' + (cy + 2.6) + ' Q' + cx + ' ' + (cy + 5.6) + ' ' + (cx + 3.4) + ' ' + (cy + 2.6) + '" fill="none" stroke="' + ink + '" stroke-width="1.4" stroke-linecap="round"/>';
+      else f += '<line x1="' + (cx - 3) + '" y1="' + (cy + 3.4) + '" x2="' + (cx + 3) + '" y2="' + (cy + 3.4) + '" stroke="' + ink + '" stroke-width="1.4" stroke-linecap="round"/>';
+      return f;
+    }
+    function waving(y){ // 창밖으로 몸을 내밀고 손을 흔드는 사람 + 말풍선
+      var cx = X0 + 106, cy = y + 20;
+      var g = '<rect x="' + (cx - 9) + '" y="' + (cy + 7) + '" width="18" height="14" rx="5" fill="' + on + '"/>';
+      g += '<path d="M' + (cx + 8) + ' ' + (cy + 10) + ' L' + (cx + 19) + ' ' + (cy - 4) + '" stroke="' + ink + '" stroke-width="2.4" stroke-linecap="round"/>';
+      g += '<circle cx="' + (cx + 20) + '" cy="' + (cy - 6) + '" r="3" fill="#FFE3C7" stroke="' + ink + '" stroke-width="1.4"/>';
+      g += '<path d="M' + (cx + 25) + ' ' + (cy - 12) + ' q3 2 2 6 M' + (cx + 28) + ' ' + (cy - 15) + ' q4 3 3 9" fill="none" stroke="' + sn + '" stroke-width="1.3" stroke-linecap="round"/>';
+      g += face(cx, cy, 'shout');
+      var bx = X0 + 6, by = y + 4;
+      g += '<rect x="' + bx + '" y="' + by + '" width="80" height="24" rx="12" fill="#fff" stroke="' + ink + '" stroke-width="1.6"/>';
+      g += '<path d="M' + (bx + 70) + ' ' + (by + 20) + ' L' + (bx + 86) + ' ' + (by + 26) + ' L' + (bx + 62) + ' ' + (by + 23) + '" fill="#fff" stroke="' + ink + '" stroke-width="1.6" stroke-linejoin="round"/>';
+      g += '<text x="' + (bx + 40) + '" y="' + (by + 16.5) + '" text-anchor="middle" font-size="11.5" font-weight="800" fill="' + ink + '">사람 있어요~</text>';
+      return g;
+    }
+    function standing(y){ // 창가에 서 있는 덤덤한 사람
+      var cx = X0 + 106, cy = y + 18;
+      return '<rect x="' + (cx - 8) + '" y="' + (cy + 8) + '" width="16" height="16" rx="5" fill="' + on + '"/>' + face(cx, cy, 'flat') +
+        '<text x="' + (X0 + 48) + '" y="' + (y + 22) + '" text-anchor="middle" font-size="11" font-weight="800" fill="' + sn + '">흠…</text>';
+    }
+    function lounging(y){ // 소파에 누워 쉬는 사람
+      var sx = X0 + 58, sy = y + 22;
+      var g = '<rect x="' + sx + '" y="' + (sy + 8) + '" width="92" height="16" rx="6" fill="#B9A7F5"/>';
+      g += '<rect x="' + (sx - 6) + '" y="' + (sy + 2) + '" width="14" height="22" rx="6" fill="#9C86EE"/><rect x="' + (sx + 84) + '" y="' + (sy + 2) + '" width="14" height="22" rx="6" fill="#9C86EE"/>';
+      g += '<rect x="' + (sx + 20) + '" y="' + (sy + 1) + '" width="46" height="11" rx="5.5" fill="' + on + '"/>';
+      g += face(sx + 12, sy + 2, 'calm');
+      g += '<text x="' + (sx + 76) + '" y="' + (sy - 4) + '" font-size="11" font-weight="800" fill="' + sn + '">z Z</text>';
+      return g;
+    }
+    for (var i = 0; i < 5; i++) {
+      var y = TOP + i * FH, isNow = i === nowF, isBc = i === bcF;
+      s += '<rect x="' + X0 + '" y="' + y + '" width="' + BW + '" height="' + FH + '" fill="' + (isNow ? '#E9FBF3' : sunk) + '" stroke="' + (isNow ? on : line) + '" stroke-width="' + (isNow ? 2.5 : 1.5) + '"/>';
+      if (isNow) s += (i <= 1 ? win(X0 + 18, y + 15, false) + win(X0 + 124, y + 15, false) + '<rect x="' + (X0 + 89) + '" y="' + (y + 15) + '" width="34" height="26" rx="4" fill="' + sky + '" stroke="' + line + '" stroke-width="1.5"/>' + waving(y)
+                    : i === 2 ? win(X0 + 18, y + 15, false) + win(X0 + 124, y + 15, false) + '<rect x="' + (X0 + 89) + '" y="' + (y + 15) + '" width="34" height="26" rx="4" fill="' + sky + '" stroke="' + line + '" stroke-width="1.5"/>' + standing(y)
+                    : lounging(y));
+      else s += win(X0 + 18, y + 15, false) + win(X0 + 71, y + 15, false) + win(X0 + 124, y + 15, false);
+      if (i === 4 && !isNow) s += '<rect x="' + (X0 + 72) + '" y="' + (y + FH - 26) + '" width="32" height="26" rx="3" fill="' + ink + '" opacity=".75"/>';
+      if (isBc) { // 방송 때 위치 깃발
+        var fx = X0 + BW + 2;
+        s += '<line x1="' + fx + '" y1="' + (y + 6) + '" x2="' + fx + '" y2="' + (y + 40) + '" stroke="' + ink + '" stroke-width="2"/><path d="M' + fx + ' ' + (y + 6) + ' L' + (fx + 14) + ' ' + (y + 11) + ' L' + fx + ' ' + (y + 16) + ' Z" fill="#5B4CF0"/>';
+      }
+      var lo = px.lo + (px.hi - px.lo) * (F[i][2] - .2);
+      var tag = isNow && isBc ? '지금·방송 때' : isNow ? '지금 여기' : isBc ? '방송 때' : '';
+      s += '<text x="' + (LX + 6) + '" y="' + (y + 22) + '" font-size="13" font-weight="800" fill="' + (isNow ? on : ink) + '">' + F[i][0] + (tag ? ' · ' + tag : '') + '</text>';
+      s += '<text x="' + (LX + 6) + '" y="' + (y + 40) + '" font-size="11.5" fill="' + sn + '">' + (F[i][1] ? F[i][1] + ' ' : '') + won(i === 0 ? px.hi : lo) + '원' + (i === 0 ? '' : '~') + '</text>';
+    }
+    s += '<rect x="0" y="' + (TOP + FH * 5) + '" width="' + W + '" height="4" rx="2" fill="' + line + '"/></svg>';
+    return '<section class="t2-sec hm-sec"><div class="hm-sh"><div><h2>지금 이 종목은 몇 층?</h2><small>1년 가격 범위를 5층 건물로 나눴어요</small></div></div><div class="hm-bld">' + s + '</div><p class="hm-note">1층은 1년 중 가장 쌌던 가격, 꼭대기는 가장 비쌌던 가격이에요. 그림은 재미로 그린 거예요. 층이 높다고 좋고 낮다고 나쁜 건 아니에요.</p></section>';
   }
   function easyHTML(px){
     var t = [];

@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#FFFFFF">
+<meta name="robots" content="noindex">
+<title>방송 같이 보기 · 리딩노트</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<script src="config.js?v=2"></script>
+<style>
+:root{--bg:#F2F4F6;--surface:#FFFFFF;--sunk:#F2F4F6;--line:#E5E8EB;--ink:#191F28;--ink2:#6B7684;--accent:#3182F6;--on:#12B886;--hint:#FFF4D6;--hint-ink:#8A5A00;--mine:#E8F3FF}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:Pretendard,"Apple SD Gothic Neo","Noto Sans KR",system-ui,sans-serif;font-size:17px;-webkit-text-size-adjust:100%}
+button,input{font:inherit;color:inherit}
+.app{display:flex;flex-direction:column;height:100%;max-width:40rem;margin:0 auto;background:var(--surface)}
+.top{flex:none;display:flex;align-items:center;gap:.5rem;padding:.6rem .75rem;border-bottom:1px solid var(--line);background:var(--surface)}
+.top a{display:flex;align-items:center;gap:.25rem;color:var(--ink);text-decoration:none;font-weight:700;padding:.4rem .5rem;border-radius:.6rem;min-height:2.75rem}
+.top h1{flex:1;font-size:1.1rem;margin:0;text-align:center;padding-right:3rem}
+.head{flex:none;padding:.75rem .9rem .6rem;border-bottom:1px solid var(--line);background:var(--surface)}
+.st{display:flex;align-items:center;gap:.55rem;flex-wrap:wrap}
+.st b{font-size:1.15rem}
+.chip{display:inline-flex;align-items:center;gap:.3rem;font-size:.85rem;font-weight:800;padding:.25rem .6rem;border-radius:999px;background:var(--sunk);color:var(--ink2)}
+.chip.on{background:var(--on);color:#fff}
+.chip.on::before{content:"";width:.5rem;height:.5rem;border-radius:50%;background:#fff}
+.who{margin-left:auto;font-size:.85rem;color:var(--ink2);font-weight:700}
+.tv{display:flex;gap:.5rem;margin-top:.55rem}
+.tv a{flex:1;text-align:center;font-size:.9rem;font-weight:700;padding:.55rem .4rem;border-radius:.7rem;background:var(--sunk);color:var(--ink);text-decoration:none}
+.board{margin-top:.6rem;border-radius:.85rem;background:var(--hint);padding:.6rem .75rem}
+.board h2{margin:0 0 .3rem;font-size:.9rem;color:var(--hint-ink)}
+.board .h{font-size:1rem;font-weight:800;line-height:1.45;margin:.15rem 0}
+.board .e{font-size:.9rem;color:var(--hint-ink)}
+.guess{display:flex;gap:.4rem;flex-wrap:wrap;margin-top:.45rem}
+.guess span{font-size:.85rem;font-weight:800;padding:.25rem .55rem;border-radius:999px;background:#fff;color:var(--hint-ink)}
+.list{flex:1;overflow-y:auto;padding:.75rem .9rem 1rem;-webkit-overflow-scrolling:touch;position:relative}
+.m{margin:.55rem 0;max-width:88%}
+.m .n{font-size:.8rem;color:var(--ink2);font-weight:700;margin-bottom:.15rem}
+.m .b{display:inline-block;padding:.55rem .75rem;border-radius:1rem;background:var(--sunk);line-height:1.5;word-break:break-all;white-space:pre-wrap}
+.m.mine{margin-left:auto;text-align:right}.m.mine .b{background:var(--mine);text-align:left}
+.m.hint .b{background:var(--hint);color:var(--hint-ink);font-weight:800}
+.m.guess .b{background:#EEEBFF;color:#4B3BC8;font-weight:800}
+.m .x{border:0;background:none;color:var(--ink2);font-size:.75rem;padding:.2rem .3rem;cursor:pointer}
+.sys{text-align:center;font-size:.85rem;color:var(--ink2);margin:.8rem 0}
+.newb{position:sticky;bottom:.4rem;left:0;right:0;margin:0 auto;display:none;width:max-content;border:0;border-radius:999px;background:var(--ink);color:#fff;padding:.45rem .9rem;font-size:.85rem;font-weight:700;cursor:pointer}
+.foot{flex:none;border-top:1px solid var(--line);padding:.55rem .75rem calc(.55rem + env(safe-area-inset-bottom));background:var(--surface)}
+.row{display:flex;gap:.45rem;align-items:center}
+.field{flex:1;min-width:0;height:3rem;border:1px solid var(--line);border-radius:.8rem;padding:0 .8rem;background:var(--surface);font-size:1rem}
+.btn{flex:none;height:3rem;border:0;border-radius:.8rem;padding:0 1rem;font-weight:800;background:var(--accent);color:#fff;cursor:pointer}
+.btn.ghost{background:var(--sunk);color:var(--ink)}
+.btn.hint{background:var(--hint);color:var(--hint-ink)}
+.rule{font-size:.75rem;color:var(--ink2);margin:.35rem .1rem 0;line-height:1.45}
+.err{font-size:.85rem;color:#E03131;margin:.3rem .1rem 0;min-height:1em}
+.pick{margin-top:.45rem;display:flex;flex-direction:column;gap:.3rem}
+.pick button{text-align:left;border:1px solid var(--line);background:var(--surface);border-radius:.7rem;padding:.6rem .75rem;cursor:pointer;font-weight:700}
+.closed{padding:1.5rem 1rem;text-align:center;line-height:1.6}
+.closed b{display:block;font-size:1.15rem;margin-bottom:.3rem}
+.hide{display:none!important}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="top"><a href="index.html" aria-label="리딩노트로 돌아가기">‹ 리딩노트</a><h1>방송 같이 보기</h1></header>
+  <section class="head" id="head" aria-live="polite">
+    <div class="st"><b id="pname">방송 정보를 불러오는 중이에요</b><span class="chip" id="chip"></span><span class="who" id="who"></span></div>
+    <div class="tv"><a href="https://www.sbs.co.kr/live/S06" target="_blank" rel="noopener">SBS Biz 라이브로 보기 ↗</a><a href="#" id="tvch">TV 채널 번호 보기</a></div>
+    <div class="board hide" id="board"><h2>힌트 보드</h2><div id="hints"></div><div class="guess" id="guess"></div></div>
+  </section>
+  <main class="list" id="list" aria-label="채팅"><p class="sys">채팅을 불러오는 중이에요</p><button class="newb" id="newb" type="button">새 글 보기 ↓</button></main>
+  <footer class="foot" id="foot">
+    <div id="nickRow" class="row hide"><input class="field" id="nick" maxlength="12" placeholder="채팅에서 쓸 닉네임 (2~12자)" autocomplete="off"><button class="btn" id="nickOk" type="button">정하기</button></div>
+    <form id="form" class="hide" autocomplete="off">
+      <div class="row"><button class="btn ghost" id="gbtn" type="button" aria-label="히든주 추리하기">추리</button><input class="field" id="msg" maxlength="200" placeholder="방송 보면서 이야기 나눠요"><button class="btn" type="submit">보내기</button></div>
+      <div class="row hide" id="adminRow" style="margin-top:.45rem"><button class="btn hint" id="hbtn" type="button">입력한 글을 힌트로 올리기 (운영자)</button></div>
+      <div class="hide" id="gbox"><div class="row" style="margin-top:.45rem"><input class="field" id="gq" placeholder="추리한 종목 이름을 적어 보세요"></div><div class="pick" id="gl"></div></div>
+    </form>
+    <p class="err" id="err"></p>
+    <p class="rule">추리와 의견은 재미로 나누는 이야기예요. 사거나 팔라는 권유가 아니에요. 인터넷 주소·전화번호·단체방 주소는 보낼 수 없어요.</p>
+  </footer>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3/dist/umd/supabase.js"></script>
+<script>
+(function(){
+  var C = window.__SB, $ = function(id){ return document.getElementById(id); };
+  var S = { sb: null, uid: null, admin: false, nick: '', st: null, room: null, msgs: [], ids: {}, ch: null, unread: 0, sending: false };
+  function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){ return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  function hm(t){ var d = new Date(t); if (isNaN(d)) return ''; var k = new Date(d.getTime() + 9 * 3600e3); return (k.getUTCHours() < 10 ? '0' : '') + k.getUTCHours() + ':' + (k.getUTCMinutes() < 10 ? '0' : '') + k.getUTCMinutes(); }
+  function day(t){ var d = new Date(t); if (isNaN(d)) return ''; var k = new Date(d.getTime() + 9 * 3600e3); return (k.getUTCMonth() + 1) + '월 ' + k.getUTCDate() + '일 (' + '일월화수목금토'.charAt(k.getUTCDay()) + ')'; }
+  function err(m){ $('err').textContent = m || ''; }
+  function q(p){ return Promise.resolve(p).then(function(r){ return r || {}; }, function(e){ return { error: e }; }); }
+  function msgOf(e){ var m = e && (e.message || e.msg || e.error_description) || ''; return String(m).replace(/^.*?ERROR:\s*/, ''); }
+
+  if (!C || !C.projectId || !window.supabase) { $('pname').textContent = '연결 정보를 찾지 못했어요'; return; }
+  S.sb = window.supabase.createClient('https://' + C.projectId + '.supabase.co', C.anonKey, { auth: { persistSession: true, autoRefreshToken: true, storageKey: 'leadingnote-auth', flowType: 'pkce', detectSessionInUrl: false } });
+  try { S.nick = localStorage.getItem('ln.live.nick') || ''; } catch (e) {}
+
+  $('tvch').onclick = function(ev){ ev.preventDefault(); alert('SBS Biz 채널 번호는 쓰시는 방송에 따라 달라요.\n\n· 리모컨 채널 검색에서 "SBS Biz"를 찾아보세요.\n· 휴대폰은 위의 "SBS Biz 라이브로 보기"로 볼 수 있어요.'); };
+
+  // ── 로그인 (회원이면 그대로, 아니면 익명으로 들어와서 채팅만 해요)
+  function auth(){
+    return q(S.sb.auth.getSession()).then(function(r){
+      var s = r.data && r.data.session;
+      if (s) return s;
+      return q(S.sb.auth.signInAnonymously()).then(function(a){ return a.data && a.data.session; });
+    }).then(function(s){
+      if (!s) return;
+      S.uid = s.user.id;
+      return q(S.sb.from('profiles').select('nickname,role').eq('id', S.uid).maybeSingle()).then(function(p){
+        if (p.data) { S.admin = p.data.role === 'admin'; if (p.data.nickname && !S.nick) S.nick = String(p.data.nickname).slice(0, 12); }
+      });
+    });
+  }
+
+  // ── 상태
+  var STL = { soon: '곧 시작', live: '방송 중', after: '방송 끝 · 이야기 중', extended: '연장 중 · 100명 넘게 참여', before: '열리기 전', closed: '닫혔어요', none: '오늘은 방송이 없어요' };
+  function state(){
+    return q(S.sb.rpc('live_now')).then(function(r){
+      if (r.error || !r.data) { $('pname').textContent = '방송 정보를 불러오지 못했어요'; return; }
+      var st = S.st = r.data;
+      $('pname').textContent = st.name || '방송 같이 보기';
+      var chip = $('chip'); chip.textContent = STL[st.state] || ''; chip.className = 'chip' + (st.open ? ' on' : '');
+      $('who').textContent = st.open ? (st.online || 0) + '명 참여 중' : '';
+      if (st.room && st.room !== S.room) { S.room = st.room; loadMsgs(); listen(); }
+      ui();
+    });
+  }
+  function ui(){
+    var st = S.st || {}, open = !!st.open;
+    $('form').classList.toggle('hide', !open || !S.uid || !S.nick);
+    $('nickRow').classList.toggle('hide', !open || !S.uid || !!S.nick);
+    $('adminRow').classList.toggle('hide', !S.admin);
+    if (open && !S.uid) err('지금은 글을 쓸 수 없어요. 잠시 뒤 다시 들어와 주세요.');
+    var L = $('list'), note = L.querySelector('.closed');
+    var msg = '';
+    if (!open) {
+      var nx = st.next;
+      if (st.state === 'before') msg = '<b>' + esc(st.name) + ' · 오늘 ' + hm(st.start_at) + ' 본방송</b>' + hm(st.opens_at) + '에 채팅이 열려요. 히든주 힌트가 나오면 같이 추리해요.';
+      else msg = '<b>' + (st.state === 'closed' ? '오늘 채팅은 끝났어요' : '지금은 열린 채팅이 없어요') + '</b>' + (nx ? '다음: ' + day(nx.start_at) + ' ' + hm(nx.start_at) + ' ' + esc(nx.name) + '<br>' + hm(nx.opens_at) + '에 열려요.' : '') + '<br><small>본방송 1시간 전에 열리고, 끝나고 1시간 뒤에 닫혀요.</small>';
+    }
+    if (msg) { if (!note) { note = document.createElement('div'); note.className = 'closed'; L.insertBefore(note, L.firstChild); } note.innerHTML = msg; }
+    else if (note) note.remove();
+  }
+
+  // ── 글 목록
+  function loadMsgs(){
+    var room = S.room;
+    q(S.sb.from('live_msgs').select('id,kind,user_id,nickname,body,stock_code,stock_name,created_at').eq('room', room).order('id', { ascending: false }).limit(300)).then(function(r){
+      if (room !== S.room) return;
+      S.msgs = (r.data || []).reverse(); S.ids = {}; S.msgs.forEach(function(m){ S.ids[m.id] = 1; });
+      draw(true);
+    });
+  }
+  function listen(){
+    if (S.ch) { try { S.sb.removeChannel(S.ch); } catch (e) {} }
+    var room = S.room;
+    S.ch = S.sb.channel('live-' + room)
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'live_msgs', filter: 'room=eq.' + room }, function(p){ add(p.new); })
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'live_msgs', filter: 'room=eq.' + room }, function(p){ if (p.new && p.new.hidden) { S.msgs = S.msgs.filter(function(m){ return m.id !== p.new.id; }); draw(false); } })
+      .subscribe();
+  }
+  function add(m){ if (!m || S.ids[m.id] || m.hidden) return; S.ids[m.id] = 1; S.msgs.push(m); if (S.msgs.length > 600) S.msgs = S.msgs.slice(-500); draw(false, m.user_id === S.uid); }
+  function nearBottom(){ var L = $('list'); return L.scrollHeight - L.scrollTop - L.clientHeight < 120; }
+  function draw(jump, mine){
+    var L = $('list'), keep = nearBottom() || jump || mine, h = '', last = '';
+    S.msgs.forEach(function(m){
+      var d = day(m.created_at); if (d !== last) { h += '<p class="sys">' + d + '</p>'; last = d; }
+      var cls = 'm' + (m.user_id === S.uid ? ' mine' : '') + (m.kind === 'hint' ? ' hint' : m.kind === 'guess' ? ' guess' : '');
+      var body = m.kind === 'hint' ? '힌트 · ' + esc(m.body) : m.kind === 'guess' ? '추리: ' + esc(m.stock_name || '') + (m.body ? ' · ' + esc(m.body) : '') : esc(m.body);
+      h += '<div class="' + cls + '"><div class="n">' + esc(m.nickname) + ' · ' + hm(m.created_at) + (S.admin ? ' <button class="x" data-hide="' + m.id + '">가리기</button>' : '') + '</div><div class="b">' + body + '</div></div>';
+    });
+    if (!S.msgs.length) h = '<p class="sys">' + (S.st && S.st.open ? '첫 이야기를 남겨 보세요' : '아직 나눈 이야기가 없어요') + '</p>';
+    var nb = $('newb'), note = L.querySelector('.closed'); L.innerHTML = ''; if (note) L.appendChild(note);
+    var box = document.createElement('div'); box.innerHTML = h; L.appendChild(box); L.appendChild(nb);
+    if (keep) { L.scrollTop = L.scrollHeight; S.unread = 0; } else S.unread++;
+    nb.style.display = S.unread ? 'block' : 'none'; nb.textContent = '새 글 ' + S.unread + '개 ↓';
+    board();
+  }
+  $('list').addEventListener('scroll', function(){ if (nearBottom() && S.unread) { S.unread = 0; $('newb').style.display = 'none'; } });
+  $('newb').onclick = function(){ var L = $('list'); L.scrollTop = L.scrollHeight; S.unread = 0; this.style.display = 'none'; };
+  $('list').addEventListener('click', function(ev){
+    var b = ev.target.closest('[data-hide]'); if (!b) return;
+    if (!confirm('이 글을 가릴까요?')) return;
+    q(S.sb.rpc('live_hide', { p_id: +b.getAttribute('data-hide') })).then(function(r){ if (r.error) err(msgOf(r.error)); else { S.msgs = S.msgs.filter(function(m){ return String(m.id) !== b.getAttribute('data-hide'); }); draw(false); } });
+  });
+  // 힌트 보드: 최근 힌트 3개 + 많이 나온 추리 종목 3개
+  function board(){
+    var H = S.msgs.filter(function(m){ return m.kind === 'hint'; }).slice(-3).reverse();
+    var G = {}; S.msgs.forEach(function(m){ if (m.kind === 'guess' && m.stock_code) { var g = G[m.stock_code] = G[m.stock_code] || { n: 0, name: m.stock_name, who: {} }; if (!g.who[m.user_id]) { g.who[m.user_id] = 1; g.n++; } } });
+    var top = Object.keys(G).map(function(k){ return G[k]; }).sort(function(a, b){ return b.n - a.n; }).slice(0, 3);
+    $('board').classList.toggle('hide', !H.length && !top.length);
+    $('hints').innerHTML = H.length ? H.map(function(m){ return '<p class="h">' + esc(m.body) + '</p>'; }).join('') : '<p class="e">힌트가 나오면 여기에 올라와요</p>';
+    $('guess').innerHTML = top.length ? '<span style="background:none;padding-left:0">많이 나온 추리</span>' + top.map(function(g){ return '<span>' + esc(g.name) + ' ' + g.n + '명</span>'; }).join('') : '';
+  }
+
+  // ── 보내기
+  function send(kind, body, code){
+    if (S.sending || !S.room) return Promise.resolve(false); err('');
+    S.sending = true;
+    return q(S.sb.rpc('live_send', { p_room: S.room, p_nick: S.nick, p_body: body || '', p_kind: kind, p_code: code || null })).then(function(r){
+      S.sending = false;
+      if (r.error) { err(msgOf(r.error)); return false; }
+      add(r.data); return true;
+    });
+  }
+  $('form').addEventListener('submit', function(ev){
+    ev.preventDefault(); var v = $('msg').value.trim(); if (!v) return;
+    send('chat', v).then(function(ok){ if (ok) $('msg').value = ''; });
+  });
+  $('hbtn').onclick = function(){ var v = $('msg').value.trim(); if (!v) { err('힌트 내용을 입력칸에 적어 주세요'); return; } send('hint', v).then(function(ok){ if (ok) $('msg').value = ''; }); };
+  $('nickOk').onclick = function(){
+    var v = $('nick').value.trim(); if (v.length < 2 || v.length > 12) { err('닉네임은 2~12자로 정해 주세요'); return; }
+    S.nick = v; try { localStorage.setItem('ln.live.nick', v); } catch (e) {} err(''); ui();
+  };
+  // 추리: 종목 이름으로 찾아서 고르기
+  var gt = null;
+  $('gbtn').onclick = function(){ var b = $('gbox'); b.classList.toggle('hide'); if (!b.classList.contains('hide')) $('gq').focus(); };
+  $('gq').addEventListener('input', function(){
+    clearTimeout(gt); var v = this.value.trim(); if (v.length < 1) { $('gl').innerHTML = ''; return; }
+    gt = setTimeout(function(){
+      q(S.sb.from('stocks').select('code,name').ilike('name', '%' + v.replace(/[%_,()]/g, '') + '%').order('name').limit(8)).then(function(r){
+        $('gl').innerHTML = (r.data || []).map(function(s){ return '<button type="button" data-code="' + esc(s.code) + '">' + esc(s.name) + ' <small style="color:var(--ink2)">' + esc(s.code) + '</small></button>'; }).join('') || '<p class="rule">찾는 종목이 없어요</p>';
+      });
+    }, 250);
+  });
+  $('gl').addEventListener('click', function(ev){
+    var b = ev.target.closest('[data-code]'); if (!b) return;
+    var memo = $('msg').value.trim();
+    send('guess', memo, b.getAttribute('data-code')).then(function(ok){ if (ok) { $('msg').value = ''; $('gq').value = ''; $('gl').innerHTML = ''; $('gbox').classList.add('hide'); } });
+  });
+
+  // ── 시작: 로그인 → 상태 → 20초마다 상태·접속 신호
+  function ping(){ if (S.st && S.st.open && S.uid && S.room) q(S.sb.rpc('live_ping', { p_room: S.room })).then(function(r){ if (typeof r.data === 'number' && S.st) { S.st.online = r.data; $('who').textContent = r.data + '명 참여 중'; } }); }
+  auth().then(state).then(ping);
+  setInterval(function(){ state().then(ping); }, 20000);
+  document.addEventListener('visibilitychange', function(){ if (!document.hidden) state().then(ping); });
+})();
+</script>
+</body>
+</html>

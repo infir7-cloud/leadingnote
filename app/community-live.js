@@ -6,6 +6,9 @@
    필요한 것: Supabase 표(supabase_setup.sql)와 Authentication → Allow anonymous sign-ins 켜기
    숫자는 항상 0부터 실제 참여만 세요. (예전 data-seed 옵션은 없앴어요) */
 (function(){
+  // 압축된 배포본에서도 찾도록: 그대로 없으면 공백 차이를 무시하고 찾아요
+  function __lnFind(s,a){if(s.indexOf(a)>-1)return a;var m=s.match(new RegExp(a.replace(/[.*+?^${}()|[\]\\]/g,'\\$&').replace(/(\\s)+|\s+/g,'\\s*')));return m?m[0]:null}
+
   if (window.__communityLive) return;
     var LIB = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3/dist/umd/supabase.js';
 
@@ -104,7 +107,7 @@
     try {
       var src = String(w[name]); if (src.indexOf('function') !== 0) return false;
       var out = src, hit = 0;
-      pairs.forEach(function(p){ if (out.indexOf(p[0]) > -1) { out = out.split(p[0]).join(p[1]); hit++; } });
+      pairs.forEach(function(p){ var k = __lnFind(out, p[0]); if (k) { out = out.split(k).join(p[1]); hit++; } });
       if (!hit) { log(name + ' 함수 모양이 달라 그대로 둬요'); return false; }
       w.eval(name + ' = ' + out); return true;
     } catch (e) { log(name + ' 바꾸기 실패', e); return false; }

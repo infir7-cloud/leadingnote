@@ -228,8 +228,8 @@ function start(){
 
 function shell(){
   $('#app').innerHTML='<header><div class="hd"><div class="logo">리딩노트 <small>운영실</small></div><div class="me"><span class="em">'+esc(S.me.email)+'</span><button class="btn s" id="out">로그아웃</button></div></div>'+
-  '<nav id="nav">'+[['review','검수 대기'],['add','기록 올리기'],['ingest','가져온 글'],['experts','전문가'],['bc','방송'],['bcai','방송 AI'],['brief','오늘의 5줄'],['help','설명 문구'],['pub','공개 기록'],['audit','고친 기록'],['op','전문가 의견'],['set','설정']].map(function(t){return '<button data-t="'+t[0]+'">'+t[1]+(t[0]==='review'?'<span class="badge hide" id="rvn"></span>':t[0]==='ingest'?'<span class="badge hide" id="ign" style="background:var(--acc)"></span>':'')+'</button>'}).join('')+'</nav></header>'+
-  '<div class="wrap"><div id="cwarn" class="msg warn hide" style="margin-top:12px"></div><div id="flash" class="msg hide"></div><div id="main"><div class="empty">불러오는 중…</div></div></div>';
+  '<nav id="nav">'+[['review','검수 대기 (비공개중)'],['reports','기록 신고'],['add','기록 올리기 (비공개중)'],['ingest','가져온 글 (비공개중)'],['experts','전문가'],['bc','방송'],['bcai','방송 AI'],['brief','오늘의 5줄'],['help','설명 문구'],['pub','공개 기록 (비공개중)'],['audit','고친 기록'],['op','전문가 의견 (비공개중)'],['set','설정']].map(function(t){return '<button data-t="'+t[0]+'">'+t[1]+(t[0]==='review'?'<span class="badge hide" id="rvn"></span>':t[0]==='reports'?'<span class="badge hide" id="rpn"></span>':t[0]==='ingest'?'<span class="badge hide" id="ign" style="background:var(--acc)"></span>':'')+'</button>'}).join('')+'</nav></header>'+
+  '<div class="wrap"><div id="cwarn" class="msg warn hide" style="margin-top:12px"></div><div id="dwarn" class="msg warn hide" style="margin-top:12px"></div><div id="flash" class="msg hide"></div><div id="main"><div class="empty">불러오는 중…</div></div></div>';
   $('#out').onclick=function(){sb.auth.signOut().then(function(){viewLogin()})};
   $$('#nav button').forEach(function(b){b.onclick=function(){go(b.dataset.t)}});
 }
@@ -253,8 +253,10 @@ function loadAll(){
     sb.from('bc_ai_jobs').select('*').order('published_at',{ascending:false,nullsFirst:false}).order('id',{ascending:false}).limit(40),
     sb.from('site_config').select('value').eq('key','help').maybeSingle(),
     sb.from('site_config').select('value').eq('key','bc_video').maybeSingle(),
-    sb.from('site_config').select('value').eq('key','expert_titles').maybeSingle()
+    sb.from('site_config').select('value').eq('key','expert_titles').maybeSingle(),
+    sb.from('rec_reports').select('*').order('created_at',{ascending:false}).limit(500)
   ]).then(function(rs){
+    S.reports=rs[17]&&!rs[17].error?(rs[17].data||[]):[];S.repOff=!!(rs[17]&&rs[17].error);
     S.xt=(rs[16]&&!rs[16].error&&rs[16].data&&rs[16].data.value)||{};
     S.brief=(rs[12]&&!rs[12].error&&rs[12].data&&rs[12].data.value)||{cur:null,prev:null};
     S.bcJobs=rs[13]&&!rs[13].error?(rs[13].data||[]):[];S.bcJobsOff=!!(rs[13]&&rs[13].error);
@@ -293,6 +295,37 @@ function stateOf(ex,code){
    });
   return st;
 }
+// ── 올리기 전 자동 검사 (오기록 방지)
+// 막는 것: 시각 없음·미래 시각
+// 확인만 받는 것: 다시 볼 주소 없음(카톡·텔레그램 글은 주소가 없을 수 있어서), 목표·손절 가격 순서, 최근 종가와 30% 넘는 차이, 24시간 안의 같은·비슷한 기록, 30일 넘은 기록
+var RPX={};
+function recPx(code){if(!code)return Promise.resolve(null);if(!RPX[code])RPX[code]=Promise.resolve(sb.from('stocks').select('close,as_of').eq('code',code).maybeSingle()).then(function(r){return r&&r.data&&r.data.close?r.data:null},function(){return null});return RPX[code]}
+function recN(v){return v==null||v===''?null:Number(v)}
+function recP(e){return {t:e.t,expert_id:e.expert_id,stock_code:e.stock_code,at:e.at,src_url:e.src_url,buy:recN(e.buy),target:recN(e.target),stop:recN(e.stop),sell:recN(e.sell)}}
+function recCheck(p,px,selfId){
+  var block=[],warn=[],now=Date.now(),at=p.at?new Date(p.at).getTime():NaN;
+  if(at!==at)block.push('방송·게시 시각을 적어 주세요');
+  else if(at>now+10*60e3)block.push('방송·게시 시각이 미래예요 ('+kst(p.at)+'). 날짜를 다시 확인해 주세요');
+  else if(at<now-30*864e5)warn.push('방송·게시 시각이 30일도 더 지났어요 ('+kst(p.at)+')');
+  if(/^(buy|sell|revise)$/.test(p.t)&&!/^https?:\/\/\S+/.test(p.src_url||''))warn.push('다시 볼 수 있는 주소가 없어요. 카톡·텔레그램 글이면 괜찮지만, 방송이면 다시보기 주소를 넣어 주세요');
+  var b=recN(p.buy),tg=recN(p.target),sp=recN(p.stop);
+  if(b&&tg&&tg<=b)warn.push('목표 가격 '+won(tg)+'이 구매 가격 '+won(b)+'보다 낮거나 같아요');
+  if(b&&sp&&sp>=b)warn.push('손해 막는 가격 '+won(sp)+'이 구매 가격 '+won(b)+'보다 높거나 같아요');
+  if(px&&px.close)[['buy','구매'],['sell','판매']].forEach(function(k){var v=recN(p[k[0]]);if(v&&Math.abs(v-px.close)/px.close>0.3)warn.push(k[1]+' 가격 '+won(v)+'이 최근 종가 '+won(px.close)+(px.as_of?' ('+String(px.as_of).slice(5,10).replace('-','.')+')':'')+'와 30% 넘게 달라요')});
+  if(at===at)S.events.forEach(function(e){
+    if(e.id===selfId||e.status==='rejected')return;
+    if(e.expert_id!==p.expert_id||e.stock_code!==p.stock_code||e.t!==p.t)return;
+    if(Math.abs(new Date(e.at).getTime()-at)>24*3600e3)return;
+    var same=['buy','target','stop','sell'].every(function(k){return recN(e[k])===recN(p[k])});
+    warn.push((same?'똑같은':'비슷한')+' 기록이 이미 있어요 ('+kst(e.at)+' · '+(e.status==='draft'?'검수 대기':'공개')+')');
+  });
+  return {block:block,warn:warn};
+}
+// 철회는 상태를 '거절(rejected)'로 바꾸고 메모 앞에 [철회]를 붙여요. 공개 화면·성적은 거절된 기록을 이미 빼고 있어서 서버 함수를 바꿀 필요가 없어요
+function isRet(e){return e&&e.status==='rejected'&&/^\[철회\]/.test(e.review_note||'')}
+function recConfirm(w){return !w.length||confirm('올리기 전에 확인해 주세요\n\n· '+w.join('\n· ')+'\n\n그래도 진행할까요?')}
+function recWarnHTML(L){return L.length?'<div class="msg warn" style="margin:10px 0 0">⚠ '+L.map(esc).join('<br>⚠ ')+'</div>':''}
+
 function allowed(st){return st==='holding'?['revise','strategy','news','sell']:st==='watch'?['buy','watch','strategy','news']:['buy','watch']}
 
 function evCard(e,opt){
@@ -304,7 +337,7 @@ function evCard(e,opt){
   if(e.sell)prices.push('<span><b>판매</b>'+won(e.sell)+'</span>');
   return '<div class="ev"><div class="top"><span class="tag t-'+e.t+'">'+T[e.t]+'</span><b>'+esc(exName(e.expert_id))+'</b> · '+esc(stName(e.stock_code))+
     (e.late?'<span class="tag late">늦은 입력</span>':'')+(e.corrected?'<span class="tag cor">정정됨</span>':'')+
-    (e.status==='rejected'?'<span class="tag" style="color:var(--bad)">거절됨</span>':'')+'</div>'+
+    (e.status==='rejected'?'<span class="tag" style="color:var(--bad)">'+(isRet(e)?'철회됨':'거절됨')+'</span>':'')+(repOpen(e.id)?'<span class="tag" style="color:var(--warn)">신고 '+repOpen(e.id)+'건</span>':'')+'</div>'+
     '<div class="kv"><span><b>방송·게시</b>'+kst(e.at)+'</span>'+prices.join('')+'</div>'+
     (e.text?'<div class="quote">'+esc(e.text)+'</div>':'')+
     '<div class="src">출처: '+esc(e.src_kind)+' · '+esc(e.src_channel)+(e.src_title?' · '+esc(e.src_title):'')+' · <a href="'+esc(e.src_url)+'" target="_blank" rel="noopener noreferrer">출처 열기 ↗</a></div>'+
@@ -317,23 +350,75 @@ function render(){
   var drafts=S.events.filter(function(e){return e.status==='draft'});
   var forMe=drafts.length;
   var bn=$('#rvn');bn.textContent=forMe;bn.classList.toggle('hide',!forMe);
+  var rq=repEvents().length,rn=$('#rpn');if(rn){rn.textContent=rq;rn.classList.toggle('hide',!rq)}
+  var dw=$('#dwarn'),miss=bcMissing();if(dw){dw.classList.toggle('hide',!miss.length);if(miss.length)dw.innerHTML='<b>오늘 방송 정리가 아직 공개되지 않았어요:</b> '+miss.map(esc).join(', ')+' · 방송이 끝나고 2시간이 지났어요. <a href="#bc" data-gobc="1">방송 열기</a>';var gb=dw.querySelector('[data-gobc]');if(gb)gb.onclick=function(ev){ev.preventDefault();go('bc')}}
   var ig=(S.posts||[]).filter(function(x){return pkind(x)==='rec'}).length,gn=$('#ign');gn.textContent=ig;gn.classList.toggle('hide',!ig);
   var cw=$('#cwarn'),bt=beatState();
   if(cw){var need=S.collect&&S.collect.pc&&(S.sources||[]).some(function(x){return x.kind==='tg_user'&&x.active});
     cw.classList.toggle('hide',!(need&&bt.k==='off'));if(need&&bt.k==='off')cw.innerHTML='<b>PC 수집기 신호가 '+bt.min+'분째 없어요.</b> 서브PC가 켜져 있는지, 수집기 창(LeadingNote Collector)이 떠 있는지 확인해 주세요. <a href="#set" data-goset="1">설정 보기</a>';
     var gl=cw.querySelector('[data-goset]');if(gl)gl.onclick=function(ev){ev.preventDefault();go('set')}}
-  var f={review:vReview,add:vAdd,ingest:vIngest,op:function(m){if(window.vOpinion)vOpinion(m,{sb:sb,S:S,flash:flash,exName:exName});else m.innerHTML='<div class="msg warn">ops-opinion.js 파일이 아직 없어요.</div>'},experts:vExperts,bc:vBc,bcai:vBcai,brief:vBrief,help:vHelp,pub:vPub,audit:vAudit,set:vSet}[S.tab]||vReview;
+  var f={review:vReview,reports:vReports,add:vAdd,ingest:vIngest,op:function(m){if(window.vOpinion)vOpinion(m,{sb:sb,S:S,flash:flash,exName:exName});else m.innerHTML='<div class="msg warn">ops-opinion.js 파일이 아직 없어요.</div>'},experts:vExperts,bc:vBc,bcai:vBcai,brief:vBrief,help:vHelp,pub:vPub,audit:vAudit,set:vSet}[S.tab]||vReview;
   f($('#main'));
+  // 방송만 공개 중인 동안: 방송이 아닌 출처를 다루는 메뉴 위에 안내 (기능은 그대로 써요) · #main 바깥에 둬서 화면을 다시 그려도 남아요
+  var mm=$('#main'),nb=document.getElementById('bc-only-note');
+  if(mm&&!nb){nb=document.createElement('div');nb.id='bc-only-note';nb.className='msg warn';nb.style.margin='0 0 12px';nb.innerHTML='<b>(비공개중)</b> 지금 회원 화면에는 <b>방송</b>에서 나온 종목만 보여요. 이 메뉴의 텔레그램·오픈카톡·유튜브·게시글·기사 출처 기록은 운영실에만 남고, 출처가 \'방송\'인 기록은 그대로 공개돼요.';mm.parentNode.insertBefore(nb,mm)}
+  if(nb)nb.style.display=['review','add','ingest','pub','op'].indexOf(S.tab)>-1?'':'none';
 }
 
 // ── 검수 대기
+// ── 기록 신고 (회원이 '기록이 이상해요'로 보낸 것)
+var REP_R={stock:'종목이 달라요',price:'가격이 달라요',time:'날짜·방송이 달라요',kind:'구매·판매가 바뀌었어요',etc:'기타'};
+function repOpen(id){return (S.reports||[]).filter(function(r){return r.event_id===id&&r.state==='open'}).length}
+function repEvents(){var o={};(S.reports||[]).forEach(function(r){if(r.state==='open')o[r.event_id]=(o[r.event_id]||0)+1});return Object.keys(o)}
+function vReports(m){
+  if(S.repOff){m.innerHTML='<h2>기록 신고</h2><div class="msg warn">신고 테이블이 아직 없어요. 함께 드린 SQL(02_오기록대응.sql)을 먼저 실행해 주세요.</div>';return}
+  var ids=repEvents().sort(function(a,b){return repOpen(b)-repOpen(a)});
+  var done=(S.reports||[]).filter(function(r){return r.state!=='open'});
+  var h='<h2>기록 신고'+(ids.length?'<span class="cnt">'+ids.length+'건</span>':'')+'</h2><p class="lead">회원이 \'기록이 이상해요\'로 알려 준 기록이에요. 출처를 다시 열어 보고 정정·철회하거나, 문제가 없으면 문제없음으로 닫아요. 처리 결과는 신고한 회원에게 보이지 않아요.</p>';
+  if(!ids.length)h+='<div class="card empty">확인할 신고가 없어요.</div>';
+  ids.forEach(function(id){
+    var e=S.events.find(function(x){return x.id===id}),L=(S.reports||[]).filter(function(r){return r.event_id===id&&r.state==='open'});
+    var why={};L.forEach(function(r){why[r.reason]=(why[r.reason]||0)+1});
+    var list='<div class="msg warn" style="margin:10px 0 0"><b>신고 '+L.length+'건</b> · '+Object.keys(why).map(function(k){return esc(REP_R[k]||k)+' '+why[k]}).join(' · ')+
+      L.filter(function(r){return r.memo}).slice(0,5).map(function(r){return '<br>“'+esc(r.memo)+'” <span class="src">'+kst(r.created_at)+'</span>'}).join('')+'</div>';
+    if(!e){h+='<div class="card">기록을 찾지 못했어요 (지워졌거나 오래된 기록). '+list+'<div class="acts"><button class="btn s rpx" data-id="'+esc(id)+'" data-st="dismissed">닫기</button></div></div>';return}
+    h+='<div class="card" data-id="'+esc(id)+'">'+evCard(e,{extra:list+
+      '<div class="acts">'+(e.status==='published'?'<button class="btn s cr">정정</button><button class="btn bad s rt">철회</button>':'')+
+      '<button class="btn ok s rpx" data-st="fixed">처리 끝 (고쳤어요)</button><button class="btn s rpx" data-st="dismissed">문제없음</button></div><div class="ed hide"></div>'})+'</div>';
+  });
+  if(done.length)h+='<p class="src" style="margin-top:16px">닫은 신고 '+done.length+'건은 고친 기록에서 볼 수 있어요.</p>';
+  m.innerHTML=h;
+  $$('.card',m).forEach(function(c){
+    var id=c.dataset.id,e=id&&S.events.find(function(x){return x.id===id});
+    var cr=$('.cr',c);if(cr)cr.onclick=function(){editForm($('.ed',c),e,'pub')};
+    var rt=$('.rt',c);if(rt)rt.onclick=function(){retractForm($('.ed',c),id)};
+    $$('.rpx',c).forEach(function(b){b.onclick=function(){
+      var eid=id||b.dataset.id,st=b.dataset.st,note='';
+      if(st==='dismissed'){note=prompt('문제없다고 본 이유를 짧게 적어 주세요 (예: 다시보기 12:30에 그대로 말함)')||'';if(note.trim().length<2){flash('warn','이유를 적어 주세요');return}}
+      b.disabled=true;
+      sb.rpc('ops_report_close',{p_event:eid,p_state:st,p_note:note.trim()||null}).then(function(x){if(x.error)throw x.error;return reload('ok',st==='fixed'?'신고를 처리 끝으로 닫았어요.':'문제없음으로 닫았어요.')}).catch(function(err){b.disabled=false;flash('bad',errText(err))});
+    }});
+  });
+}
+// 오늘 방송했는데(끝나고 2시간 지남) 회차 정리가 공개되지 않은 프로그램 이름
+function bcMissing(){
+  if(S.bcOff||!S.bcP||!S.bcP.length)return [];
+  var now=kNow(),ymd=kYmd(now),hm=kHm(now);
+  return S.bcP.filter(function(p){
+    if(p.active===false||!progOn(p,ymd,S.bcP))return false;
+    var t=String(p.air_time||'20:30').slice(0,5),h=+t.slice(0,2)+2;if(h>23)return false;
+    if(hm<('0'+h).slice(-2)+t.slice(2))return false;
+    return !(S.bcE||[]).some(function(e){return e.program_id===p.id&&String(e.air_date)===ymd&&(e.published||e.canceled)});
+  }).map(function(p){return p.name||p.id});
+}
+
 function vReview(m){
   var drafts=S.events.filter(function(e){return e.status==='draft'}).sort(function(a,b){return a.at<b.at?-1:1});
   var mine=[],others=drafts; // 1인 운영: 내가 올린 기록도 바로 공개할 수 있어요
   var h='<h2>검수 대기'+(drafts.length?'<span class="cnt">'+drafts.length+'건</span>':'')+'</h2><p class="lead">올린 기록을 출처와 한 번 더 맞춰 보고 공개해요. 공개하면 리딩 모음에 바로 보여요.</p>';
   if(!drafts.length)h+='<div class="card empty">검수할 기록이 없어요.</div>';
   others.forEach(function(e){
-    h+='<div class="card" data-id="'+e.id+'">'+evCard(e,{extra:
+    h+='<div class="card" data-id="'+e.id+'">'+evCard(e,{extra:'<div class="ckw"></div>'+
       '<div style="margin-top:6px"><label class="chk"><input type="checkbox" class="c1"> 출처를 열어 종목·가격이 맞는지 확인했어요</label>'+
       '<label class="chk"><input type="checkbox" class="c2"> 방송·게시 시각이 맞는지 확인했어요</label></div>'+
       '<div class="acts"><button class="btn ok pub" disabled>공개하기</button><button class="btn s edit">고치기</button><button class="btn bad s rej">거절</button></div>'+
@@ -343,6 +428,7 @@ function vReview(m){
   m.innerHTML=h;
   $$('.card[data-id]',m).forEach(function(c){
     var id=c.dataset.id,ev=S.events.find(function(x){return x.id===id});
+    if(ev&&$('.ckw',c))recPx(ev.stock_code).then(function(px){var r=recCheck(recP(ev),px,ev.id),w=$('.ckw',c);if(w)w.innerHTML=recWarnHTML(r.block.concat(r.warn))});
     var p=$('.pub',c);
     if(p){var upd=function(){p.disabled=!($('.c1',c).checked&&$('.c2',c).checked)};$('.c1',c).onchange=upd;$('.c2',c).onchange=upd;
       p.onclick=function(){p.disabled=true;sb.rpc('ops_review',{p_id:id,p_ok:true,p_note:null}).then(function(r){if(r.error)throw r.error;return reload('ok','공개했어요. 리딩 모음에 바로 보여요.')}).catch(function(e){flash('bad',errText(e));p.disabled=false})};
@@ -500,8 +586,9 @@ function vAdd(m){
     if((tv!==tv)||(sv!==sv)){flash('warn','% 로 적으려면 구매(매수) 가격을 먼저 적어 주세요');return}
     if(tv!==undefined)p.target=tv;if(sv!==undefined)p.stop=sv;
     if(t==='buy'&&!(p.buy>0)){flash('warn','구매(매수) 가격은 꼭 적어 주세요');return}
+    var ck0=recCheck(p,null);if(ck0.block.length){flash('warn',ck0.block[0]);return}
     var b=$('#asb');b.disabled=true;
-    sb.rpc('ops_add_event',{p:p}).then(function(r){if(r.error)throw r.error;
+    recPx(p.stock_code).then(function(px){if(!recConfirm(recCheck(p,px).warn)){b.disabled=false;return null}return sb.rpc('ops_add_event',{p:p})}).then(function(r){if(!r)return;if(r.error)throw r.error;
       var ing=d.ingest;S.addDraft={ex:p.expert_id,sk:p.src_kind,sc:p.src_channel};
       return (ing?sb.rpc('ops_ingest_mark',{p_id:ing,p_status:'used',p_event:r.data}).then(function(){}):Promise.resolve()).then(function(){return reload('ok','검수 대기로 올렸어요: '+exName(p.expert_id)+' · '+pick.name+' '+T[t]+'. 검수 대기에서 공개해 주세요.')});
     }).catch(function(e){flash('bad',errText(e));b.disabled=false});
@@ -809,33 +896,45 @@ function expertForm(box,x){
 }
 
 // ── 공개 기록
+// 철회: 기록 자체가 잘못된 경우(방송에서 그런 말을 안 했음 등). 지우지 않고 상태만 바꿔요
+function retractForm(box,id){
+  box.classList.remove('hide');
+  box.innerHTML='<label class="f" style="margin-top:10px"><b>철회 이유 (꼭 적어 주세요)</b><input type="text" class="rr" maxlength="200" placeholder="예: 다시보기 확인 결과 다른 종목을 말한 거였어요"></label><div class="acts"><button class="btn bad s go">철회하기</button><button class="btn s no">그만두기</button></div>';
+  $('.no',box).onclick=function(){box.classList.add('hide');box.innerHTML=''};
+  $('.go',box).onclick=function(){var r=$('.rr',box).value.trim();if(r.length<4){flash('warn','철회 이유를 4자 이상 적어 주세요');return}
+    if(!confirm('이 기록을 철회할까요?\n화면과 성적에서 빠지고, 고친 기록에는 남아요.'))return;
+    var g=this;g.disabled=true;
+    sb.rpc('ops_retract',{p_id:id,p_reason:r}).then(function(x){if(x.error)throw x.error;return reload('ok','철회했어요. 이유는 고친 기록에 남아요.')}).catch(function(e){g.disabled=false;flash('bad',errText(e))});
+  };
+}
+
 function vPub(m){
   var F=S.pf=S.pf||{ex:'',t:'all',q:''};
   var base=S.events.filter(function(e){return e.status!=='draft'});
-  var L=base.filter(function(e){if(F.ex&&e.expert_id!==F.ex)return false;if(F.t==='rejected')return e.status==='rejected';if(F.t!=='all'&&e.t!==F.t)return false;
+  var L=base.filter(function(e){if(F.ex&&e.expert_id!==F.ex)return false;if(F.t==='rejected')return e.status==='rejected'&&!isRet(e);if(F.t==='retracted')return isRet(e);if(F.t!=='all'&&e.t!==F.t)return false;
     if(F.q){var q=nk(F.q);if(nk(S.names[e.stock_code]).indexOf(q)<0&&e.stock_code.indexOf(q)<0)return false}return true});
-  var tc={};base.forEach(function(e){if(!F.ex||e.expert_id===F.ex){var k=e.status==='rejected'?'rejected':e.t;tc[k]=(tc[k]||0)+1}});
-  var h='<h2>공개 기록<span class="cnt">'+base.filter(function(e){return e.status==='published'}).length+'건</span></h2><p class="lead">틀린 곳은 정정해요. 원래 값은 고친 기록에 남아요.</p>'+
+  var tc={};base.forEach(function(e){if(!F.ex||e.expert_id===F.ex){var k=isRet(e)?'retracted':e.status==='rejected'?'rejected':e.t;tc[k]=(tc[k]||0)+1}});
+  var h='<h2>공개 기록<span class="cnt">'+base.filter(function(e){return e.status==='published'}).length+'건</span></h2><p class="lead">틀린 곳은 정정해요. 원래 값은 고친 기록에 남아요. 기록 자체가 잘못됐으면 철회해요. 철회한 기록은 화면과 성적에서 빠지고, 고친 기록에는 남아요.</p>'+
    '<div class="tb"><div class="row"><label class="f" style="margin:0"><select id="pfx"><option value="">전체 전문가</option>'+S.experts.map(function(x){return '<option value="'+esc(x.id)+'"'+(F.ex===x.id?' selected':'')+'>'+esc(x.name)+'</option>'}).join('')+'</select></label>'+
    '<label class="srch" style="display:block"><input type="text" id="pq" placeholder="종목명이나 코드로 찾기" value="'+esc(F.q)+'" autocomplete="off"></label></div>'+
-   chips('t',[['all','전체']].concat(Object.keys(T).filter(function(k){return tc[k]}).map(function(k){return [k,T[k],tc[k]]})).concat(tc.rejected?[['rejected','거절됨',tc.rejected]]:[]),F.t)+'</div>';
+   chips('t',[['all','전체']].concat(Object.keys(T).filter(function(k){return tc[k]}).map(function(k){return [k,T[k],tc[k]]})).concat(tc.rejected?[['rejected','거절됨',tc.rejected]]:[]).concat(tc.retracted?[['retracted','철회됨',tc.retracted]]:[]),F.t)+'</div>';
   h+='<div class="cnt-line">'+L.length+'건'+(L.length>300?' · 최근 300건만 보여요':'')+'</div>';
   if(!L.length)h+='<div class="card empty">'+(base.length?'조건에 맞는 기록이 없어요.':'아직 공개된 기록이 없어요.')+'</div>';
-  L.slice(0,300).forEach(function(e){h+='<div class="card" data-id="'+e.id+'">'+evCard(e,{extra:e.status==='published'?'<div class="acts"><button class="btn s cr">정정</button></div><div class="ed hide"></div>':''})+'</div>'});
+  L.slice(0,300).forEach(function(e){h+='<div class="card" data-id="'+e.id+'">'+evCard(e,{extra:e.status==='published'?'<div class="acts"><button class="btn s cr">정정</button><button class="btn bad s rt">철회</button></div><div class="ed hide"></div>':''})+'</div>'});
   m.innerHTML=h;
   combo($('#pfx'));
   $('#pfx').onchange=function(){F.ex=this.value;vPub(m)};
   onChips(m,'t',function(v){F.t=v;vPub(m)});
   var tm;$('#pq').oninput=function(){var v=this.value;clearTimeout(tm);tm=setTimeout(function(){F.q=v.trim();vPub(m);var i=$('#pq');i.focus();i.setSelectionRange(i.value.length,i.value.length)},250)};
-  $$('.card[data-id]',m).forEach(function(c){var b=$('.cr',c);if(b)b.onclick=function(){editForm($('.ed',c),S.events.find(function(x){return x.id===c.dataset.id}),'pub')}});
+  $$('.card[data-id]',m).forEach(function(c){var b=$('.cr',c);if(b)b.onclick=function(){editForm($('.ed',c),S.events.find(function(x){return x.id===c.dataset.id}),'pub')};var rt=$('.rt',c);if(rt)rt.onclick=function(){retractForm($('.ed',c),c.dataset.id)}});
 }
 
 // ── 고친 기록
-var ACT={create:'올림',edit_draft:'검수 전 고침',publish:'공개',reject:'거절',correct:'정정',expert_create:'전문가 등록',expert_edit:'전문가 고침',expert_delete:'전문가 삭제',live:'방송 표시',price_display:'시세 표시 설정',grant_operator:'운영자 추가',ingest_source:'채널 설정',revoke_operator:'운영자 해제',collect_switch:'수집 켬/끔',bc_program:'방송 편성',bc_episode:'방송 회차'};
+var ACT={create:'올림',edit_draft:'검수 전 고침',publish:'공개',reject:'거절',correct:'정정',retract:'철회',report_close:'신고 처리',expert_create:'전문가 등록',expert_edit:'전문가 고침',expert_delete:'전문가 삭제',live:'방송 표시',price_display:'시세 표시 설정',grant_operator:'운영자 추가',ingest_source:'채널 설정',revoke_operator:'운영자 해제',collect_switch:'수집 켬/끔',bc_program:'방송 편성',bc_episode:'방송 회차'};
 var KL={at:'시각',buy:'구매',target:'목표',stop:'손해 막는',sell:'판매',text:'한 말',src_url:'출처 주소',name:'이름',status:'상태'};
 function fmtv(k,v){if(v==null||v==='')return'-';if(k==='at')return kst(v);if(/^(buy|target|stop|sell)$/.test(k))return won(v);return v}
 function diff(a,b){if(!a||!b)return'';var out=[];Object.keys(KL).forEach(function(k){if(k in a&&JSON.stringify(a[k])!==JSON.stringify(b[k]))out.push(KL[k]+' '+fmtv(k,a[k])+' → '+fmtv(k,b[k]))});return out.join(' / ')}
-var AGRP={rec:['create','edit_draft','publish','reject','correct'],ex:['expert_create','expert_edit','expert_delete','live'],set:['price_display','grant_operator','revoke_operator','ingest_source','collect_switch','bc_program','bc_episode']};
+var AGRP={rec:['create','edit_draft','publish','reject','correct','retract','report_close'],ex:['expert_create','expert_edit','expert_delete','live'],set:['price_display','grant_operator','revoke_operator','ingest_source','collect_switch','bc_program','bc_episode']};
 function swText(v){v=v||{};return '공개 채널 '+(v.public?'켬':'끔')+' · PC 수집기 '+(v.pc?'켬':'끔')+' · AI 해석 '+(v.ai?'켬':'끔')}
 function vAudit(m){
   var g=S.ag||'all',A=S.audit.filter(function(a){return g==='all'||(AGRP[g]||[]).indexOf(a.action)>-1});
@@ -1437,7 +1536,7 @@ var HELP_DEF=[
   ['적중률','판매로 끝난 추천 중, 구매 가격보다 높게 판매한 비율이에요. 아직 진행 중인 추천은 세지 않아요.'],
   ['따라수익','추천대로 사고팔았다면 얻었을 수익률을 단순히 더한 값이에요(복리 아님).'],
   ['주간 성적','그 주(월~금)에 판매로 끝난 추천만 모아 계산해요. 한 주 성적은 운도 크게 작용하니 통산 성적을 함께 보세요.'],
-  ['반대지표','통산 따라수익이 가장 낮은 전문가예요. 재미로 보는 지표예요.'],
+  ['통산 아쉬운 기록','지금까지 추천을 그대로 따랐을 때 수익이 가장 낮았던 전문가예요. 기록일 뿐 평가가 아니에요.'],
   ['지금 수익률','말한 매수 가격과 가장 최근 종가를 비교한 수익률이에요. 아직 팔지 않은 추천이에요.'],
   ['매도 수익률','말한 매수 가격과 매도 가격으로 계산한 수익률이에요.'],
   ['방송일 이후 평균','이 전문가가 방송에서 추천한 종목들의, 방송에서 말한 매수 가격 대비 수익률 평균이에요.'],
@@ -1498,7 +1597,7 @@ function vSet(m){
       '<td><button class="btn s tg" data-h="'+esc(x.handle)+'" data-x="'+esc(x.expert_id||'')+'" data-on="'+(x.active?'0':'1')+'">'+(x.active?'멈추기':'다시 모으기')+'</button></td></tr>'}).join('')+'</tbody></table>':'<p class="hint" style="margin:0 0 10px">아직 등록한 채널이 없어요.</p>')+
   '<div class="row" style="margin-top:12px"><label class="f"><b>채널 주소</b><input type="text" id="th" placeholder="t.me/채널이름"></label><label class="f"><b>전문가</b><select id="tx"><option value="">선택</option>'+S.experts.map(function(x){return '<option value="'+esc(x.id)+'">'+esc(x.name)+'</option>'}).join('')+'</select></label></div>'+
   '<button class="btn p s" id="ta">채널 추가</button></div>'+
-  '<h2>시세 표시</h2><p class="lead">시세 이용계약(KRX 등)을 맺기 전에는 꺼 두세요. 꺼져 있으면 회원 화면에 가격 숫자와 수익률 대신 전문가가 말한 가격과 바로가기만 보여요.</p>'+
+  '<h2>시세 표시</h2><p class="lead">시세 이용계약(코스콤)을 맺기 전에는 꺼 두세요. 꺼져 있으면 회원 화면에 가격 숫자와 수익률 대신 전문가가 말한 가격과 바로가기만 보여요. 계약 뒤 켤 때는 app/config.js 의 LN_PX 도 true 로 바꿔야 화면에 나와요(빌드할 때 LN_PX_DATA=1 도 함께).</p>'+
   '<div class="card"><div class="sw"><b>지금: '+(pd.on?'켜짐':'꺼짐')+'</b>'+(pd.source?'<span class="tag">출처 '+esc(pd.source)+'</span>':'')+'<button class="btn s" id="pt" style="margin-left:auto">'+(pd.on?'끄기':'켜기')+'</button></div>'+
   (pd.on?'':'<div class="msg warn" style="margin-bottom:0">켜기 전에 시세 이용계약과 출처 표시 조건을 꼭 확인해 주세요.</div>')+'</div>';
   var role=function(on){var em=$('#oe').value.trim();if(!em){flash('warn','이메일을 적어 주세요');return}
@@ -1509,7 +1608,7 @@ function vSet(m){
   combo($('#tx'));
   $('#og').onclick=function(){role(true)};$('#or').onclick=function(){role(false)};
   bindCollect(m);bindPc(m);
-  $('#pt').onclick=function(){sb.rpc('ops_price_display',{p_on:!pd.on}).then(function(r){if(r.error)throw r.error;return reload('ok','시세 표시를 '+(pd.on?'껐어요.':'켰어요.'))}).catch(function(e){flash('bad',errText(e))})};
+  $('#pt').onclick=function(){if(!pd.on&&!confirm('시세 이용계약(코스콤)을 맺었나요? 계약 없이 켜면 거래소 데이터를 무단으로 보여 주게 돼요.'))return;sb.rpc('ops_price_display',{p_on:!pd.on}).then(function(r){if(r.error)throw r.error;return reload('ok','시세 표시를 '+(pd.on?'껐어요.':'켰어요.'))}).catch(function(e){flash('bad',errText(e))})};
 }
 
 sb.auth.getSession().then(function(r){if(r.data&&r.data.session)return start();viewLogin()}).catch(function(){viewLogin()});

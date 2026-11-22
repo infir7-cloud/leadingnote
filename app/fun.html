@@ -1,0 +1,380 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex"><title>놀이터</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&amp;display=swap">
+<style>
+/* 놀이터 · 재미로 머무는 곳 (운세·성향 테스트·퀴즈·기억력 게임·아침 인사 카드·밸런스 게임)
+   원칙: 종목 추천·매매 권유·시세는 어디에도 넣지 않아요. 50~80대가 쓰기 쉽게 글자·단추를 크게. */
+:root{--bg:#120F0B;--surface:#1A1611;--raise:#221D16;--line:#342C22;--ink:#F3EEE6;--ink2:#A99C8B;--accent:#FFB547;--on-accent:#221400;--soft:rgba(255,181,71,.12);--good:#6FCF97;--bad:#FF8A80;
+  --f:'IBM Plex Sans KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif;color-scheme:dark}
+:root[data-theme="light"]{--bg:#F7F3EC;--surface:#FFFFFF;--raise:#FBF8F2;--line:#E6DCCD;--ink:#221B12;--ink2:#6B5E4E;--accent:#A85B00;--on-accent:#FFFFFF;--soft:rgba(168,91,0,.08);--good:#1E7B45;--bad:#C62828;color-scheme:light}
+[hidden]{display:none!important}
+*{box-sizing:border-box}
+html{font-size:17px;-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f);line-height:1.55;word-break:keep-all}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+.wrap{max-width:640px;margin:0 auto;padding:1rem 1rem 6rem}
+.top{display:flex;align-items:center;gap:.5rem;margin:.25rem 0 1rem}
+.back{min-width:48px;min-height:48px;border:1px solid var(--line);border-radius:12px;background:var(--surface);font-size:1.25rem}
+.top h1{margin:0;font-size:1.35rem;font-weight:700}
+.sub{margin:.1rem 0 0;color:var(--ink2);font-size:.9rem}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:1.1rem;margin:0 0 .85rem}
+.hero{background:var(--soft);border-color:transparent}
+.hero small{color:var(--ink2);font-size:.85rem}
+.hero p{margin:.35rem 0 0;font-size:1.15rem;font-weight:600;line-height:1.5}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:.7rem}
+.tile{display:flex;flex-direction:column;align-items:flex-start;gap:.25rem;min-height:7.2rem;padding:1rem;border:1px solid var(--line);border-radius:16px;background:var(--surface);text-align:left}
+.tile .ic{font-size:2rem;line-height:1}
+.tile b{font-size:1.05rem}
+.tile span{font-size:.85rem;color:var(--ink2);line-height:1.4}
+.btn{display:inline-flex;align-items:center;justify-content:center;min-height:52px;padding:0 1.2rem;border-radius:14px;border:0;background:var(--accent);color:var(--on-accent);font-weight:700;font-size:1.05rem}
+.btn.ghost{background:var(--raise);color:var(--ink);border:1px solid var(--line)}
+.btn.full{width:100%}
+.row{display:flex;gap:.6rem;flex-wrap:wrap}
+.row>.btn{flex:1}
+.chips{display:flex;flex-wrap:wrap;gap:.45rem}
+.chip{min-height:48px;padding:0 1rem;border-radius:999px;border:1px solid var(--line);background:var(--surface);font-weight:600}
+.chip[aria-pressed="true"]{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
+.muted{color:var(--ink2);font-size:.85rem}
+.note{color:var(--ink2);font-size:.8rem;margin:1rem 0 0;text-align:center}
+h2{font-size:1.1rem;margin:0 0 .6rem}
+/* 운세 */
+.stars{color:var(--accent);font-size:1.3rem;letter-spacing:.1rem}
+.fl{display:grid;gap:.75rem;margin:.75rem 0 0}
+.fl div{padding:.8rem .9rem;border-radius:12px;background:var(--raise)}
+.fl b{display:block;font-size:.85rem;color:var(--ink2);font-weight:600}
+.lucky{display:grid;grid-template-columns:repeat(3,1fr);gap:.5rem;margin-top:.75rem;text-align:center}
+.lucky div{padding:.7rem .3rem;border-radius:12px;background:var(--raise)}
+.lucky small{display:block;color:var(--ink2);font-size:.78rem}
+.sw{display:inline-block;width:1rem;height:1rem;border-radius:50%;vertical-align:-.15rem;margin-right:.25rem;border:1px solid var(--line)}
+/* 테스트·퀴즈 */
+.prog{height:8px;border-radius:99px;background:var(--raise);overflow:hidden;margin:.25rem 0 1rem}
+.prog i{display:block;height:100%;background:var(--accent);border-radius:99px;transition:width .2s}
+.q{font-size:1.25rem;font-weight:700;line-height:1.5;margin:.25rem 0 1rem}
+.opts{display:grid;gap:.6rem}
+.opt{min-height:64px;padding:.8rem 1rem;border-radius:14px;border:1px solid var(--line);background:var(--surface);text-align:left;font-size:1.05rem;font-weight:600;line-height:1.45}
+.opt.ok{border-color:var(--good);background:color-mix(in srgb,var(--good) 14%,var(--surface))}
+.opt.no{border-color:var(--bad);background:color-mix(in srgb,var(--bad) 12%,var(--surface))}
+.res-big{font-size:2.6rem;line-height:1;margin:.25rem 0}
+.res-name{font-size:1.5rem;font-weight:800;margin:.25rem 0}
+.axis{display:grid;gap:.5rem;margin:.75rem 0}
+.axis div{display:grid;grid-template-columns:4.5rem 1fr 4.5rem;align-items:center;gap:.5rem;font-size:.85rem}
+.axis div span:last-child{text-align:right}
+.bar{height:10px;border-radius:99px;background:var(--raise);position:relative;overflow:hidden}
+.bar i{position:absolute;top:0;bottom:0;background:var(--accent);border-radius:99px}
+.kv{margin:.6rem 0 0;padding:.8rem .9rem;border-radius:12px;background:var(--raise)}
+.kv b{display:block;font-size:.85rem;color:var(--ink2)}
+/* 카드 뒤집기 */
+.board{display:grid;gap:.5rem;margin:.75rem 0}
+.cell{aspect-ratio:1/1;border-radius:14px;border:1px solid var(--line);background:var(--accent);font-size:2.2rem;display:flex;align-items:center;justify-content:center;padding:0;transition:transform .15s}
+.cell span{visibility:hidden}
+.cell.open,.cell.done{background:var(--surface)}
+.cell.open span,.cell.done span{visibility:visible}
+.cell.done{opacity:.55}
+/* 인사 카드 */
+.bgs{display:grid;grid-template-columns:repeat(3,1fr);gap:.5rem}
+.bgs button{padding:0;border-radius:12px;border:3px solid transparent;overflow:hidden;aspect-ratio:1/1;background:var(--raise)}
+.bgs button[aria-pressed="true"]{border-color:var(--accent)}
+.bgs img{width:100%;height:100%;display:block}
+.msgs{display:grid;gap:.45rem}
+.msgs button{min-height:52px;text-align:left;padding:.6rem .9rem;border-radius:12px;border:1px solid var(--line);background:var(--surface)}
+.msgs button[aria-pressed="true"]{border-color:var(--accent);background:var(--soft)}
+.inp{width:100%;min-height:52px;padding:0 .9rem;border-radius:12px;border:1px solid var(--line);background:var(--raise);font-size:1.05rem}
+#cardOut img{width:100%;border-radius:14px;display:block;border:1px solid var(--line)}
+/* 밸런스 */
+.vs{display:grid;grid-template-columns:1fr auto 1fr;gap:.5rem;align-items:stretch}
+.vs .opt{text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.2rem;min-height:88px}
+.vs em{font-style:normal;color:var(--ink2);align-self:center;font-weight:700}
+.vs .opt.me{border-color:var(--accent);background:var(--soft)}
+.pc{font-size:1.25rem;font-weight:800}
+.split{display:flex;height:12px;border-radius:99px;overflow:hidden;margin-top:.6rem;background:var(--raise)}
+.split i:first-child{background:var(--accent)}
+.split i:last-child{background:var(--ink2);opacity:.45}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+</style></head><body>
+<main class="wrap" id="app" aria-live="polite"></main>
+<script>
+(function(){
+'use strict';
+var APP='fun';
+/* ---------- 공통 ---------- */
+function $(s,r){return (r||document).querySelector(s)}
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+function today(){var d=new Date(Date.now()+9*36e5);return d.toISOString().slice(0,10)}           /* 한국 날짜 */
+function hash(s){var h=2166136261;for(var i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)}return h>>>0}
+function pick(a,seed){return a[seed%a.length]}
+function shuffle(a,seed){a=a.slice();var s=seed||Math.floor(Math.random()*1e9);for(var i=a.length-1;i>0;i--){s=(Math.imul(s,1103515245)+12345)>>>0;var j=s%(i+1),t=a[i];a[i]=a[j];a[j]=t}return a}
+var LS='fun.v1';function st(){try{return JSON.parse(localStorage.getItem(LS))||{}}catch(e){return {}}}
+function put(k,v){var o=st();o[k]=v;try{localStorage.setItem(LS,JSON.stringify(o))}catch(e){}}
+function send(type,app,route){try{parent.postMessage({site:1,type:type,app:app||'',route:route||''},'*')}catch(e){}}
+function sb(){try{return parent.__lnAuth&&parent.__lnAuth.sb||null}catch(e){return null}}
+function toast(m){var t=$('#toast');if(!t){t=document.createElement('div');t.id='toast';t.setAttribute('role','status');t.style.cssText='position:fixed;left:50%;bottom:1.5rem;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:.7rem 1.1rem;border-radius:12px;font-weight:600;z-index:9;max-width:90%';document.body.appendChild(t)}t.textContent=m;t.hidden=false;clearTimeout(t._t);t._t=setTimeout(function(){t.hidden=true},2400)}
+var ROUTE='home',S={};
+function top(title,sub){return '<div class="top"><button class="back" data-go="home" aria-label="놀이터 처음으로">‹</button><div><h1>'+esc(title)+'</h1>'+(sub?'<p class="sub">'+esc(sub)+'</p>':'')+'</div></div>'}
+var SAFE='재미로 즐기는 콘텐츠예요. 투자 권유나 투자 판단의 근거가 아니에요.';
+
+/* ---------- 오늘의 한 줄 ---------- */
+var LINE=['서두르면 놓치는 게 더 많아요. 오늘은 천천히.','남과 비교하지 않는 하루가 가장 편안해요.','모르는 건 모른다고 말하는 게 진짜 실력이에요.','기록하는 사람이 결국 덜 후회해요.','좋은 소식일수록 한 번 더 확인해요.','쉬는 것도 계획의 일부예요.','오늘 배운 한 가지가 내일의 힘이 돼요.','큰 결정은 하룻밤 자고 나서 해도 늦지 않아요.','잘한 일은 나를 칭찬하고, 아쉬운 일은 적어 둬요.','소문보다 확인된 사실을 믿어요.','욕심이 커질 때가 쉬어 갈 때예요.','웃으며 하는 일이 오래가요.','꾸준함은 재능을 이겨요.','걱정의 대부분은 일어나지 않아요.','오늘의 작은 절약이 내일의 여유예요.','남의 확신보다 내 원칙이 먼저예요.','모든 날이 좋을 수는 없지만, 좋은 일은 모든 날에 있어요.','천천히 가도 멈추지만 않으면 돼요.','잘 모르는 곳엔 큰돈을 쓰지 않아요.','실수는 배움의 다른 이름이에요.','오늘 할 일은 오늘, 걱정은 내일로.','고마운 사람에게 먼저 연락해 보는 날.','건강이 가장 확실한 재산이에요.','한 걸음 물러서면 더 넓게 보여요.','듣는 귀가 큰 사람이 결국 많이 얻어요.','작은 약속을 지키는 하루가 큰 믿음을 만들어요.','몸이 피곤하면 마음도 급해져요. 오늘은 일찍 쉬어요.','기분이 좋을 때 하는 결정도 한 번 더 살펴봐요.'];
+
+/* ---------- 홈 ---------- */
+var TILES=[['luck','🐯','오늘의 운세','띠별로 보는 하루'],['test','🧭','주식 성향 테스트','나는 어떤 주식쟁이?'],['quiz','📝','두뇌 퀴즈','사자성어·속담·넌센스'],['game','🃏','카드 짝 맞추기','기억력 쑥쑥'],['card','🌸','아침 인사 카드','카톡으로 보내기'],['bal','⚖️','밸런스 게임','둘 중 하나만!']];
+function vHome(){
+  var d=today(),line=pick(LINE,hash(d+'|line'));
+  return '<div class="top"><div><h1>놀이터</h1><p class="sub">잠깐 쉬어 가는 곳이에요</p></div></div>'+
+    '<section class="card hero"><small>'+(+d.slice(5,7))+'월 '+(+d.slice(8,10))+'일 오늘의 한 줄</small><p>'+esc(line)+'</p></section>'+
+    '<div class="grid">'+TILES.map(function(t){return '<button class="tile" data-go="'+t[0]+'"><span class="ic" aria-hidden="true">'+t[1]+'</span><b>'+t[2]+'</b><span>'+t[3]+'</span></button>'}).join('')+'</div>'+
+    '<p class="note">'+SAFE+'</p>';
+}
+
+/* ---------- 띠별 운세 ---------- */
+var TT=[['쥐','🐭'],['소','🐮'],['호랑이','🐯'],['토끼','🐰'],['용','🐲'],['뱀','🐍'],['말','🐴'],['양','🐑'],['원숭이','🐵'],['닭','🐔'],['개','🐶'],['돼지','🐷']];
+function years(i){var a=[];for(var y=1936;y<=2010;y++)if((y-4)%12===i)a.push(y);return a}
+var F_ALL=['막혔던 일이 조금씩 풀리는 날이에요. 서두르지 않으면 더 좋아요.','반가운 소식이 들려올 수 있어요. 전화를 잘 받아 보세요.','오래된 친구가 떠오르는 날이에요. 먼저 안부를 물어 보세요.','작은 일에도 정성을 들이면 칭찬이 따라와요.','계획보다 한 박자 쉬어 가면 실수를 줄일 수 있어요.','기분 좋은 우연이 생길 수 있는 날이에요.','말 한마디가 복을 부르는 날이에요. 고운 말을 골라 써 보세요.','집안에 웃음이 많아지는 날이에요.','미뤄 둔 정리를 하기 좋은 날이에요. 마음까지 가벼워져요.','도움을 청하면 생각보다 쉽게 해결돼요.','새로운 것을 배우면 오래 기억에 남는 날이에요.','조금 피곤해도 저녁에는 보람이 남아요.','욕심을 내려놓으면 오히려 얻는 게 많아요.','가까운 사람과 맛있는 걸 나누면 운이 더 좋아져요.','산책하다 좋은 생각이 떠오를 수 있어요.','남의 말에 흔들리지 말고 내 속도대로 가면 돼요.','기다리던 일이 한 걸음 가까워져요.','웃는 얼굴이 행운을 끌어오는 날이에요.','오전보다 오후에 일이 잘 풀려요.','정리 정돈을 하면 잃어버린 물건을 찾을 수 있어요.'];
+var F_MONEY=['작은 지출을 아끼면 마음이 넉넉해져요.','뜻밖의 할인이나 덤을 만날 수 있어요.','빌려준 것을 돌려받을 기회가 생겨요.','사고 싶은 게 생기면 하루만 미뤄 보세요.','가계부를 한 줄 적어 두면 좋은 날이에요.','지갑 속 영수증을 정리하면 기분까지 가벼워져요.','누군가에게 밥 한 끼 사면 더 큰 복으로 돌아와요.','큰돈이 드는 결정은 가족과 한 번 더 이야기해 보세요.','공과금·카드 날짜를 확인하기 좋은 날이에요.','오늘은 쓰는 것보다 아끼는 쪽이 운이 좋아요.'];
+var F_BODY=['물 한 잔 더 마시면 몸이 가벼워져요.','가벼운 스트레칭으로 하루를 시작해 보세요.','천천히 걷는 산책이 잘 맞는 날이에요.','일찍 잠자리에 들면 내일이 더 개운해요.','따뜻한 차 한 잔이 잘 맞는 날이에요.','오래 앉아 있었다면 한 시간에 한 번 일어나 보세요.','햇볕을 쬐며 걸으면 기분이 밝아져요.','짠 음식은 조금 줄이면 좋은 날이에요.'];
+var F_PEOPLE=['가족에게 고맙다는 말을 전해 보세요.','오랜만에 연락한 사람과 웃을 일이 생겨요.','듣는 쪽이 되어 주면 사이가 더 가까워져요.','작은 선물이 큰 기쁨이 되는 날이에요.','서운한 일은 오늘 털어 버리는 게 좋아요.','이웃과 인사를 나누면 좋은 소식이 따라와요.'];
+var COL=[['하늘색','#7EC8E3'],['연두색','#A8D86E'],['노란색','#F6D55C'],['주황색','#F4A259'],['분홍색','#F497B6'],['보라색','#A98BD8'],['흰색','#FFFFFF'],['남색','#2E4A7D'],['초록색','#3FA66B'],['빨간색','#E05A4F'],['베이지','#E8D6B9'],['금색','#D4A843']];
+var DIR=['동쪽','서쪽','남쪽','북쪽','남동쪽','남서쪽','북동쪽','북서쪽'];
+function vLuck(){
+  var me=st().zodiac;
+  var h=top('오늘의 운세','띠를 고르면 다음부터 바로 보여 드려요');
+  h+='<div class="chips" role="group" aria-label="띠 고르기">'+TT.map(function(t,i){return '<button class="chip" data-z="'+i+'" aria-pressed="'+(me===i)+'">'+t[1]+' '+t[0]+'띠</button>'}).join('')+'</div>';
+  if(me==null){h+='<p class="muted" style="margin-top:1rem">태어난 해로 찾기: 예) 1962년생은 호랑이띠, 1958년생은 개띠예요. (음력 설 기준)</p>';return h+'<p class="note">'+SAFE+'</p>'}
+  var d=today(),s=hash(d+'|z'+me),t=TT[me];
+  var star=3+(s%3),c=pick(COL,s>>>3);
+  h+='<section class="card" style="margin-top:1rem"><h2>'+t[1]+' '+t[0]+'띠 · '+(+d.slice(5,7))+'월 '+(+d.slice(8,10))+'일</h2>'+
+    '<div class="stars" aria-label="5점 만점에 '+star+'점">'+'★★★★★'.slice(0,star)+'<span style="opacity:.3">'+'★★★★★'.slice(0,5-star)+'</span></div>'+
+    '<div class="fl"><div><b>오늘의 흐름</b>'+esc(pick(F_ALL,s))+'</div><div><b>살림</b>'+esc(pick(F_MONEY,s>>>5))+'</div><div><b>건강</b>'+esc(pick(F_BODY,s>>>9))+'</div><div><b>사람</b>'+esc(pick(F_PEOPLE,s>>>13))+'</div></div>'+
+    '<div class="lucky"><div><small>행운의 색</small><span class="sw" style="background:'+c[1]+'"></span>'+c[0]+'</div><div><small>행운의 숫자</small>'+(1+(s>>>17)%9)+'</div><div><small>행운의 방향</small>'+pick(DIR,s>>>21)+'</div></div>'+
+    '<p class="muted" style="margin:.75rem 0 0">해당 해: '+years(me).join(', ')+'년생</p></section>';
+  return h+'<p class="note">재미로 보는 운세예요. 큰 결정은 운세가 아니라 충분한 정보와 상의로 해 주세요.</p>';
+}
+
+/* ---------- 주식 성향 테스트 ---------- */
+/* 4가지 축 × 3문항. 0/1 = 왼쪽/오른쪽 성향. 결과 번호 = 정보·근거·판단·매매 순서의 0/1 (예: 0101) */
+var AX=[['정보','소통형','독학형'],['근거','숫자형','이야기형'],['판단','원칙형','마음형'],['매매','계획형','순발력형']];
+var TQ=[
+ [0,'좋은 종목 이야기를 들으면?','카톡방이나 지인에게 바로 알려 준다','혼자 더 알아본 뒤 조용히 판단한다'],
+ [1,'종목을 볼 때 먼저 눈이 가는 건?','실적·이익 같은 숫자','앞으로의 이야기와 테마'],
+ [2,'산 종목이 10% 떨어지면?','정해 둔 원칙대로 정리한다','정든 종목이라 조금 더 믿어 본다'],
+ [3,'사기 전에 나는?','살 가격·목표·손절을 미리 정한다','장을 보면서 그때그때 정한다'],
+ [0,'주식 정보는 주로 어디서?','방송·카톡방·모임','기사·공시·책을 혼자'],
+ [1,'방송 전문가 말 중 더 끌리는 건?','"영업이익이 30% 늘었어요"','"이 산업이 10년 뒤 세상을 바꿔요"'],
+ [2,'전문가를 고를 때 더 중요한 건?','지난 기록과 성적','말투와 인상, 믿음이 가는지'],
+ [3,'매매 기록은?','꼬박꼬박 적는다','머릿속에만 있다'],
+ [0,'수익이 났을 때 나는?','누군가에게 이야기하고 싶다','혼자 조용히 뿌듯하다'],
+ [1,'차트와 뉴스 중 하나만 본다면?','차트와 숫자','뉴스와 이야기'],
+ [2,'팔고 나서 더 오르면?','원칙대로 했으니 괜찮다','며칠 아쉬워서 잠이 안 온다'],
+ [3,'장중에 갑자기 화제 종목이 뜨면?','계획에 없으면 지나친다','일단 들여다본다']];
+/* 팁의 이동: [앱, 화면] — 셸의 각 서비스로 보내요 */
+var TIP={pr:['tools','calc','지금 가격 넣어 보기·계산기 열기'],fee:['tools','calc','수수료·세금 계산기 열기'],tp:['tools','tp','목표·손절가 계산기 열기'],watch:['ln','watch','관심 종목 열기'],rank:['ln','rank','전문가 성적표 열기'],my:['ln','more','MY 열기'],learn:['tools','learn','아카데미 열기'],cm:['cm','home','이번 주 토론 열기'],bc:['ln','bc','방송종목 열기']};
+var TYPES={
+'0000':['📋','원칙 반장','숫자로 정리하고 원칙대로 움직여요. 카톡방에선 정리 담당.','기준이 분명해서 흔들림이 적어요.','내 원칙을 남에게도 강요하기 쉬워요.','방송 종목의 목표가·손절가를 내 기준과 나란히 놓고 비교해 보세요.','tp'],
+'0001':['⚡','장중 번개','숫자를 보고 빠르게 움직이는 행동파예요.','결단이 빠르고 망설임이 적어요.','빠른 만큼 거래가 잦아져 수수료가 쌓여요.','한 달 동안 낸 수수료·세금을 계산기로 한 번 확인해 보세요.','fee'],
+'0010':['🧺','카톡방 살림꾼','정보를 꼼꼼히 정리해 사람들과 나눠요.','꼼꼼하고 다정해서 믿고 찾는 사람이 많아요.','정든 종목은 팔기 어려워해요.','관심 종목에 올려 두고, 전문가 정리 발언 알림을 받아 보세요.','watch'],
+'0011':['🏄','분위기 서퍼','시장 분위기를 잘 읽고 잘 탑니다.','흐름을 남보다 빨리 알아채요.','분위기에 휩쓸려 계획에 없던 매수를 하기 쉬워요.','사기 전에 목표·손절가 계산기로 나갈 곳부터 정해 보세요.','tp'],
+'0100':['🗺️','큰그림 사령관','산업의 큰 흐름을 보고 계획대로 나눠 담아요.','멀리 보고 비중을 조절해요.','계획이 틀렸을 때 인정이 늦을 수 있어요.','전문가 성적표에서 정리 발언까지 이어진 기록을 함께 보세요.','rank'],
+'0101':['🧭','테마 탐험가','새로운 이야기를 먼저 찾아내고 토론을 즐겨요.','새 흐름을 남보다 빨리 발견해요.','이야기만 있고 숫자가 없는 종목을 조심해요.','커뮤니티 토론에서 반대 의견도 들어 보세요.','cm'],
+'0110':['📣','종목 전도사','좋아하는 회사를 주변에 알리고 오래 함께해요.','확신이 있고 오래 기다릴 줄 알아요.','내 종목의 나쁜 소식을 못 본 척하기 쉬워요.','방송종목에서 같은 회사에 대한 다른 전문가 의견도 찾아보세요.','bc'],
+'0111':['🎈','설렘 수집가','새 이야기에 설레고 여러 종목을 조금씩 담아요.','열린 마음으로 많이 배워요.','종목이 너무 많아져 관리가 어려워요.','MY의 내 매수가 기록에 한곳으로 정리해 보세요.','my'],
+'1000':['📚','재무제표 장인','혼자 숫자를 파고들고 계획대로 움직여요.','근거가 탄탄해요.','공부하다 때를 놓칠 수 있어요.','아카데미로 지표 읽는 법을 가볍게 복습해 보세요.','learn'],
+'1001':['🎯','차트 저격수','혼자 집중해서 정확한 때를 노려요.','집중력이 좋고 실행이 깔끔해요.','혼자라 남의 확인 없이 실행하기 쉬워요.','실행 전에 수수료·세금까지 뺀 실제 남는 돈을 계산해 보세요.','fee'],
+'1010':['🛡️','우량주 지킴이','잘 아는 회사를 오래 들고 가요.','인내심이 강해요.','상황이 바뀌어도 그대로 두기 쉬워요.','지금 가격 넣어 보기로 산 가격과 가끔 비교해 보세요.','pr'],
+'1011':['🌙','조용한 짝사랑','아끼는 종목을 혼자 오래 지켜봐요.','꼼꼼히 관찰해요.','감정이 앞서면 사고팔 때를 놓쳐요.','관심 종목 알림으로 감 대신 기록을 보세요.','watch'],
+'1100':['🔭','10년 설계자','미래를 혼자 연구하고 원칙대로 오래 가요.','긴 계획을 끝까지 지켜요.','지금의 숫자를 가볍게 볼 수 있어요.','방송에서 전문가가 말한 근거를 내 생각과 비교해 보세요.','bc'],
+'1101':['🔬','리포트 연구원','공부는 끝이 없고 실행은 신중해요.','깊이 있게 이해해요.','너무 오래 고민하다 기회를 흘려보내요.','사기 전 기준 세 가지를 정해 두고, 목표·손절가 계산기로 정리해 보세요.','tp'],
+'1110':['🕯️','가치 철학자','회사의 철학과 비전을 믿고 기다려요.','흔들림 없는 믿음이 있어요.','믿음이 숫자보다 앞설 때가 있어요.','전문가 성적표에서 같은 종목의 정리 기록을 확인해 보세요.','rank'],
+'1111':['🌈','꿈꾸는 여행자','좋아하는 미래 이야기를 따라 자유롭게 움직여요.','상상력이 풍부하고 즐겁게 투자해요.','계획 없이 들어갔다가 오래 묶이기 쉬워요.','들어가기 전에 목표·손절가 계산기로 나갈 곳부터 정해 보세요.','tp']};
+function flip(code,bits){return code.split('').map(function(c,i){return bits.indexOf(i)>-1?(c==='0'?'1':'0'):c}).join('')}
+function vTest(){
+  var h=top('주식 성향 테스트','12문항 · 1분이면 끝나요');
+  if(S.tcode)return h+tResult(S.tcode,S.tscore,S.tshared);
+  if(S.ti==null)return h+'<section class="card hero"><p>나는 어떤 주식쟁이일까?</p><p class="muted" style="font-weight:400;margin-top:.5rem">정보를 얻는 방법, 고르는 근거, 판단하는 방식, 사고파는 스타일로 16가지 유형 중 하나를 알려 드려요.</p></section><button class="btn full" data-t="start">시작하기</button><p class="note">'+SAFE+' 투자성향 진단(적합성 평가)도 아니에요.</p>';
+  var q=TQ[S.ti];
+  return h+'<div class="prog" aria-hidden="true"><i style="width:'+(S.ti/TQ.length*100)+'%"></i></div><p class="muted">'+(S.ti+1)+' / '+TQ.length+'</p><p class="q">'+esc(q[1])+'</p><div class="opts"><button class="opt" data-a="0">'+esc(q[2])+'</button><button class="opt" data-a="1">'+esc(q[3])+'</button></div>'+(S.ti?'<p style="margin-top:1rem"><button class="btn ghost" data-t="prev">이전 문항</button></p>':'');
+}
+function tResult(code,score,shared){
+  var T=TYPES[code];if(!T)return '';
+  var best=flip(code,[0,3]),worst=flip(code,[1,2]),tip=TIP[T[6]];
+  var ax=score?'<div class="axis">'+AX.map(function(a,i){var r=score[i]/3;return '<div><span>'+a[1]+'</span><span class="bar"><i style="'+(r>=.5?'left:50%;width:'+((r-.5)*100)+'%':'right:50%;width:'+((.5-r)*100)+'%')+'"></i></span><span>'+a[2]+'</span></div>'}).join('')+'</div>':'';
+  return (shared?'<p class="muted">친구가 보낸 결과예요</p>':'')+
+   '<section class="card" style="text-align:center"><div class="res-big" aria-hidden="true">'+T[0]+'</div><div class="res-name">'+esc(T[1])+'</div><p style="margin:.25rem 0 0">'+esc(T[2])+'</p>'+
+   '<p class="muted" style="margin:.5rem 0 0">'+code.split('').map(function(c,i){return AX[i][c==='0'?1:2]}).join(' · ')+'</p></section>'+ax+
+   '<div class="kv"><b>이런 점이 좋아요</b>'+esc(T[3])+'</div><div class="kv"><b>이런 점은 조심해요</b>'+esc(T[4])+'</div>'+
+   '<div class="kv"><b>리딩노트 이렇게 써 보세요</b>'+esc(T[5])+'<div style="margin-top:.6rem"><button class="btn ghost full" data-x="go:'+tip[0]+':'+tip[1]+'">'+esc(tip[2])+' ›</button></div></div>'+
+   '<div class="kv"><b>잘 맞는 친구</b>'+TYPES[best][0]+' '+esc(TYPES[best][1])+' · 서로 부족한 점을 채워 줘요</div>'+
+   '<div class="kv"><b>자주 부딪히는 친구</b>'+TYPES[worst][0]+' '+esc(TYPES[worst][1])+' · 의견이 엇갈리지만 배울 점이 많아요</div>'+
+   '<div class="row" style="margin-top:1rem">'+(shared?'<button class="btn" data-t="restart">나도 해 보기</button>':'<button class="btn" data-share="test">카톡으로 자랑하기</button><button class="btn ghost" data-t="restart">다시 하기</button>')+'</div>'+
+   '<p class="note">'+SAFE+'</p>';
+}
+function tAnswer(a){
+  S.tans=S.tans||[];S.tans[S.ti]=a;
+  if(S.ti<TQ.length-1){S.ti++;return render()}
+  var sc=[0,0,0,0];TQ.forEach(function(q,i){sc[q[0]]+=S.tans[i]});
+  S.tscore=sc;S.tcode=sc.map(function(v){return v>=2?'1':'0'}).join('');S.tshared=false;
+  var o=st();o.test=S.tcode;put('test',S.tcode);render();
+}
+
+/* ---------- 두뇌 퀴즈 ---------- */
+var IDIOM=[['유비무환','미리 준비하면 걱정할 것이 없다'],['고진감래','고생 끝에 즐거움이 온다'],['사필귀정','모든 일은 결국 바른길로 돌아간다'],['새옹지마','좋은 일과 나쁜 일은 늘 바뀌어 미리 알 수 없다'],['과유불급','지나침은 모자람과 같다'],['일석이조','한 가지 일로 두 가지 이익을 얻는다'],['동병상련','어려운 처지의 사람끼리 서로 가엾게 여긴다'],['다다익선','많으면 많을수록 더 좋다'],['우공이산','꾸준히 노력하면 큰일도 이룰 수 있다'],['금상첨화','좋은 일에 또 좋은 일이 더해진다'],['설상가상','어려운 일이 연거푸 일어난다'],['오비이락','공교롭게 때가 겹쳐 억울한 의심을 받는다'],['대기만성','큰 인물은 늦게 이루어진다'],['마이동풍','남의 말을 귀담아듣지 않고 흘려버린다'],['십시일반','여럿이 조금씩 힘을 모으면 한 사람을 돕기 쉽다'],['역지사지','처지를 바꾸어 생각해 본다'],['온고지신','옛것을 익혀 새것을 안다'],['이심전심','말하지 않아도 마음이 서로 통한다'],['자업자득','자기가 한 일의 결과를 자기가 받는다'],['전화위복','나쁜 일이 바뀌어 오히려 복이 된다'],['죽마고우','어릴 때부터 함께 자란 오랜 친구'],['청출어람','제자가 스승보다 나아진다'],['타산지석','남의 하찮은 말이나 행동도 나를 닦는 데 도움이 된다'],['호사다마','좋은 일에는 방해가 따르기 쉽다'],['견물생심','물건을 보면 갖고 싶은 마음이 생긴다'],['우유부단','망설이기만 하고 결단을 내리지 못한다'],['작심삼일','결심이 사흘을 가지 못한다'],['감언이설','귀가 솔깃하도록 비위를 맞추는 달콤한 말'],['일취월장','날마다 달마다 발전한다'],['노심초사','몹시 마음을 쓰며 애를 태운다'],['각골난망','입은 은혜가 뼈에 새겨질 만큼 잊히지 않는다'],['조삼모사','눈앞의 차이만 보고 결과가 같은 것을 모른다']];
+var PROV=[['가는 말이 고와야','오는 말이 곱다'],['낮말은 새가 듣고','밤말은 쥐가 듣는다'],['천 리 길도','한 걸음부터'],['소 잃고','외양간 고친다'],['원숭이도','나무에서 떨어진다'],['티끌 모아','태산'],['세 살 버릇','여든까지 간다'],['고래 싸움에','새우 등 터진다'],['백지장도','맞들면 낫다'],['등잔 밑이','어둡다'],['바늘 도둑이','소도둑 된다'],['돌다리도','두들겨 보고 건너라'],['열 번 찍어','안 넘어가는 나무 없다'],['발 없는 말이','천 리 간다'],['사공이 많으면','배가 산으로 간다'],['떡 줄 사람은 생각도 않는데','김칫국부터 마신다'],['개구리','올챙이 적 생각 못 한다'],['될성부른 나무는','떡잎부터 알아본다'],['하늘이 무너져도','솟아날 구멍이 있다'],['호랑이도','제 말 하면 온다'],['콩 심은 데 콩 나고','팥 심은 데 팥 난다'],['아니 땐 굴뚝에','연기 날까'],['빈 수레가','요란하다'],['윗물이 맑아야','아랫물이 맑다'],['가랑비에','옷 젖는 줄 모른다'],['꿩 먹고','알 먹는다'],['말 한마디로','천 냥 빚을 갚는다'],['쥐구멍에도','볕 들 날 있다']];
+var NONS=[['세상에서 가장 뜨거운 과일은?','천도복숭아'],['왕이 넘어지면?','킹콩'],['바나나가 웃으면?','바나나킥'],['세상에서 가장 쉬운 숫자는?','190,000 (십구만)'],['소가 웃으면?','우하하'],['물고기의 반대말은?','불고기'],['아몬드가 죽으면?','다이아몬드'],['엄마가 길을 잃으면?','맘마미아'],['세상에서 가장 빠른 닭은?','후다닥'],['세상에서 가장 가난한 왕은?','최저임금'],['다리미가 좋아하는 음식은?','피자'],['오리가 얼면?','언덕'],['칼이 정색하면?','검정색'],['세상에서 제일 지루한 중학교는?','로딩중'],['개가 사람을 가르치면?','개인지도'],['자동차를 발로 차면?','카놀라유'],['할아버지가 가장 좋아하는 돈은?','할머니'],['소금의 유통기한은?','천일'],['진짜 문제투성이인 것은?','시험지'],['사과가 웃으면?','풋사과']];
+var QK=[['idiom','사자성어','뜻을 보고 맞혀요'],['prov','속담 잇기','뒷말을 이어요'],['nons','넌센스','웃으면서 풀어요']];
+function mkQuiz(kind){
+  var pool=kind==='idiom'?IDIOM:kind==='prov'?PROV:NONS,qs=shuffle(pool).slice(0,5);
+  return qs.map(function(p,i){
+    var rev=kind==='idiom'&&i%2===1;  /* 사자성어는 뜻→말, 말→뜻을 번갈아 */
+    var ans=kind==='idiom'?(rev?p[1]:p[0]):p[1],
+        q=kind==='idiom'?(rev?'"'+p[0]+'"의 뜻은?':'"'+p[1]+'"'):kind==='prov'?p[0]+' ___':p[0];
+    var others=shuffle(pool.filter(function(x){return x!==p})).slice(0,3).map(function(x){return kind==='idiom'?(rev?x[1]:x[0]):x[1]});
+    return {q:q,ans:ans,opts:shuffle(others.concat([ans]))};
+  });
+}
+function vQuiz(){
+  var h=top('두뇌 퀴즈','한 판에 5문제');
+  if(!S.qk){var best=st().qbest||{};return h+'<div class="opts">'+QK.map(function(k){return '<button class="opt" data-qk="'+k[0]+'"><b>'+k[1]+'</b><br><span class="muted">'+k[2]+(best[k[0]]!=null?' · 최고 '+best[k[0]]+'점':'')+'</span></button>'}).join('')+'</div><p class="note">매일 한 판씩 풀면 두뇌 운동이 돼요.</p>'}
+  var Q=S.qs,i=S.qi;
+  if(i>=Q.length){var sc=S.qok,best=st().qbest||{},nb=best[S.qk]==null||sc>best[S.qk];if(nb){best[S.qk]=sc;put('qbest',best)}
+    var msg=sc===5?'완벽해요! 두뇌 나이 청춘':sc>=3?'잘하셨어요!':'다음 판은 더 잘될 거예요';
+    return h+'<section class="card" style="text-align:center"><div class="res-big">'+sc+' / 5</div><div class="res-name">'+msg+'</div>'+(nb?'<p class="muted">최고 기록이에요</p>':'')+'</section><div class="row"><button class="btn" data-qk="'+S.qk+'">한 판 더</button><button class="btn ghost" data-share="quiz">친구에게 도전장</button></div><p style="margin-top:.6rem"><button class="btn ghost full" data-q="menu">다른 퀴즈 고르기</button></p>'}
+  var q=Q[i],k=QK.filter(function(x){return x[0]===S.qk})[0];
+  return h+'<div class="prog" aria-hidden="true"><i style="width:'+(i/Q.length*100)+'%"></i></div><p class="muted">'+k[1]+' · '+(i+1)+' / '+Q.length+'</p><p class="q">'+esc(q.q)+'</p><div class="opts">'+q.opts.map(function(o,j){var cls=S.qpick==null?'':o===q.ans?' ok':j===S.qpick?' no':'';return '<button class="opt'+cls+'" data-qa="'+j+'"'+(S.qpick!=null?' disabled':'')+'>'+esc(o)+'</button>'}).join('')+'</div>'+
+    (S.qpick!=null?'<p style="margin-top:1rem"><button class="btn full" data-q="next">'+(i<Q.length-1?'다음 문제':'결과 보기')+'</button></p>':'');
+}
+
+/* ---------- 카드 짝 맞추기 ---------- */
+var FR=['🍎','🍊','🍋','🍇','🍓','🍑','🍒','🍉'];
+function newGame(lv){var n=lv==='hard'?8:6,cs=shuffle(FR).slice(0,n);S.g={lv:lv,cells:shuffle(cs.concat(cs)).map(function(f){return {f:f,open:false,done:false}}),sel:[],moves:0,t0:Date.now(),lock:false}}
+function vGame(){
+  var h=top('카드 짝 맞추기','같은 그림 두 장을 찾아요');
+  if(!S.g)return h+'<div class="opts"><button class="opt" data-lv="easy"><b>쉬움</b> · 카드 12장</button><button class="opt" data-lv="hard"><b>보통</b> · 카드 16장</button></div>'+bestLine();
+  var g=S.g,cols=g.lv==='hard'?4:4,left=g.cells.filter(function(c){return !c.done}).length;
+  if(!left){var sec=Math.round((g.end-g.t0)/1000),b=st().gbest||{},k=g.lv,nb=!b[k]||g.moves<b[k];if(nb){b[k]=g.moves;put('gbest',b)}
+    return h+'<section class="card" style="text-align:center"><div class="res-big">🎉</div><div class="res-name">'+g.moves+'번 만에 성공!</div><p class="muted">'+sec+'초 걸렸어요'+(nb?' · 최고 기록':'')+'</p></section><div class="row"><button class="btn" data-lv="'+g.lv+'">한 판 더</button><button class="btn ghost" data-g="menu">난이도 바꾸기</button></div>'}
+  return h+'<p class="muted">뒤집은 횟수: '+g.moves+'</p><div class="board" style="grid-template-columns:repeat('+cols+',1fr)">'+g.cells.map(function(c,i){return '<button class="cell'+(c.open?' open':'')+(c.done?' done':'')+'" data-c="'+i+'" aria-label="'+(c.open||c.done?c.f:'뒤집힌 카드 '+(i+1))+'"'+(c.done?' disabled':'')+'><span aria-hidden="true">'+c.f+'</span></button>'}).join('')+'</div>';
+}
+function bestLine(){var b=st().gbest||{};return (b.easy||b.hard)?'<p class="note">최고 기록 · 쉬움 '+(b.easy||'-')+'번 · 보통 '+(b.hard||'-')+'번</p>':''}
+function flipCard(i){
+  var g=S.g;if(!g||g.lock)return;var c=g.cells[i];if(c.open||c.done)return;
+  c.open=true;g.sel.push(i);
+  if(g.sel.length===2){g.moves++;var a=g.cells[g.sel[0]],b=g.cells[g.sel[1]];
+    if(a.f===b.f){a.done=b.done=true;a.open=b.open=false;g.sel=[];if(!g.cells.some(function(x){return !x.done}))g.end=Date.now()}
+    else{g.lock=true;render();setTimeout(function(){a.open=b.open=false;g.sel=[];g.lock=false;render()},900);return}}
+  render();
+}
+
+/* ---------- 아침 인사 카드 ---------- */
+/* 배경 그림은 모두 직접 그린 그림이에요 (가져온 사진·짤 없음) */
+var BG=[
+ ['봄꽃','<rect width="1080" height="1080" fill="#FDEFF3"/><path d="M-20 260 C240 200 420 330 640 250 S980 120 1120 180" stroke="#7A5240" stroke-width="22" fill="none" stroke-linecap="round"/><path d="M420 300 C470 360 500 420 520 500" stroke="#7A5240" stroke-width="14" fill="none" stroke-linecap="round"/>'+[[160,230],[330,270],[560,240],[800,190],[960,150],[500,470],[700,260]].map(function(p,i){var r=i%2?46:58;return '<g transform="translate('+p[0]+' '+p[1]+')">'+[0,72,144,216,288].map(function(a){return '<ellipse cx="0" cy="-'+(r*0.62)+'" rx="'+(r*0.42)+'" ry="'+(r*0.62)+'" fill="'+(i%3?'#F7A8C0':'#F48FB1')+'" transform="rotate('+a+')"/>'}).join('')+'<circle r="'+(r*0.22)+'" fill="#F6D55C"/></g>'}).join('')+'<g fill="#F7A8C0" opacity=".7"><ellipse cx="180" cy="720" rx="16" ry="10" transform="rotate(30 180 720)"/><ellipse cx="880" cy="640" rx="16" ry="10" transform="rotate(-20 880 640)"/><ellipse cx="620" cy="860" rx="16" ry="10" transform="rotate(50 620 860)"/></g>'],
+ ['해돋이','<rect width="1080" height="1080" fill="#FFE8C7"/><circle cx="540" cy="560" r="170" fill="#FF9F5A"/><circle cx="540" cy="560" r="230" fill="#FF9F5A" opacity=".18"/><path d="M0 700 L230 480 L420 650 L620 430 L860 680 L1080 520 L1080 1080 L0 1080 Z" fill="#5E8C6A"/><path d="M0 820 L300 640 L560 800 L820 620 L1080 780 L1080 1080 L0 1080 Z" fill="#3F6F52"/><g stroke="#FFFFFF" stroke-width="8" stroke-linecap="round" fill="none" opacity=".8"><path d="M200 240 q20 -16 40 0 q20 -16 40 0"/><path d="M780 200 q18 -14 36 0 q18 -14 36 0"/></g>'],
+ ['바다','<rect width="1080" height="1080" fill="#DFF3FB"/><circle cx="820" cy="250" r="110" fill="#FFD36E"/><rect y="560" width="1080" height="520" fill="#4BA3C7"/>'+[600,680,760,840,920,1000].map(function(y,i){return '<path d="M0 '+y+' q67 -26 135 0 t135 0 t135 0 t135 0 t135 0 t135 0 t135 0 t135 0" stroke="#FFFFFF" stroke-width="'+(10-i)+'" fill="none" opacity=".55"/>'}).join('')+'<path d="M200 560 L260 420 L320 560 Z" fill="#FFFFFF"/><rect x="190" y="560" width="140" height="22" rx="10" fill="#E05A4F"/>'],
+ ['단풍','<rect width="1080" height="1080" fill="#FFF3E0"/>'+[[160,180,'#E0603C',20],[860,150,'#F2A03D',-15],[420,330,'#D9482B',35],[700,420,'#F2B53D',-30],[230,560,'#E07B3C',10],[900,620,'#D9482B',25],[560,760,'#F2A03D',-10],[160,880,'#E0603C',40],[860,900,'#F2B53D',-25]].map(function(p){return '<g transform="translate('+p[0]+' '+p[1]+') rotate('+p[3]+') scale(1.6)"><path d="M0 -50 L12 -22 L40 -30 L28 -4 L50 8 L22 14 L26 42 L0 26 L-26 42 L-22 14 L-50 8 L-28 -4 L-40 -30 L-12 -22 Z" fill="'+p[2]+'"/><path d="M0 26 L0 60" stroke="#8A4A2A" stroke-width="5"/></g>'}).join('')],
+ ['겨울','<rect width="1080" height="1080" fill="#E8F1FA"/><path d="M0 860 Q540 760 1080 860 L1080 1080 L0 1080 Z" fill="#FFFFFF"/>'+[[220,700],[860,680]].map(function(p){return '<g transform="translate('+p[0]+' '+p[1]+')"><path d="M0 -260 L110 -60 L60 -60 L140 80 L-140 80 L-60 -60 L-110 -60 Z" fill="#3F7A5A"/><rect x="-20" y="80" width="40" height="60" fill="#7A5240"/><path d="M-90 -40 L90 -40 M-110 40 L110 40" stroke="#FFFFFF" stroke-width="12" stroke-linecap="round" opacity=".8"/></g>'}).join('')+[[140,160],[380,90],[620,200],[900,120],[520,420],[760,330],[300,330],[960,420],[120,470]].map(function(p){return '<g transform="translate('+p[0]+' '+p[1]+')" stroke="#9CC3E6" stroke-width="7" stroke-linecap="round"><path d="M-26 0 H26 M0 -26 V26 M-18 -18 L18 18 M-18 18 L18 -18"/></g>'}).join('')],
+ ['찻잔','<rect width="1080" height="1080" fill="#F3EBDD"/><ellipse cx="540" cy="820" rx="330" ry="60" fill="#E2D3BB"/><path d="M300 520 H780 V640 Q780 820 540 820 Q300 820 300 640 Z" fill="#FFFFFF" stroke="#C9B494" stroke-width="10"/><path d="M780 560 Q900 560 900 650 Q900 740 770 730" fill="none" stroke="#C9B494" stroke-width="22"/><ellipse cx="540" cy="520" rx="240" ry="34" fill="#B5793F"/><path d="M450 450 q-40 -60 0 -120 q40 -60 0 -120 M560 450 q-40 -60 0 -120 q40 -60 0 -120 M670 450 q-40 -60 0 -120 q40 -60 0 -120" stroke="#C9B494" stroke-width="12" fill="none" stroke-linecap="round" opacity=".7"/><circle cx="540" cy="680" r="34" fill="#F497B6"/>']];
+function bgSvg(i){return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 1080" width="1080" height="1080">'+BG[i][1]+'</svg>'}
+function bgUrl(i){return 'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(bgSvg(i))}
+var DAYMSG={0:['편안한 일요일 보내세요','푹 쉬고 새 한 주 맞이해요'],1:['행복한 월요일 되세요','이번 주도 건강하게!'],2:['힘찬 화요일 되세요','오늘도 웃는 일 가득하길'],3:['벌써 수요일이에요','한 주의 반, 잘하고 계세요'],4:['목요일도 힘내세요','조금만 더 가면 주말이에요'],5:['즐거운 금요일 되세요','한 주 동안 수고 많으셨어요'],6:['즐거운 토요일 되세요','좋은 사람과 맛있는 것 드세요']};
+var MSG=[['좋은 아침입니다','오늘도 웃는 하루 되세요'],['감사한 하루','오늘도 고맙습니다'],['건강이 최고예요','물 많이 드시고 잘 챙기세요'],['날이 쌀쌀해요','따뜻하게 입고 나가세요'],['비 소식이 있어요','우산 꼭 챙기세요'],['오늘도 행복하세요','늘 응원합니다'],['좋은 일만 가득하길','마음까지 따뜻한 하루 되세요']];
+function vCard(){
+  var h=top('아침 인사 카드','그림과 인사말을 고르면 카드가 만들어져요');
+  var d=new Date(Date.now()+9*36e5).getUTCDay(),list=[DAYMSG[d]].concat(MSG);
+  if(S.cb==null)S.cb=hash(today())%BG.length;if(S.cm==null)S.cm=0;
+  h+='<h2>1. 그림 고르기</h2><div class="bgs">'+BG.map(function(b,i){return '<button data-cb="'+i+'" aria-pressed="'+(S.cb===i)+'" aria-label="'+b[0]+' 그림"><img alt="" src="'+bgUrl(i)+'"></button>'}).join('')+'</div>';
+  h+='<h2 style="margin-top:1.2rem">2. 인사말 고르기</h2><div class="msgs">'+list.map(function(m,i){return '<button data-cm="'+i+'" aria-pressed="'+(S.cm===i)+'"><b>'+esc(m[0])+'</b><br><span class="muted">'+esc(m[1])+'</span></button>'}).join('')+'</div>';
+  h+='<h2 style="margin-top:1.2rem">3. 보내는 사람 (선택)</h2><input class="inp" id="cname" maxlength="12" placeholder="예: 김영희 드림" value="'+esc(S.cn||st().cname||'')+'">';
+  h+='<p style="margin-top:1rem"><button class="btn full" data-cardmake="1">카드 만들기</button></p><div id="cardOut"></div><p class="note">그림은 리딩노트가 직접 그렸어요. 마음껏 보내셔도 돼요.</p>';
+  S.clist=list;return h;
+}
+function wrapText(ctx,t,max){var w=t.split(' '),l=[],c='';w.forEach(function(x){var n=c?c+' '+x:x;if(ctx.measureText(n).width>max&&c){l.push(c);c=x}else c=n});if(c)l.push(c);return l}
+function makeCard(){
+  var nm=($('#cname')||{}).value||'';S.cn=nm;put('cname',nm);
+  var m=S.clist[S.cm],img=new Image(),out=$('#cardOut');out.innerHTML='<p class="muted">만드는 중…</p>';
+  img.onload=function(){
+    var cv=document.createElement('canvas');cv.width=cv.height=1080;var x=cv.getContext('2d');x.drawImage(img,0,0,1080,1080);
+    var dark=S.cb===2||S.cb===4?'#1E3A52':'#3B2A1E';
+    x.textAlign='center';x.lineJoin='round';
+    function line(t,y,size,weight){x.font=weight+' '+size+'px "IBM Plex Sans KR","Apple SD Gothic Neo",sans-serif';wrapText(x,t,940).forEach(function(s,i){var yy=y+i*size*1.25;x.lineWidth=size/5;x.strokeStyle='rgba(255,255,255,.92)';x.strokeText(s,540,yy);x.fillStyle=dark;x.fillText(s,540,yy)})}
+    var low=S.cb===5||S.cb===1;  /* 그림이 아래에 몰린 배경은 글을 위로 */
+    line(m[0],low?190:930-(nm?90:0),92,'700');line(m[1],low?300:1010-(nm?90:0)+12,56,'600');
+    if(nm){x.font='600 48px "IBM Plex Sans KR",sans-serif';x.lineWidth=10;x.strokeStyle='rgba(255,255,255,.92)';x.strokeText(nm,540,1035);x.fillStyle=dark;x.fillText(nm,540,1035)}
+    x.textAlign='right';x.font='600 26px "IBM Plex Sans KR",sans-serif';x.fillStyle='rgba(0,0,0,.35)';x.fillText('리딩노트',1050,1062);
+    cv.toBlob(function(b){S.cblob=b;var u=URL.createObjectURL(b);
+      out.innerHTML='<img src="'+u+'" alt="'+esc(m[0]+' '+m[1])+' 인사 카드"><p class="muted" style="text-align:center">사진을 꾹 누르면 저장하거나 보낼 수 있어요</p><div class="row"><button class="btn" data-share="card">카톡으로 보내기</button><a class="btn ghost" href="'+u+'" download="good-morning.png">사진 저장</a></div>';
+      out.scrollIntoView({behavior:'smooth',block:'start'})},'image/png');
+  };
+  img.onerror=function(){out.innerHTML='<p class="muted">카드를 만들지 못했어요. 다시 눌러 주세요.</p>'};
+  (document.fonts&&document.fonts.ready||Promise.resolve()).then(function(){img.src=bgUrl(S.cb)});
+}
+
+/* ---------- 밸런스 게임 ---------- */
+/* 하루 3문제가 날짜에 따라 바뀌어요. 표는 서버(fun_vote)에 익명 기기 번호로 하나만 남아요. 서버가 없으면 내 선택만 보여요. */
+var BAL=[['jjajang','짜장면','짬뽕'],['bumuk','탕수육 부먹','탕수육 찍먹'],['season','여름','겨울'],['trip','산','바다'],['morning','아침형','저녁형'],['allin','한 종목 몰빵','여러 종목 분산'],['term','단타','장기 투자'],['ramen','라면에 계란 넣는다','안 넣는다'],['music','트로트','발라드'],['live','도시 생활','시골 생활'],['coffee','믹스커피','아메리카노'],['travel','국내 여행','해외 여행'],['money','현금','금'],['news','종이 신문','휴대폰 뉴스'],['tv','드라마','예능'],['rice','흰쌀밥','잡곡밥'],['pay','현금 결제','카드 결제'],['walk','혼자 산책','같이 산책'],['plan','여행은 계획대로','여행은 발길 닿는 대로'],['sleep','일찍 자고 일찍 일어나기','늦게 자고 늦게 일어나기'],['broadcast','방송 생방송으로 보기','다시 보기로 몰아 보기'],['sell','목표가 오면 바로 판다','조금 더 기다려 본다'],['memo','손으로 쓰는 메모','휴대폰 메모'],['soup','된장찌개','김치찌개'],['call','전화가 편하다','문자가 편하다'],['gift','선물은 현금','선물은 물건']];
+function balToday(){var s=hash(today()+'|bal'),a=shuffle(BAL,s);return a.slice(0,3)}
+function devId(){var o=st();if(!o.dev){o.dev=Math.random().toString(36).slice(2)+Date.now().toString(36);put('dev',o.dev)}return o.dev}
+function vBal(){
+  var h=top('밸런스 게임','오늘의 3문제 · 매일 바뀌어요'),mine=st().bal||{},T=S.tally||{};
+  if(!S.talLoad){S.talLoad=1;loadTally()}
+  h+=balToday().map(function(b){var me=mine[b[0]],t=T[b[0]],tot=t?t[0]+t[1]:0;
+    var p0=tot?Math.round(t[0]/tot*100):null;
+    return '<section class="card"><div class="vs"><button class="opt'+(me===0?' me':'')+'" data-bal="'+b[0]+':0"><span>'+esc(b[1])+'</span>'+(me!=null&&p0!=null?'<span class="pc">'+p0+'%</span>':'')+'</button><em>VS</em><button class="opt'+(me===1?' me':'')+'" data-bal="'+b[0]+':1"><span>'+esc(b[2])+'</span>'+(me!=null&&p0!=null?'<span class="pc">'+(100-p0)+'%</span>':'')+'</button></div>'+
+      (me!=null?(p0!=null?'<div class="split" aria-hidden="true"><i style="width:'+p0+'%"></i><i style="width:'+(100-p0)+'%"></i></div><p class="muted" style="margin:.5rem 0 0">'+tot.toLocaleString('ko-KR')+'명이 골랐어요 · 다시 누르면 바꿀 수 있어요</p>':'<p class="muted" style="margin:.5rem 0 0">골랐어요! 다른 분들 결과는 잠시 뒤에 보여요</p>'):'')+'</section>'}).join('');
+  return h+'<p class="note">내일 새 문제가 나와요. 고른 결과는 이름 없이 숫자로만 모여요.</p>';
+}
+function q(p){return Promise.resolve(p).then(function(r){return r||{}},function(e){return {error:e}})}
+function loadTally(){var c=sb();if(!c)return;q(c.rpc('fun_tally',{p_topics:balToday().map(function(b){return b[0]})})).then(function(r){if(r.error||!r.data)return;S.tally=r.data;if(ROUTE==='bal')render()})}
+function vote(id,ch){var o=st().bal||{};o[id]=ch;put('bal',o);render();var c=sb();if(!c)return;
+  q(c.rpc('fun_vote',{p_topic:id,p_dev:devId(),p_choice:ch})).then(function(r){if(r.error||!r.data)return;S.tally=S.tally||{};S.tally[id]=r.data;if(ROUTE==='bal')render()})}
+
+/* ---------- 공유 (카톡 등) ---------- */
+function siteBase(){try{return (parent.location.origin+parent.location.pathname).replace(/index\.html$/,'')}catch(e){return location.href.replace(/fun\.html.*$/,'')}}
+function share(kind){
+  var url=siteBase()+'#fun/'+(kind==='test'?'test-'+S.tcode:kind==='quiz'?'quiz':'home'),T=kind==='test'?TYPES[S.tcode]:null;
+  var text=kind==='test'?'나는 '+T[0]+' "'+T[1]+'" 이래요! 당신은 어떤 주식쟁이?':kind==='quiz'?'두뇌 퀴즈 '+S.qok+'점 나왔어요. 저보다 잘할 수 있어요?':'오늘도 좋은 하루 되세요';
+  if(kind==='card'&&S.cblob&&navigator.canShare){var f=new File([S.cblob],'good-morning.png',{type:'image/png'});if(navigator.canShare({files:[f]})){navigator.share({files:[f]}).catch(function(){});return}}
+  if(kind==='card'){toast('사진을 꾹 눌러 저장한 뒤 카톡에서 보내 주세요');return}
+  if(navigator.share){navigator.share({title:'리딩노트 놀이터',text:text,url:url}).catch(function(){});return}
+  var t=text+'\n'+url;(navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(function(){toast('복사했어요. 카톡에 붙여 넣어 보내세요')},function(){prompt('아래 글을 복사해서 보내 주세요',t)});
+}
+
+/* ---------- 화면 그리기·이동 ---------- */
+var V={home:vHome,luck:vLuck,test:vTest,quiz:vQuiz,game:vGame,card:vCard,bal:vBal};
+function render(){$('#app').innerHTML=(V[ROUTE]||vHome)()}
+function go(r,opt){
+  var m=/^test-([01]{4})$/.exec(r||'');
+  if(m){ROUTE='test';S.tcode=m[1];S.tscore=null;S.tshared=true}
+  else{ROUTE=V[r]?r:'home';if(ROUTE==='test'&&S.tshared){S.tcode=null;S.tshared=false}}
+  render();window.scrollTo(0,0);
+  if(!(opt&&opt.quiet))send('route','',ROUTE==='test'&&S.tcode&&S.tshared?'test-'+S.tcode:ROUTE);
+}
+document.addEventListener('click',function(e){
+  var b=e.target.closest('button,a');if(!b)return;var d=b.dataset;
+  if(d.x){e.preventDefault();var x=d.x.split(':');send(x[0],x[1],x.slice(2).join(':'));return}
+  if(d.go){go(d.go);return}
+  if(d.z!=null){put('zodiac',+d.z);render();return}
+  if(d.t==='start'){S.ti=0;S.tans=[];render();return}
+  if(d.t==='prev'){S.ti=Math.max(0,S.ti-1);render();return}
+  if(d.t==='restart'){S.tcode=null;S.tshared=false;S.ti=0;S.tans=[];render();send('route','','test');return}
+  if(d.a!=null&&ROUTE==='test'){tAnswer(+d.a);return}
+  if(d.qk){S.qk=d.qk;S.qs=mkQuiz(d.qk);S.qi=0;S.qok=0;S.qpick=null;render();return}
+  if(d.qa!=null&&S.qpick==null){S.qpick=+d.qa;if(S.qs[S.qi].opts[S.qpick]===S.qs[S.qi].ans)S.qok++;render();return}
+  if(d.q==='next'){S.qi++;S.qpick=null;render();window.scrollTo(0,0);return}
+  if(d.q==='menu'){S.qk=null;render();return}
+  if(d.lv){newGame(d.lv);render();return}
+  if(d.g==='menu'){S.g=null;render();return}
+  if(d.c!=null){flipCard(+d.c);return}
+  if(d.cb!=null){S.cb=+d.cb;S.cn=($('#cname')||{}).value;render();return}
+  if(d.cm!=null){S.cm=+d.cm;S.cn=($('#cname')||{}).value;render();return}
+  if(d.cardmake){makeCard();return}
+  if(d.share){share(d.share);return}
+  if(d.bal){var p=d.bal.split(':');vote(p[0],+p[1]);return}
+});
+function siteCfg(){try{return JSON.parse(localStorage.getItem('site.v1'))||{}}catch(e){return {}}}
+window.__site={
+  apply:function(c){document.documentElement.setAttribute('data-theme',c&&c.theme==='dark'?'dark':'light')},
+  go:function(r){go(r||'home',{quiet:true})}
+};
+window.__site.apply(siteCfg());
+var h0=(location.hash||'').replace(/^#\/?/,'');go(h0||'home',{quiet:true});
+})();
+</script>
+</body></html>

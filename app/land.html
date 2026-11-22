@@ -7,7 +7,7 @@
 <title>리딩노트</title>
 <meta name="theme-color" content="#F2F4F6">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css">
-<script src="config.js?v=1"></script>
+<script src="config.js?v=2"></script>
 <style>
 /* 리딩노트 · 카톡방 바로가기 도착 화면 (회차 · 종목 · 전문가 · 프로그램 · 내 종목)
    - 주소: ../l/코드/ (미리보기 카드) → land.html?c=코드 · ?from=방 은 방문 기록에만 써요
@@ -200,6 +200,9 @@ function build(){
       o.st = calc(o); byx[xid].picks.push(o);
       if (!X[xid]) X[xid] = { id: xid, name: o.xname, picks: [], progs: {} };
     });
+    // 전문가마다 종목 순서: 히든주 → 관심주(공개 종목) → 상담종목
+    var rk = function(k){ return k.kind === "secret" ? 0 : k.kind === "consult" ? 2 : 1; };
+    order.forEach(function(id){ byx[id].picks.sort(function(a, b){ return rk(a.k) - rk(b.k) || a.i - b.i; }); });
     e.xs = order.map(function(id){ return byx[id]; });
     e.xs.forEach(function(x){ if (!X[x.id]) X[x.id] = { id: x.id, name: x.name, picks: [], progs: {} }; X[x.id].progs[e.p.name] = 1; x.picks.forEach(function(o){ X[x.id].picks.push(o); }); });
   });
@@ -216,8 +219,10 @@ function series(code, date){
 }
 // 상태: 진입 대기 / 보유 중 / 목표가 도달 / 손절가 이탈 (종가 기준, 먼저 닿은 쪽)
 function calc(o){
-  var k = o.k, buy = num(k.buy), tg = num(k.target), sp = num(k.stop);
-  if (!D.feed || !D.feed.price_on || !k.stock_code) return null;
+  var k = o.k, buy = num(k.buy), tg = num(k.target), sp = num(k.stop), sl = num(k.sell);
+  // 방송에서 정리(매도) 가격을 말했으면 시세 없이 발언 가격끼리 계산해요
+  if (buy && sl) return { state: "said", ret: (sl / buy - 1) * 100, buy: buy, tg: tg, sp: sp, sell: sl, base: buy, fromBuy: true };
+  if (window.LN_PX !== true || !D.feed || !D.feed.price_on || !k.stock_code) return null;
   var S = series(k.stock_code, o.e.air_date); if (!S || !S.cur) return null;
   var r = { cur: S.cur, asof: S.asof, buy: buy, tg: tg, sp: sp };
   r.base = buy || S.dayClose || null; r.fromBuy = !!buy;
@@ -244,8 +249,9 @@ function stLine(r){
   if (r.state === "cut") return "확정 · " + md(r.end) + " 손절가 이탈";
   if (r.state === "hold") return "보유 중 · " + md(r.asof) + " 종가 기준";
   if (r.state === "since") return "방송일 종가 대비 · " + md(r.asof) + " 기준";
+  if (r.state === "said") return "확정 · 방송에서 " + won(r.sell) + "에 정리했다고 말했어요";
   return null; }
-function stShort(r){ return r.state === "hit" ? "확정 · " + md(r.end) + " 목표가 도달" : r.state === "cut" ? "확정 · " + md(r.end) + " 손절가 이탈" : r.state === "hold" ? "보유 중" : "방송일 종가 대비"; }
+function stShort(r){ return r.state === "said" ? "확정 · 방송 정리가 기준" : r.state === "hit" ? "확정 · " + md(r.end) + " 목표가 도달" : r.state === "cut" ? "확정 · " + md(r.end) + " 손절가 이탈" : r.state === "hold" ? "보유 중" : "방송일 종가 대비"; }
 function retBox(o){ var r = o.st;
   if (!r || !r.state) return "";
   if (r.state === "wait") return '<div class="rb"><span class="badge b-wait">진입 대기</span><small>매수가 전이에요</small></div>';
@@ -255,6 +261,7 @@ function retStrip(o){ var r = o.st;
   if (!r || !r.state) return "";
   if (r.state === "wait") return '<div class="rs"><span class="badge b-wait">진입 대기</span><small>' + md(r.asof) + " 종가 " + won(r.cur) + " · 아직 매수가에 오지 않았어요</small></div>";
   if (r.state === "pend") return '<div class="rs"><small>방송 다음 거래일 종가부터 성적이 쌓여요</small></div>';
+  if (r.state === "said") return '<div class="rs">' + pct(r.ret) + "<small>" + stLine(r) + "</small></div>" + '<p class="basis">방송에서 말한 매수가 ' + won(r.buy) + ' → 정리가 ' + won(r.sell) + ' 기준 · 수수료·세금 빼기 전</p>';
   return '<div class="rs">' + pct(r.ret) + "<small>" + stLine(r) + "</small></div>" +
     '<p class="basis">' + (r.fromBuy ? dd(o.e.air_date) + " 방송 진입가 " + won(r.base) + " 기준" : dd(o.e.air_date) + " 방송일 종가 " + won(r.base) + " 기준") + " · 가격: 금융위원회(공공데이터포털) 종가</p>"; }
 function prices(k){ var b = num(k.buy), t = num(k.target), s = num(k.stop);
@@ -402,7 +409,7 @@ function start(){
   Promise.all([api("rpc/bc_feed", {}), api("ln_links?select=code,kind,k&limit=5000")]).then(function(r){
     D.feed = r[0] || {}; D.links = r[1] || [];
     var codes = {}; (D.feed.episodes || []).forEach(function(e){ (e.picks || []).forEach(function(k){ if (k.stock_code) codes[k.stock_code] = 1; }); });
-    var list = Object.keys(codes), jobs = [];
+    var list = window.LN_PX === true ? Object.keys(codes) : [], jobs = []; // 시세 계약 전에는 가격을 안 불러와요
     for (var i = 0; i < list.length; i += 80) jobs.push(api("rpc/ln_px", { p_codes: list.slice(i, i + 80) }).catch(function(){ return null; }));
     return Promise.all(jobs).then(function(rs){ D.px = { days: [], s: {} }; rs.forEach(function(x){ if (!x) return; if (x.days && x.days.length) D.px.days = x.days; Object.assign(D.px.s, x.s || {}); }); });
   }).then(function(){ build(); render(); }).catch(function(){ document.getElementById("scr").innerHTML = '<div class="wrap"><div class="card empty" style="margin-top:20px"><b>잠시 연결이 어려워요</b><p>잠시 뒤에 다시 열어 주세요.</p><a class="big-btn" style="margin-top:16px" href="">다시 열기</a></div></div>'; });
