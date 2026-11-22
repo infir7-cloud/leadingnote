@@ -846,23 +846,22 @@
   // ── 붙이기 (ln-news.js가 붙은 뒤 마지막에 감싸요 · 10초 지나면 그냥 붙여요)
   function redraw(){ var w = lnWin(); try { if (w && w.__hm) { var v = w.view(); if (!v || v.t === 'stock') w.render(); } } catch (e) {} }
   function patch(w, d, force){
-    if (w.__hm || !w.A || !w.S || !w.screenHome || !w.render) return;
+    if (w.__hm || !w.LN || !w.A || !w.S || !w.screenHome || !w.render) return;
     if (!w.__mn && !force) return;
     w.__hm = true;
     var st = d.createElement('style'); st.id = 'hm-css'; st.textContent = CSS; d.head.appendChild(st);
     try { var sc = d.createElement('script'); sc.textContent = 'window.__lnGo=function(a,r){try{parent.postMessage({site:1,type:"go",app:a,route:r},"*")}catch(e){}}'; d.head.appendChild(sc); } catch (e) {}
-    var oHome = w.screenHome;
-    w.screenHome = function(){ var h = oHome.apply(this, arguments); try { return rebuild(w, h); } catch (e) { try { console.warn('ln-home', e); } catch (x) {} return h; } };
-    if (w.screenStock) {
-      var oSt = w.screenStock;
-      w.screenStock = function(id){
-        // 리딩노트에 추천 기록이 없는 종목(재료 뉴스 '종목 보기' 등)은 기본 화면이 없어서 여기서 만들어요
-        var known = false; try { known = !!(w.STOCKS && w.STOCKS[id]); } catch (x) {}
-        if (!known && /^[0-9A-Z]{6}$/.test(String(id))) { try { return plainStock(String(id)); } catch (x) { return '<main class="t2"><section class="t2-sec"><p>종목 정보를 불러오지 못했어요.</p></section></main>'; } }
-        var h = oSt.apply(this, arguments);
-        try { var add = stockExtra(stockCode(w, id)); if (!add) return h; var e = h.indexOf('</section>'); return e > -1 ? h.slice(0, e + 10) + '<div class="t2" style="padding:.75rem 0 0">' + add + '</div>' + h.slice(e + 10) : h + add; } catch (x) { return h; }
-      };
-    }
+    // (11/22) 화면 자리·단계에 등록해요
+    //  · 홈: 다 그린 홈의 칸 순서를 시간대별로 정리하는 단계 (칸 종류는 class로 알아봐요 · DOM으로 다뤄요)
+    w.LN.stage('home', function(h){ return rebuild(w, h); }, { id: 'home.rebuild', order: 10 });
+    //  · 리딩노트에 추천 기록이 없는 종목(재료 뉴스 '종목 보기' 등)은 기본 화면이 없어서 여기서 만들어요
+    w.LN.slot('stock.replace', function(id){
+      var known = false; try { known = !!(w.STOCKS && w.STOCKS[id]); } catch (x) {}
+      if (known || !/^[0-9A-Z]{6}$/.test(String(id))) return null;
+      try { return plainStock(String(id)); } catch (x) { return '<main class="t2"><section class="t2-sec"><p>종목 정보를 불러오지 못했어요.</p></section></main>'; }
+    }, { id: 'home.plain' });
+    //  · 종목: 첫 칸 바로 아래 방송 기록·차트 (ln-plus 한 줄 요약보다 앞)
+    w.LN.slot('stock.afterHead', function(id){ var add = stockExtra(stockCode(w, id)); return add ? '<div class="t2" style="padding:.75rem 0 0">' + add + '</div>' : ''; }, { id: 'home.extra', order: 10 });
     if (w.viewTitle) { var oVT = w.viewTitle; w.viewTitle = function(v){ try { if (v && v.t === 'stock' && !(w.STOCKS && w.STOCKS[v.id])) { var px = pxOf(v.id); return (px && px.n) || (H.names && H.names[v.id]) || '종목'; } } catch (x) {} return oVT.apply(this, arguments); }; }
     w.A.hmPer = function(v){ H.per = v || '1m'; w.render(); };
     w.A.hmCh = function(v){ H.ch = +v || 60; w.render(); };

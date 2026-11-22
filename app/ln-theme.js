@@ -197,11 +197,11 @@
 
   // ---- 리딩 모음 화면 바꾸기
   function patchLn(w, d){
-    if (w.__t2 || !w.screenHome || !w.screenExpert || !w.render || !w.P || !w.S) return false;
+    // (11/22) w.LN(화면 자리) 이 없는 옛 ln.html 이면 붙이지 않아요. 덧붙이는 파일들도 모두 같은 조건으로 기다려요.
+    if (w.__t2 || !w.LN || !w.screenHome || !w.screenExpert || !w.render || !w.P || !w.S) return false;
     w.__t2 = true;
     d.documentElement.classList.add('t2');
-    cmPatch(w, 'feedSig', [["'<span class=\"sm\">'+esc(x.name)+' 추천 · '", "'<span class=\"sm\"><b class=\"t2-xn\">'+xN(x)+'</b> 추천 · '"]]);
-    cmPatch(w, 'pushHTML', [["'<span>리딩노트 · '+esc(x.name)+'</span>'", "'<span>리딩노트 · <b class=\"t2-xn\">'+xN(x)+'</b></span>'"]]);
+    // (11/22) 예전 feedSig·pushHTML 글자 바꾸기 두 줄은 찾는 글자가 ln.html에 없어 한 번도 적용되지 않았어요. 결과가 같도록 뺐어요.
     font(d); css(d, 't2-ln', LN_CSS);
     var P = w.P, S = w.S;
     function won(n){ return n == null || isNaN(n) ? '-' : Number(n).toLocaleString('ko-KR') + '원'; }
@@ -269,15 +269,22 @@
       var today = w.DATA_TODAY, t = out.filter(function(s){ return s.e.at.slice(0, 10) === today; });
       return t.length ? { list: t, today: true } : { list: out.filter(function(s){ return s.e.at.slice(0, 10) >= w.RECENT_FROM; }), today: false };
     }
+    // (11/22) 자리(슬롯) 방식: 덧붙이는 파일(ln-plus·ln-news·ln-home·ln-edge)은 아래 자리 이름에 등록해요. 글자 찾아 끼우기 없음.
+    //   home.top(맨 위) → 바로가기 → home.afterNav → 인사(삼전닉스) → home.afterHero → … → home.beforeBasis → 맺음말
+    //   다 그린 뒤: LN.run('home') 단계(ln-home 블록 순서 정리) → home.afterFirstSection(처음 닫히는 칸 바로 뒤)
+    //   ※ 인사 칸은 예전에 ln-plus.js가 늘 바로가기 아래로 옮겼어요. 그 자리를 처음부터 여기로 정했어요.
     w.screenHome = function(){
+      var LN = w.LN, cx = {};
       var h = '<main class="t2">';
       if (P.notice && P.notice.on && P.notice.text) h += '<p class="t2-notice"><b>공지</b>' + esc(P.notice.text) + '</p>';
-      h += '<div class="t2-hello"><p>' + (P.member ? esc(P.member.name) + ' 님, ' : '') + esc(w.greetText()) + '</p>' + market() + '</div>';
+      h += LN.fill('home.top', cx);
+      var hero = '<div class="t2-hello"><p>' + (P.member ? esc(P.member.name) + ' 님, ' : '') + esc(w.greetText()) + '</p>' + market() + '</div>';
       h += '<nav class="t2-sc4" aria-label="바로가기">' +
         '<button data-a="view" data-v="rank"><span class="a">' + I.trophy + '</span>성적표</button>' +
         '<button data-a="view" data-v="stocks"><span class="b">' + I.flame + '</span>인기 종목</button>' +
         '<button data-a="view" data-v="feed"><span class="c">' + I.chat + '</span>이야기방</button>' +
         '<button data-a="tab" data-v="academy"><span class="d">' + I.book + '</span>첫걸음</button></nav>';
+      h += LN.fill('home.afterNav', cx) + hero + LN.fill('home.afterHero', cx);
       var lives = w.EXPERTS.filter(function(x){ return x.live; });
       if (lives.length) {
         h += '<section class="t2-sec">' + head('지금 방송 중', null, 'view', 'experts') + lives.map(function(x){
@@ -299,8 +306,10 @@
           return '<button class="t2-row" data-a="expert" data-v="' + esc(o.x.id) + '"><span class="t2-rk">' + (i + 1) + '</span><span class="t2-mid"><b>' + w.xN(o.x) + '</b><span>끝난 추천 ' + o.st.doneCount + '건</span></span><span class="t2-rt"><b>' + Math.round(o.st.hitRate) + '%</b><span>적중률</span></span></button>';
         }).join('') + '</section>';
       }
+      h += LN.fill('home.beforeBasis', cx);
       h += '<p class="t2-basis">전문가가 방송·게시글로 공개한 추천을 모아 정리했어요 · 투자 권유가 아니에요</p>';
-      return h + '</main>';
+      h = LN.run('home', h + '</main>', cx);
+      return LN.afterFirstSection(h, LN.fill('home.afterFirstSection', cx));
     };
 
     // 추천 한 줄 (펼치면 요약 + 기록)
@@ -331,11 +340,12 @@
       if (!x) return '<main class="screen gx"><p class="empty">지금은 볼 수 없는 전문가예요</p></main>';
       var st = w.expertStats(id), f = w.isFollow(id);
       var meta = [w.STYLE_SHORT ? (w.STYLE_SHORT[x.style] || '') + ' 매매' : '', (x.channels || [])[0], (w.fansOf(x) >= 5 ? '팔로워 ' + w.fansOf(x).toLocaleString('ko-KR') + '명' : '')].filter(Boolean).join(' · ');
-      var h = '<main class="t2" style="padding-top:.25rem"><section class="t2-sec" style="padding-top:1.25rem">' +
+      var LN = w.LN;
+      var h = '<main class="t2" style="padding-top:.25rem">' + LN.fill('expert.top', id) + '<section class="t2-sec" style="padding-top:1.25rem">' +
         '<div class="t2-pf"><h2>' + w.xN(x) + (x.live ? '<span class="t2-tag lv">방송 중</span>' : '') + '</h2><p>' + esc(meta) + '</p>' + (x.intro ? '<p class="intro">' + esc(x.intro) + '</p>' : '') +
         '<button class="t2-btn' + (f ? ' on' : '') + '" data-a="follow" data-v="' + esc(x.id) + '" aria-pressed="' + f + '">' + (f ? '관심 전문가 · 새 추천 알림 받는 중' : '관심 전문가로 받기') + '</button></div>' +
         (x.live ? '<button class="t2-live" data-a="channel" data-v="' + esc(x.live.ch) + '"><span class="t2-dot"></span><span><b>지금 ' + esc(x.live.ch) + ' 출연 중</b><br><span>' + esc(x.live.title || '') + '</span></span></button>' : '') +
-        '<div class="t2-st"><div><span>평균 적중률</span><b>' + (st.hitRate == null ? '-' : Math.round(st.hitRate) + '%') + '</b></div><div><span>평균 수익률</span><b class="' + (st.avg == null ? 'flat' : tone(st.avg)) + '">' + (st.avg == null ? '-' : pct(st.avg)) + '</b></div></div>' +
+        LN.fill('expert.beforeStats', id) + '<div class="t2-st"><div><span>평균 적중률</span><b>' + (st.hitRate == null ? '-' : Math.round(st.hitRate) + '%') + '</b></div><div><span>평균 수익률</span><b class="' + (st.avg == null ? 'flat' : tone(st.avg)) + '">' + (st.avg == null ? '-' : pct(st.avg)) + '</b></div></div>' +
         '<p class="t2-basis2">' + (st.doneCount ? '판매까지 끝난 추천 ' + st.doneCount + '건 기준 · 전문가가 말한 가격으로 계산' : '아직 판매까지 끝난 추천이 없어요') + '</p></section>';
       var act = st.list.filter(function(a){ return a.status !== 'done'; }).sort(function(a, b){ return a.status === b.status ? (b.lastAt < a.lastAt ? -1 : 1) : (a.status === 'holding' ? -1 : 1); });
       var done = st.list.filter(function(a){ return a.status === 'done'; }).sort(function(a, b){ return b.endAt < a.endAt ? -1 : 1; });
@@ -352,6 +362,7 @@
       if (tab === 'record') h += done.length ? done.map(w.leadingRow).join('') : '<p class="t2-empty">아직 판매까지 끝난 추천이 없어요.</p>';
       h += '</section>';
       if (tab === 'talk') h += '<div class="t2-talk">' + w.expertTalkHTML(x, st) + '</div>';
+      h += LN.fill('expert.beforeBasis', id);
       h += '<p class="t2-basis">공개된 추천을 모아 계산했어요 · 투자 권유가 아니에요</p>';
       return h + '</main>';
     };

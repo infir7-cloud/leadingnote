@@ -1,5 +1,58 @@
 <!doctype html><html lang="ko"><head><meta name="robots" content="noindex"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>[hidden]{display:none!important}.stories,.stage-track,.hscroll,.table-wrap{position:relative}.xnm{display:inline-flex;align-items:baseline;gap:.28em;min-width:0;max-width:100%}.xnm .xtl{font-size:.72em;font-weight:600;color:var(--ink2);letter-spacing:0;white-space:nowrap}h2 .xnm .xtl,h1 .xnm .xtl{font-size:.6em}
-</style></head><body><script src="ln-data.js?v=202610200807"></script><title>리딩노트</title>
+</style><script>
+/* ===== 자리(슬롯) 등록 (11/22) =====
+   화면을 그릴 때 정해진 '자리'에 덧붙일 조각을 넣는 방식이에요.
+   예전에는 ln-plus.js·ln-home.js 같은 파일이 다 그린 화면 글자에서 '</section>' 같은 표시를 찾아 끼워 넣었는데,
+   화면 글자가 조금만 바뀌어도 조용히 틀어졌어요. 이제는 화면 쪽에 자리 이름을 박아 두고, 덧붙이는 파일은 그 이름에 등록만 해요.
+   · LN.slot(자리, 함수, {id, order})  자리에 조각 등록. 같은 id로 다시 등록하면 바꿔 끼워요. order가 작을수록 앞에 붙어요(기본 50).
+   · LN.fill(자리, 인자…)              그 자리에 등록된 조각을 순서대로 이어 붙인 글(HTML). 조각 하나가 실패해도 나머지는 그려요.
+   · LN.first(자리, 인자…)             등록된 것 중 처음으로 값을 돌려준 것 (화면 통째로 바꾸기용)
+   · LN.stage(이름, 함수, {id, order}) / LN.run(이름, html, 인자…)
+                                        다 그린 화면 전체를 받아 다듬는 단계(블록 순서 바꾸기 등). 글자 찾기 대신 DOM으로 다뤄요.
+   · LN.list()                          지금 등록된 자리·단계 목록 (점검용) */
+(function(){
+  var LN = window.LN = window.LN || {}, reg = {}, stg = {}, seq = 0;
+  function add(box, name, fn, opt){
+    if (typeof fn !== 'function') return null;
+    opt = opt || {}; var id = opt.id || ('#' + (++seq)), L = box[name] || (box[name] = []);
+    for (var i = 0; i < L.length; i++) if (L[i].id === id) { L.splice(i, 1); break; }
+    L.push({ id: id, fn: fn, order: opt.order == null ? 50 : +opt.order, n: ++seq });
+    L.sort(function(a, b){ return a.order - b.order || a.n - b.n; });
+    return id;
+  }
+  function warn(kind, name, e){ try { console.warn('[리딩노트 ' + kind + ' ' + name + ']', e); } catch (x) {} }
+  LN.slot = function(name, fn, opt){ return add(reg, name, fn, opt); };
+  LN.unslot = function(name, id){ var L = reg[name] || []; for (var i = 0; i < L.length; i++) if (L[i].id === id) { L.splice(i, 1); return true; } return false; };
+  LN.has = function(name){ return !!(reg[name] && reg[name].length); };
+  LN.fill = function(name){
+    var L = reg[name]; if (!L || !L.length) return '';
+    var a = Array.prototype.slice.call(arguments, 1), out = '';
+    for (var i = 0; i < L.length; i++) { try { var r = L[i].fn.apply(null, a); if (r) out += r; } catch (e) { warn('자리', name, e); } }
+    return out;
+  };
+  LN.first = function(name){
+    var L = reg[name]; if (!L || !L.length) return null;
+    var a = Array.prototype.slice.call(arguments, 1);
+    for (var i = 0; i < L.length; i++) { try { var r = L[i].fn.apply(null, a); if (r != null && r !== false) return r; } catch (e) { warn('자리', name, e); } }
+    return null;
+  };
+  LN.stage = function(name, fn, opt){ return add(stg, name, fn, opt); };
+  LN.run = function(name, html){
+    var L = stg[name]; if (!L || !L.length) return html;
+    var a = Array.prototype.slice.call(arguments, 2);
+    for (var i = 0; i < L.length; i++) { try { var r = L[i].fn.apply(null, [html].concat(a)); if (typeof r === 'string') html = r; } catch (e) { warn('단계', name, e); } }
+    return html;
+  };
+  // 다 그린 글(HTML)에서 '처음으로 닫히는 </section>' 바로 뒤에 붙여요. 칸이 없으면 맨 앞에 붙여요.
+  // (ln.html 이 직접 그린 글이라 이 자리는 ln.html 이 책임져요. 글을 다시 읽어 들이지 않아서 빨라요)
+  LN.afterFirstSection = function(html, add){
+    if (!add) return html;
+    var e = html.indexOf('</section>');
+    return e > -1 ? html.slice(0, e + 10) + add + html.slice(e + 10) : add + html;
+  };
+  LN.list = function(){ var o = { slots: {}, stages: {} }; Object.keys(reg).forEach(function(k){ o.slots[k] = reg[k].map(function(x){ return x.id + '(' + x.order + ')'; }); }); Object.keys(stg).forEach(function(k){ o.stages[k] = stg[k].map(function(x){ return x.id + '(' + x.order + ')'; }); }); return o; };
+})();
+</script></head><body><script src="ln-data.js?v=202610200807"></script><title>리딩노트</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&amp;family=IBM+Plex+Sans+KR:wght@400;500;600;700&amp;display=swap">
@@ -2038,7 +2091,7 @@ function screenHome(){
   h+='<section class="hsec gx">'+homeHead('지금 인기 종목','전문가들이 많이 추천한 종목이에요','전체','stocks')+
     '<div class="card hcard">'+pop.map(function(s,i){
       var who=s.holding.length?expertById(s.holding[0].L.expert).name+(s.holding.length>1?' 외 '+(s.holding.length-1)+'명이 가지고 있어요':'이 가지고 있어요'):s.watch.length?'전문가가 지켜보는 중':'최근 판매한 종목';
-      return '<button class="prow" data-a="stock" data-v="'+s.id+'"><span class="rank">'+(i+1)+'</span><span class="pt"><b>'+esc(s.stock.name)+'</b><span>'+who+' · 오를 것 '+pollOf(s.id,P.votes[s.id]).up+'%</span></span>'+stockSpark(s.id)+'<span class="lprice"><span class="pnum">'+won(s.stock.price)+'</span>'+chgHTML(s.stock)+'</span></button>';
+      return '<button class="prow" data-a="stock" data-v="'+s.id+'"><span class="rank">'+(i+1)+'</span><span class="pt"><b>'+esc(s.stock.name)+'</b><span>'+who+(function(){var o=LN.first('home.pollText',s);return o!=null?o:' · 오를 것 '+pollOf(s.id,P.votes[s.id]).up+'%'})()+'</span></span>'+stockSpark(s.id)+'<span class="lprice"><span class="pnum">'+won(s.stock.price)+'</span>'+chgHTML(s.stock)+'</span></button>';
     }).join('')+'</div></section>';
   var msgs=allMsgs().filter(function(m){return !P.reported[m.id]&&!P.hidden[m.id]}).sort(function(a,b){return b.at<a.at?-1:1}).slice(0,3);
   h+='<section class="hsec gx">'+homeHead('지금 투자자 이야기','종목을 누르면 이야기방으로 가요','더 보기','feed')+
@@ -2068,7 +2121,7 @@ function screenShare(tok){
   }else{
     h+='<button class="btn '+(f?'btn-accent-line':'btn-primary')+' btn-block" data-a="follow" data-v="'+x.id+'">'+(f?IC.starOn+x.name+' 알림 받는 중':IC.bell+x.name+' 새 추천 알림 받기')+'</button>';
   }
-  h+='<section class="group"><h2 class="sech">다른 투자자들의 생각</h2>'+pollHTML(a.L.stock)+'</section>';
+  h+=(function(){var o=LN.first('share.poll',a);return o!=null?o:'<section class="group"><h2 class="sech">다른 투자자들의 생각</h2>'+pollHTML(a.L.stock)+'</section>'})();
   h+='<div class="dact"><button class="btn btn-quiet" data-a="toLeading" data-v="'+a.L.id+'">추천 기록 전체</button><button class="btn btn-quiet" data-a="stock" data-v="'+a.L.stock+'">이야기 '+allMsgs(a.L.stock).length+'개</button></div>';
   h+=shareBtn(tok,'이 추천 링크 공유하기','btn-block');
   h+='<p class="small">공개된 추천을 정리한 정보예요. 투자 판단과 그 결과의 책임은 본인에게 있어요.</p>';
@@ -2669,20 +2722,22 @@ function screenStocks(){
   return h+'<p class="small">가격과 의견 비율은 예시예요.</p></main>';
 }
 function screenStock(id){
+  /* 자리(11/22): stock.replace(화면 통째로) · stock.top · stock.afterHead · stock.talk.top · 다 그린 뒤 LN.run('stock') */
+  var alt=LN.first('stock.replace',id);if(alt!=null)return LN.afterFirstSection(alt,LN.fill('stock.plain.afterFirst',id));
   var s=stockSummary(id),st=s.stock,w=isWatch(id);
   var leads=s.leads.slice().sort(function(a,b){var o={holding:0,watch:1,done:2};return o[a.status]-o[b.status]||(b.lastAt<a.lastAt?-1:1)});
-  var h='<main>';
+  var h='<main>'+LN.fill('stock.top',id);
   if(S.landing&&S.hl)h+='<div class="gx" style="padding-top:1rem;background:var(--surface)"><p class="landing-tag">'+IC.chat+'카카오톡에서 보신 이야기를 아래에 표시해 두었어요</p></div>';
-  h+='<section class="shead gx"><div class="sprice"><b>'+won(st.price)+'</b>'+chgHTML(st)+shareBtn('s-'+id,'공유')+'</div>'+
+  h+='<section class="shead gx"><div class="sprice">'+(LN.first('stock.price',id,st)||'<b>'+won(st.price)+'</b>'+chgHTML(st))+shareBtn('s-'+id,'공유')+'</div>'+
     '<button class="btn '+(w?'btn-accent-line':'btn-primary')+' btn-block" data-a="'+(w?'unwatch':'addWatch')+'" data-v="'+id+'">'+(w?IC.starOn+'관심종목에 있어요 (누르면 빼기)':IC.star+'관심종목에 추가')+'</button>'+
-    '<div style="display:flex;flex-direction:column;gap:.5rem"><h2 class="sech">다른 투자자들의 생각</h2>'+pollHTML(id)+'</div></section>';
+    '<div style="display:flex;flex-direction:column;gap:.5rem">'+(function(){var o=LN.first('stock.poll',id);return o!=null?o:'<h2 class="sech">다른 투자자들의 생각</h2>'+pollHTML(id)})()+'</div></section>'+LN.fill('stock.afterHead',id);
   h+='<section class="screen gx" style="gap:.6rem"><h2 class="sech">이 종목을 추천한 전문가 <span class="cnt">'+leads.length+'</span></h2>'+(leads.length?'<div class="card">'+leads.map(function(a){
     var x=expertById(a.L.expert);
-    var stt=a.status==='holding'?'가지고 있는 중 · 구매 가격 대비 <b class="'+tone(a.unreal)+'">'+pct(a.unreal)+'</b>':a.status==='done'?'판매 완료 · <b class="'+tone(a.ret)+'">'+pct(a.ret)+'</b> · '+fmtDate(a.endAt):'지켜보는 중';
+    var stt=a.status==='holding'?(LN.first('stock.holdText',a)||'가지고 있는 중 · 구매 가격 대비 <b class="'+tone(a.unreal)+'">'+pct(a.unreal)+'</b>'):a.status==='done'?'판매 완료 · <b class="'+tone(a.ret)+'">'+pct(a.ret)+'</b> · '+fmtDate(a.endAt):'지켜보는 중';
     return '<button class="who-row" data-a="toLeading" data-v="'+a.L.id+'">'+avatar(x)+'<span class="ft"><b>'+xN(x)+(x.live?livePill():'')+'</b>'+badge(lastLeadLabel(a))+'<span class="wst">'+stt+'</span></span>'+IC.right+'</button>';
   }).join('')+'</div>':'<p class="empty">아직 이 종목을 추천한 전문가가 없어요</p>')+'</section>';
-  h+='<section class="screen gx" style="gap:1rem"><h2 class="sech">'+esc(st.name)+' 이야기방 <span class="cnt">'+allMsgs(id).length+'</span></h2>'+talkRoom(id)+'</section>';
-  return h+'</main>';
+  h+='<section class="screen gx" style="gap:1rem"><h2 class="sech">'+esc(st.name)+' 이야기방 <span class="cnt">'+allMsgs(id).length+'</span></h2>'+LN.fill('stock.talk.top',id)+talkRoom(id)+'</section>';
+  return LN.run('stock',h+'</main>',id);
 }
 
 /* ---------- 전문가 찾기 ---------- */
@@ -2707,7 +2762,7 @@ function xrow(o){
   return '<div class="xr"><button class="xr-main" data-a="expert" data-v="'+x.id+'" aria-label="'+o.rank+'위 '+esc(x.name)+', 적중률 '+(hr==null?'없음':Math.round(hr)+'%')+'">'+
     '<span class="xr-rk'+(o.rank<=3?' top':'')+'">'+o.rank+'</span>'+avatar(x)+
     '<span class="xr-t"><b>'+xN(x)+'</b>'+
-      (x.live?'<span class="xr-live">'+esc(x.live.ch)+' 출연 중</span>':'<span class="xr-s">'+esc(x.tags.join(' · '))+' · 팔로워 '+fansOf(x).toLocaleString('ko-KR')+'명</span>')+
+      (x.live?'<span class="xr-live">'+esc(x.live.ch)+' 출연 중</span>':(LN.first('xrow.sub',o)||'<span class="xr-s">'+esc(x.tags.join(' · '))+' · 팔로워 '+fansOf(x).toLocaleString('ko-KR')+'명</span>'))+
       '<span class="xr-bar" aria-hidden="true"><i style="width:'+(hr==null?0:Math.round(hr))+'%"></i></span></span>'+
     '<span class="xr-hit"><b>'+(hr==null?'-':Math.round(hr)+'%')+'</b><span>적중 '+st.hits+'/'+st.doneCount+'건</span><span class="'+(st.sum==null?'flat':tone(st.sum))+'">'+(st.sum==null?'-':pct(st.sum))+'</span></span></button>'+
     '<button class="star-btn" data-a="follow" data-v="'+x.id+'" aria-pressed="'+f+'" aria-label="'+esc(x.name)+(f?' 관심 해제':' 관심 등록')+'">'+(f?IC.starOn:IC.star)+'</button></div>';
@@ -2763,8 +2818,8 @@ function summaryHTML(a){
   if(a.status==='done')return '<div class="result"><span class="rl">추천 결과 · '+fmtDate(a.endAt)+' 끝</span><span class="big '+tone(a.ret)+'">'+pct(a.ret)+'</span>'+
       '<span class="rline">'+won(a.cur.buy)+'에 구매 → '+won(a.sell)+'에 판매</span>'+
       (a.cur.target==null?(a.hit?'<span class="pill pill-hit">구매 가격보다 비싸게 판매</span>':'<span class="pill pill-miss">구매 가격보다 싸게 판매</span>'):a.hit?'<span class="pill pill-hit">목표 가격 '+won(a.cur.target)+' 도달</span>':'<span class="pill pill-miss">목표 가격 '+won(a.cur.target)+'에는 못 미침</span>')+'</div>';
-  if(a.status==='holding')return '<div class="result"><span class="rl">가지고 있는 중 · 구매 가격 대비</span><span class="big '+tone(a.unreal)+'">'+pct(a.unreal)+'</span>'+
-      '<span class="rline">'+won(a.cur.buy)+'에 구매 · 지금 '+won(a.stock.price)+'</span>'+
+  if(a.status==='holding')return '<div class="result">'+(LN.first('summary.holdHead',a)||'<span class="rl">가지고 있는 중 · 구매 가격 대비</span><span class="big '+tone(a.unreal)+'">'+pct(a.unreal)+'</span>')+
+      (LN.first('summary.holdLine',a)||'<span class="rline">'+won(a.cur.buy)+'에 구매 · 지금 '+won(a.stock.price)+'</span>')+
       '<div class="kv"><div><span>목표 가격</span><b>'+won(a.cur.target)+'</b></div><div><span>손해 막는 가격</span><b>'+won(a.cur.stop)+'</b></div></div></div>';
   return '<div class="result"><span class="rl">지켜보는 중</span><span class="rline" style="font-weight:700">'+esc(a.lastLead.e.text)+'</span><span class="small">구매 추천이 나오면 알림으로 알려드려요.</span></div>';
 }
@@ -2775,10 +2830,10 @@ function timelineHTML(a){
     if(e.t==='buy')b='<p class="tmain">'+won(e.buy)+'에 구매 추천</p><p class="tline">목표 '+won(e.target)+' · 손해 막는 가격 '+won(e.stop)+'</p>';
     else if(e.t==='sell')b='<p class="tmain">'+won(e.sell)+'에 판매 추천</p><p class="tline">구매 가격 '+won(s.cur.buy)+' · 결과 <b class="'+tone(s.ret)+'">'+pct(s.ret)+'</b></p>';
     else if(e.t==='revise')b=s.changed.map(function(c,k){return k===0?'<p class="tmain">'+FIELD_LABEL[c.k]+' '+won(c.to)+'</p><p class="tline">'+won(c.from)+'에서 바꿈</p>':'<p class="tline">'+FIELD_LABEL[c.k]+' <s>'+won(c.from)+'</s> → '+won(c.to)+'</p>'}).join('');
-    else if(e.t==='news')b='<button class="news" data-a="news"><b>'+esc(e.title)+'</b><span>'+esc(e.press)+' · 기사 보기 ›</span></button>';
+    else if(e.t==='news')b=LN.first('timeline.news',e)||'<button class="news" data-a="news"><b>'+esc(e.title)+'</b><span>'+esc(e.press)+' · 기사 보기 ›</span></button>';
     else b='<p class="ttext">'+esc(e.text)+'</p>';
     return '<li class="ti" id="ev-'+s.tok+'"><span class="ti-when"><span>'+z(p.m)+'.'+z(p.d)+'</span><span>'+z(p.h)+':'+z(p.mi)+'</span></span><span class="ti-mk mk-'+e.t+'" aria-hidden="true"></span>'+
-      '<div class="tbody"><p class="ti-k k-'+e.t+'">'+z(i+1)+' / '+LOG_K[e.t]+(e.src?' · '+esc(e.src):'')+'</p>'+b+shareBtn(s.tok,'링크 공유','tshare')+'</div></li>';
+      '<div class="tbody"><p class="ti-k k-'+e.t+'">'+z(i+1)+' / '+LOG_K[e.t]+(e.src?' · '+esc(e.src):'')+LN.fill('timeline.src',e)+'</p>'+b+shareBtn(s.tok,'링크 공유','tshare')+'</div></li>';
   }).join('')+'</ol>';
 }
 function screenExpert(id){
@@ -2854,24 +2909,25 @@ function screenMore(){
   var menu=[['quotes','시세 조회 (전체 종목)',IC.search],['rank','전문가 성적표',IC.trophy],['experts','전문가 찾기',IC.people],['stocks','인기 종목 전체',IC.trend],['feed','투자자 이야기 전체',IC.chat]];
   if(isAdmin())menu.unshift(['admin','리딩 관리 (관리자)',IC.shield]);
   if(myExpert())menu.unshift(['center','전문가 센터',IC.mic]);
-  var h='<main class="screen gx">';
+  /* 자리(11/22): more.top · more.afterProfile · more.end · 예시 문구 바꾸기 more.demoNote · more.demoRoles · more.naverJoin */
+  var h='<main class="screen gx">'+LN.fill('more.top');
   if(P.member){
     var m=P.member;
-    h+='<section class="card" style="padding:1rem;display:flex;align-items:center;gap:.8rem"><span class="avatar">'+esc(m.name.charAt(0))+'</span><span style="flex-grow:1;min-width:0;display:flex;flex-direction:column"><b style="font-size:1.25rem;display:flex;align-items:center;gap:.2rem;flex-wrap:wrap">'+esc(m.name)+' 님<span class="role-chip '+role()+'">'+ROLE_NAME[role()]+'</span></b><span class="small">'+(m.via==='kakao'?'카카오로 가입':m.via==='naver'?esc(m.email):'체험 계정')+' · '+fmtDate(m.joinedAt)+' 가입</span></span></section>';
+    h+='<section class="card" style="padding:1rem;display:flex;align-items:center;gap:.8rem"><span class="avatar">'+esc(m.name.charAt(0))+'</span><span style="flex-grow:1;min-width:0;display:flex;flex-direction:column"><b style="font-size:1.25rem;display:flex;align-items:center;gap:.2rem;flex-wrap:wrap">'+esc(m.name)+' 님<span class="role-chip '+role()+'">'+ROLE_NAME[role()]+'</span></b><span class="small">'+(m.via==='kakao'?'카카오로 가입':m.via==='naver'?esc(m.email):'체험 계정')+' · '+fmtDate(m.joinedAt)+' 가입</span></span></section>'+LN.fill('more.afterProfile');
   }else{
-    h+='<section class="convert"><h2>무료 가입하고 알림 받기</h2><p>관심 전문가의 구매·판매 추천을 휴대폰 알림으로 바로 받아요.</p>'+kakaoBtn()+'<button class="btn btn-line btn-block" data-a="join">네이버 아이디로 로그인·가입</button></section>';
+    h+='<section class="convert"><h2>무료 가입하고 알림 받기</h2><p>관심 전문가의 구매·판매 추천을 휴대폰 알림으로 바로 받아요.</p>'+kakaoBtn()+(function(){var o=LN.first('more.naverJoin');return o!=null?o:'<button class="btn btn-line btn-block" data-a="join">네이버 아이디로 로그인·가입</button>'})()+'</section>';
   }
   h+='<div class="card">'+menu.map(function(m){return '<button class="menu" data-a="view" data-v="'+m[0]+'"><span class="mi">'+m[2]+'</span><span class="mt">'+m[1]+'</span>'+IC.right+'</button>'}).join('')+'</div>';
   if(isAdmin())h+='<button class="btn btn-ink btn-block" data-x="admin">통합 관리자 페이지 열기</button>';
-  h+='<section class="group"><h2 class="sech">체험용 · 권한 바꿔 보기</h2><div class="seg" style="grid-template-columns:repeat(4,minmax(0,1fr))" role="group" aria-label="권한">'+['guest','member','expert','admin'].map(function(r){return '<button data-a="asRole" data-v="'+r+'" aria-pressed="'+(role()===r)+'">'+ROLE_NAME[r]+'</button>'}).join('')+'</div><p class="small">실서비스에서는 운영자가 관리자 페이지에서 권한을 줘요. 전문가는 한선생TV 계정으로 체험해요.</p></section>';
+  h+=(function(){var o=LN.first('more.demoRoles');return o!=null?o:'<section class="group"><h2 class="sech">체험용 · 권한 바꿔 보기</h2><div class="seg" style="grid-template-columns:repeat(4,minmax(0,1fr))" role="group" aria-label="권한">'+['guest','member','expert','admin'].map(function(r){return '<button data-a="asRole" data-v="'+r+'" aria-pressed="'+(role()===r)+'">'+ROLE_NAME[r]+'</button>'}).join('')+'</div><p class="small">실서비스에서는 운영자가 관리자 페이지에서 권한을 줘요. 전문가는 한선생TV 계정으로 체험해요.</p></section>'})();
   h+='<section class="group"><h2 class="sech">화면 밝기</h2><p class="notice">여기서 바꾸면 정보·도구·커뮤니티에 한 번에 적용돼요.</p><button class="btn btn-line btn-block" data-x="settings">화면 밝기 바꾸기</button></section>';
   if(P.member)h+='<section class="group"><h2 class="sech">알림</h2><div class="card">'+toggles.map(function(t){var on=!!P.notif[t[0]];return '<div class="trow"><span class="ft"><b>'+t[1]+'</b><span>'+t[2]+'</span></span><button class="toggle" data-a="notif" data-v="'+t[0]+'" aria-pressed="'+on+'" aria-label="'+t[1]+'">'+(on?'켜짐':'꺼짐')+'</button></div>'}).join('')+'</div></section>';
   h+='<section class="group"><h2 class="sech">앱 설치</h2><p class="notice">휴대폰은 앱으로, 컴퓨터는 바탕화면 바로가기로 한 번에 열어요. 쓰시는 기기를 알아서 확인해 드려요.</p>'+(storeLink(DEVICE)?'<a class="store" href="'+esc(storeLink(DEVICE))+'" target="_blank" rel="noopener">'+IC.download+'앱 설치하기</a>':'<button class="btn btn-ink btn-block" data-a="sheet" data-v="install">'+IC.download+'앱 설치하기</button>')+'</section>';
   h+='<section class="group"><h2 class="sech">서비스 안내</h2><p class="notice">리딩노트는 방송·유튜브 등에서 공개된 전문가 추천을 모아 쉽게 정리해 보여주는 서비스예요. 투자 권유가 아니며, 투자 판단과 그 결과의 책임은 본인에게 있어요.</p>'+
-    '<p class="notice">지금 보이는 전문가·종목·가격·이야기는 모두 예시예요.</p><button class="btn btn-quiet btn-block" data-a="sheet" data-v="basis">숫자 계산 기준 보기</button>'+(P.member?'<button class="btn btn-line btn-block" data-a="logout">로그아웃</button>':'')+'</section>';
+    (function(){var o=LN.first('more.demoNote');return o!=null?o:'<p class="notice">지금 보이는 전문가·종목·가격·이야기는 모두 예시예요.</p>'})()+'<button class="btn btn-quiet btn-block" data-a="sheet" data-v="basis">숫자 계산 기준 보기</button>'+(P.member?'<button class="btn btn-line btn-block" data-a="logout">로그아웃</button>':'')+'</section>';
   h+=S.confirmReset?'<section class="confirm"><b style="font-size:1.125rem">가입 정보·관심 전문가·관심종목·내가 쓴 이야기·첫걸음 기록을 모두 지울까요?</b><p class="small">지운 내용은 되돌릴 수 없어요.</p><div class="crow"><button class="btn btn-ink" data-a="resetYes">모두 지우기</button><button class="btn btn-line" data-a="resetNo">취소</button></div></section>'
     :'<button class="btn btn-line btn-block" data-a="reset">처음 상태로 되돌리기 (예시용)</button>';
-  return h+'</main>';
+  return h+LN.fill('more.end')+'</main>';
 }
 
 /* ---------- 시트 ---------- */

@@ -6,8 +6,6 @@
    - 카카오 로그인(진짜 회원), 관심 전문가·관심종목 서버 저장, 종목 이야기방 서버 저장·실시간을 붙여요.
    - 리딩 모음 안의 예전 관리자 화면 대신 운영실(ops.html)을 새 창으로 열어요. */
 (function(){
-  // 압축된 배포본에서도 찾도록: 그대로 없으면 공백 차이를 무시하고 찾아요
-  function __lnFind(s,a){if(s.indexOf(a)>-1)return a;var m=s.match(new RegExp(a.replace(/[.*+?^${}()|[\]\\]/g,'\\$&').replace(/(\\s)+|\s+/g,'\\s*')));return m?m[0]:null}
 
   if (window.__lnLive) return;
   var LIB = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3/dist/umd/supabase.js';
@@ -89,15 +87,6 @@
   var FR = null; // 연결된 리딩 모음 창
   function rerender(){ try { if (FR && FR.w.render) { var a = FR.d.activeElement; if (a && a.id === 'msg-input' && a.value) return; FR.w.render(); } } catch (e) {} }
   function onTalk(r){ if (L.talk.some(function(m){ return m.id === r.id; })) return; L.talk.unshift(r); rerender(); }
-  function patchFn(w, name, pairs){
-    try {
-      var src = String(w[name]); if (src.indexOf('function') !== 0) return 0;
-      var out = src, hit = 0;
-      pairs.forEach(function(p){ var k = __lnFind(out, p[0]); if (k) { out = out.split(k).join(p[1]); hit++; } else log(name + ': 바꿀 곳을 못 찾았어요 →', p[0].slice(0, 60)); });
-      if (hit) w.eval(name + ' = ' + out);
-      return hit;
-    } catch (e) { log(name + ' 바꾸기 실패', e); return 0; }
-  }
   var CSS = [
     'html.ln-wait body{visibility:hidden}',
     'html.ln-wait::after{content:"추천 기록을 불러오는 중이에요";position:fixed;inset:0;display:flex;align-items:center;justify-content:center;font:600 18px/1.4 -apple-system,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;color:#6b7280}',
@@ -155,7 +144,7 @@
 
   function apply(f){
     var w, d; try { w = f.contentWindow; d = f.contentDocument; } catch (e) { return; }
-    if (!w || !d || d.__lnLive || !w.LEADINGS || !w.EXPERTS || !w.STOCKS || !w.__site || typeof w.render !== 'function' || !w.A || !w.P || !w.S) return;
+    if (!w || !d || d.__lnLive || !w.LN || !w.LEADINGS || !w.EXPERTS || !w.STOCKS || !w.__site || typeof w.render !== 'function' || !w.A || !w.P || !w.S) return;
     d.__lnLive = true; FR = { w: w, d: d };
     if (!d.getElementById('ln-live-css')) { var s = d.createElement('style'); s.id = 'ln-live-css'; s.textContent = CSS; d.head.appendChild(s); }
     var F = L.feed, B = build(F), P = w.P, S = w.S, A = w.A, root = d.documentElement;
@@ -208,23 +197,17 @@
     w.__lnNaver = function(code){ return '<a class="ln-naver" href="' + naver(code) + '" target="_blank" rel="noopener noreferrer">네이버 증권에서 지금 가격 보기 ↗</a>'; };
     w.__lnPxDay = function(){ var p = F.price || {}; return p.asOf ? '<span class="ln-pxnote" style="margin:0 0 0 .5em">' + escH(p.asOf.slice(5).replace('-', '.')) + ' 종가</span>' : ''; };
     w.__lnPxNote = function(){ var p = F.price || {}; return '<span class="ln-pxnote">' + escH((p.asOf || '').replace(/-/g, '.')) + ' 장 마감 가격 기준' + (p.source ? ' · 시세 출처 ' + escH(p.source) : '') + ' · 아직 팔지 않아 확정된 결과가 아니에요</span>'; };
-    patchFn(w, 'timelineHTML', [
-      ["(e.src?' · '+esc(e.src):'')", "(e.src?' · '+esc(e.src):'')+__lnSrc(e)"],
-      ["b='<button class=\"news\" data-a=\"news\"><b>'+esc(e.title)+'</b><span>'+esc(e.press)+' · 기사 보기 ›</span></button>'", 'b=__lnNews(e)']
-    ]);
-    patchFn(w, 'summaryHTML', [
-      ["<span class=\"rl\">가지고 있는 중 · 구매 가격 대비</span><span class=\"big '+tone(a.unreal)+'\">'+pct(a.unreal)+'</span>'",
-       "'+(a.unreal==null?'<span class=\"rl\">가지고 있는 중</span><span class=\"big\">'+won(a.cur.buy)+'에 구매</span>':'<span class=\"rl\">가지고 있는 중 · 구매 가격 대비</span><span class=\"big '+tone(a.unreal)+'\">'+pct(a.unreal)+'</span>')"],
-      ["'<span class=\"rline\">'+won(a.cur.buy)+'에 구매 · 지금 '+won(a.stock.price)+'</span>'",
-       "(a.unreal==null?'<span class=\"rline\">'+fmtDate(a.startAt)+' 추천 · '+__lnNaver(a.L.stock)+'</span>':'<span class=\"rline\">'+won(a.cur.buy)+'에 구매 · 지금 '+won(a.stock.price)+__lnPxNote()+'</span>')"]
-    ]);
-    patchFn(w, 'screenStock', [
-      ["'가지고 있는 중 · 구매 가격 대비 <b class=\"'+tone(a.unreal)+'\">'+pct(a.unreal)+'</b>'", "(a.unreal==null?'가지고 있는 중 · 구매 '+won(a.cur.buy):'가지고 있는 중 · 구매 가격 대비 <b class=\"'+tone(a.unreal)+'\">'+pct(a.unreal)+'</b>')"],
-      ["<b>'+won(st.price)+'</b>'+chgHTML(st)", "'+(st.price==null?__lnNaver(id):'<b>'+won(st.price)+'</b>'+chgHTML(st)+__lnPxDay())"],
-      ["<h2 class=\"sech\">다른 투자자들의 생각</h2>'+pollHTML(id)+'", ""]
-    ]);
-    if (!w.__t2) patchFn(w, 'screenHome', [["+' · 오를 것 '+pollOf(s.id,P.votes[s.id]).up+'%</span>", "+'</span>"]]);
-    patchFn(w, 'screenShare', [["h+='<section class=\"group\"><h2 class=\"sech\">다른 투자자들의 생각</h2>'+pollHTML(a.L.stock)+'</section>';", ""]]);
+    // 화면 자리(LN.slot)에 등록해요 (11/22: 예전에는 ln.html 함수 글자를 찾아 바꿨어요 · 결과는 같아요)
+    var LN = w.LN;
+    LN.slot('timeline.src', function(e){ return w.__lnSrc(e); }, { id: 'live.src' });
+    LN.slot('timeline.news', function(e){ return w.__lnNews(e); }, { id: 'live.news' });
+    LN.slot('summary.holdHead', function(a){ return a.unreal == null ? '<span class="rl">가지고 있는 중</span><span class="big">' + w.won(a.cur.buy) + '에 구매</span>' : null; }, { id: 'live.holdHead' });
+    LN.slot('summary.holdLine', function(a){ return a.unreal == null ? '<span class="rline">' + w.fmtDate(a.startAt) + ' 추천 · ' + w.__lnNaver(a.L.stock) + '</span>' : '<span class="rline">' + w.won(a.cur.buy) + '에 구매 · 지금 ' + w.won(a.stock.price) + w.__lnPxNote() + '</span>'; }, { id: 'live.holdLine' });
+    LN.slot('stock.holdText', function(a){ return a.unreal == null ? '가지고 있는 중 · 구매 ' + w.won(a.cur.buy) : null; }, { id: 'live.holdText' });
+    LN.slot('stock.price', function(id, st){ return st.price == null ? w.__lnNaver(id) : '<b>' + w.won(st.price) + '</b>' + w.chgHTML(st) + w.__lnPxDay(); }, { id: 'live.price' });
+    LN.slot('stock.poll', function(){ return ''; }, { id: 'live.noPoll' });       // '다른 투자자들의 생각'(예시 투표)은 빼요
+    LN.slot('share.poll', function(){ return ''; }, { id: 'live.noPoll' });
+    if (!w.__t2) LN.slot('home.pollText', function(){ return ''; }, { id: 'live.noPoll' });
 
     // 이야기방: 서버 저장 + 실시간
     w.allMsgs = function(stockFilter){

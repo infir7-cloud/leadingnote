@@ -987,46 +987,28 @@
     w.linkOf = function(tok){ return link(tok); };
     var guest = function(){ return P.member ? '' : '<div class="p-guest"><span>가입 없이 모두 볼 수 있어요</span><button data-a="join">3초 가입</button></div>'; };
     var joinCard = function(){ return P.member ? '' : '<div class="p-join"><b>이 전문가가 새 추천을 하면 알려 드릴까요?</b><span>관심 전문가 · 관심종목 · 이야기 남기기만 가입이 필요해요</span><button class="p-btn" data-a="join">카카오로 3초 가입</button></div>'; };
-    // 홈: 오늘의 언급 종목 + 표로 보기
-    var oHome = w.screenHome;
-    w.screenHome = function(){
-      var h = oHome.apply(this, arguments), hl = homeLine(w), n0 = h.indexOf('<nav class="t2-sc4"');
-      if (hl && n0 > -1) h = h.slice(0, n0) + oneCard(hl, null, null, 'hm') + h.slice(n0);
-      // 순서: 오늘의 5줄 → 바로가기 → 방송 속 고수종목 → 삼전닉스 인사(히어로) → 언급 종목 → 데이터로 본 종목
-      var hs = h.indexOf('<div class="t2-hello">'), n1 = h.indexOf('<nav class="t2-sc4"'), hero = '';
-      if (hs > -1 && n1 > hs) { hero = h.slice(hs, n1); h = h.slice(0, hs) + briefHome() + h.slice(n1); }
-      var i = h.indexOf('</nav>');
-      if (i > -1) h = h.slice(0, i + 6) + bcHome() + hero + (hs > -1 && n1 > hs ? '' : briefHome()) + mentionsHome() + rankHome(w) + h.slice(i + 6);
-      var j = h.lastIndexOf('<p class="t2-basis">');
-      var go = '<button class="p-go" data-a="pTable"><span>' + IC.grid + '전체 추천 기록 · 표로 보기</span>' + IC.chev + '</button>';
-      return j > -1 ? h.slice(0, j) + go + h.slice(j) : h + go;
-    };
-    // 전문가: 한눈 요약 · 카드 공유 · 가입 안내
-    var oEx = w.screenExpert;
-    w.screenExpert = function(id){
-      var h = oEx.apply(this, arguments), k = h.indexOf('class="t2-basis2"');
-      var add = ''; // 성적표 카드 공유 버튼은 노출하지 않아요
-      var t0 = h.indexOf('<div class="t2-st">'); if (t0 > -1) { h = h.slice(0, t0) + oneCard(expertLine(w, id), 'expert', id) + h.slice(t0); k = h.indexOf('class="t2-basis2"'); }
-      if (k > -1) { var e = h.indexOf('</section>', k); if (e > -1) h = h.slice(0, e) + add + h.slice(e); }
-      h = h.replace(/<button class="t2-share"[^>]*>이 전문가 공유하기<\/button>/, '');
-      var b = h.lastIndexOf('<p class="t2-basis">'); if (b > -1) h = h.slice(0, b) + expertBc(w, id) + joinCard() + h.slice(b);
-      return h.replace('<main class="t2" style="padding-top:.25rem">', '<main class="t2" style="padding-top:.25rem">' + guest());
-    };
-    // 종목: 의견 흐름 요약 · 이야기방 요약
-    var oSt = w.screenStock;
-    w.screenStock = function(id){
-      var h = oSt.apply(this, arguments), e = h.indexOf('</section>');
-      if (e > -1) h = h.slice(0, e + 10) + (function(){ var L1 = stockLine(w, id); return L1 ? '<section class="screen gx" style="padding-top:.75rem;padding-bottom:0">' + oneCard(L1, 'stock', id) + '</section>' : ''; })() + h.slice(e + 10);
-      h = h.replace(/(이야기방 <span class="cnt">\d+<\/span><\/h2>)/, '$1' + sumBar('s:' + id));
-      return h.replace('<main>', '<main>' + (P.member ? '' : '<div class="gx" style="padding-top:.5rem">' + guest() + '</div>'));
-    };
+    // (11/22) 화면 자리(LN.slot)에 등록해요. 예전에는 다 그린 화면 글자에서 '<nav class="t2-sc4"' 같은 표시를 찾아 끼웠어요.
+    var LN = w.LN;
+    // 홈 순서: 오늘의 5줄 → 바로가기 → 방송 속 고수종목 → 삼전닉스 인사 → 한 줄 요약 → 언급 종목 → 데이터로 본 종목 → … → 표로 보기
+    LN.slot('home.top', function(cx){ var b = briefHome(); cx.brief = b.indexOf('class="p-5l"') > -1; return b; }, { id: 'plus.brief', order: 10 });
+    LN.slot('home.afterNav', function(){ return bcHome(); }, { id: 'plus.bc', order: 10 });
+    LN.slot('home.afterHero', function(){ var hl = homeLine(w); return hl ? oneCard(hl, null, null, 'hm') : ''; }, { id: 'plus.one', order: 10 });
+    LN.slot('home.afterHero', function(){ return mentionsHome(); }, { id: 'plus.mention', order: 20 });
+    LN.slot('home.afterHero', function(){ return rankHome(w); }, { id: 'plus.rank', order: 30 });
+    LN.slot('home.beforeBasis', function(){ return '<button class="p-go" data-a="pTable"><span>' + IC.grid + '전체 추천 기록 · 표로 보기</span>' + IC.chev + '</button>'; }, { id: 'plus.table', order: 10 });
+    // 전문가: 가입 안내(맨 위) · 한 줄 요약(성적 칸 위) · 방송 기록 + 알림 안내(맺음말 위)
+    LN.slot('expert.top', function(){ return guest(); }, { id: 'plus.guest', order: 10 });
+    LN.slot('expert.beforeStats', function(id){ return oneCard(expertLine(w, id), 'expert', id); }, { id: 'plus.one', order: 10 });
+    LN.slot('expert.beforeBasis', function(id){ return expertBc(w, id) + joinCard(); }, { id: 'plus.bc', order: 10 });
+    // 종목: 가입 안내(맨 위) · 의견 흐름 한 줄(첫 칸 아래, ln-home 차트 다음) · 이야기방 요약(이야기방 제목 아래, ln-edge 질문 다음)
+    LN.slot('stock.top', function(){ return P.member ? '' : '<div class="gx" style="padding-top:.5rem">' + guest() + '</div>'; }, { id: 'plus.guest', order: 10 });
+    LN.slot('stock.afterHead', function(id){ var L1 = stockLine(w, id); return L1 ? '<section class="screen gx" style="padding-top:.75rem;padding-bottom:0">' + oneCard(L1, 'stock', id) + '</section>' : ''; }, { id: 'plus.one', order: 20 });
+    LN.slot('stock.talk.top', function(id){ return sumBar('s:' + id); }, { id: 'plus.sum', order: 20 });
     // 추천 하나하나: 펼치면 맨 위에 한 줄
     var oSum = w.summaryHTML;
     w.summaryHTML = function(a){ var t = ''; try { t = leadLine(a); } catch (e) {} return (t ? '<p class="p-lline">' + esc(t) + '</p>' : '') + oSum.apply(this, arguments); };
     // 전문가 목록: 태그 대신 한 줄 요약
-    var oRow = w.xrow;
-    if (oRow) w.xrow = function(o){ var h = oRow.apply(this, arguments), L1 = null; try { L1 = o.x.live ? null : expertLine(w, o.x.id); } catch (e) {}
-      return L1 && L1.t ? h.replace(/<span class="xr-s">[\s\S]*?<\/span>/, '<span class="xr-s p-xl">' + esc(L1.t) + '</span>') : h; };
+    LN.slot('xrow.sub', function(o){ var L1 = null; try { L1 = o.x.live ? null : expertLine(w, o.x.id); } catch (e) {} return L1 && L1.t ? '<span class="xr-s p-xl">' + esc(L1.t) + '</span>' : null; }, { id: 'plus.line' });
     // 새 화면: 표로 보기 · 언급 종목 자세히
     var oXs = w.screenExperts;
     w.screenExperts = function(){

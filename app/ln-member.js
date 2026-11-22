@@ -160,22 +160,15 @@
       [['follows', '관심 전문가', st.follows], ['watch', '관심 종목', st.watch], ['talk', '내 글', st.talk], ['votes', '내 투표', st.votes]].map(function(x){ return '<button data-mb="act" data-t="' + x[0] + '"><b>' + (x[2] || 0) + '</b><span>' + x[1] + '</span></button>'; }).join('') + '</div>';
   }
   function patch(w, d){
-    if (w.__mb || !w.screenMore || !w.render) return; w.__mb = true;
+    if (w.__mb || !w.LN || !w.screenMore || !w.render) return; w.__mb = true;
     var st = d.createElement('style'); st.id = 'mb-css'; st.textContent = CSS; d.head.appendChild(st);
-    var oMore = w.screenMore;
-    w.screenMore = function(){
-      var h = oMore.apply(this, arguments);
-      h = h.replace(/<p class="notice">지금 보이는 전문가·종목·가격·이야기는 모두 예시예요\.<\/p>/, '')
-           .replace(/<section class="group[^"]*"><h2 class="sech">체험용 · 권한 바꿔 보기<\/h2>[\s\S]*?<\/section>/, '')
-           .replace(/<button class="btn btn-line btn-block" data-a="join">네이버 아이디로 로그인·가입<\/button>/, '');
-      if (w.P && w.P.member && M.me) {
-        var i = h.indexOf('</section>'); if (i > -1) h = h.slice(0, i + 10) + mypageHTML() + h.slice(i + 10);
-        var j = h.lastIndexOf('</main>');
-        var tail = '<div style="display:flex;justify-content:center;gap:1rem;padding:.5rem 0 0"><a class="mb-out" style="width:auto" href="' + new URL('terms.html', d.URL).href + '" target="_blank" rel="noopener">이용약관</a><a class="mb-out" style="width:auto" href="' + new URL('privacy.html', d.URL).href + '" target="_blank" rel="noopener">개인정보 처리방침</a></div><button class="mb-out" data-mb="del">회원 탈퇴</button>';
-        if (j > -1) h = h.slice(0, j) + tail + h.slice(j);
-      }
-      return h;
-    };
+    // (11/22) 마이페이지 자리에 등록해요 (예전: 다 그린 글자에서 예시 문구를 지우고 '</section>'·'</main>'을 찾아 끼움)
+    var LN = w.LN, me = function(){ return !!(w.P && w.P.member && M.me); };
+    LN.slot('more.demoNote', function(){ return ''; }, { id: 'mb.clean' });      // '모두 예시예요' 안내 빼기
+    LN.slot('more.demoRoles', function(){ return ''; }, { id: 'mb.clean' });     // 체험용 권한 바꾸기 빼기
+    LN.slot('more.naverJoin', function(){ return ''; }, { id: 'mb.clean' });     // 네이버 가입 버튼 빼기
+    LN.slot('more.afterProfile', function(){ return me() ? mypageHTML() : ''; }, { id: 'mb.page', order: 10 });
+    LN.slot('more.end', function(){ return me() ? '<div style="display:flex;justify-content:center;gap:1rem;padding:.5rem 0 0"><a class="mb-out" style="width:auto" href="' + new URL('terms.html', d.URL).href + '" target="_blank" rel="noopener">이용약관</a><a class="mb-out" style="width:auto" href="' + new URL('privacy.html', d.URL).href + '" target="_blank" rel="noopener">개인정보 처리방침</a></div><button class="mb-out" data-mb="del">회원 탈퇴</button>' : ''; }, { id: 'mb.tail', order: 10 });
     d.addEventListener('click', function(e){
       var b = e.target.closest && e.target.closest('[data-mb]'); if (!b) return;
       e.preventDefault(); e.stopPropagation();

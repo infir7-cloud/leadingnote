@@ -178,34 +178,21 @@
   }
 
   // ── 화면에 붙이기
-  function insertAfterFirstSection(h, add){ if (!add) return h; var e = h.indexOf('</section>'); return e > -1 ? h.slice(0, e + 10) + add + h.slice(e + 10) : add + h; }
   function patch(w, d){
-    if (w.__ed || !w.__hm || !w.A || !w.screenHome) return;
+    if (w.__ed || !w.LN || !w.__hm || !w.A || !w.screenHome) return;
     w.__ed = true;
     var st = d.createElement('style'); st.id = 'ed-css'; st.textContent = CSS; d.head.appendChild(st);
-    var oHome = w.screenHome;
-    w.screenHome = function(){
-      var h = oHome.apply(this, arguments);
-      try { var top = liveHTML(), band = bandHTML(w); var wrap = (top || band) ? '<div class="gx" style="padding:0 1rem">' + top + band + '</div>' : ''; return insertAfterFirstSection(h, wrap); } catch (e) { try { console.warn('ln-edge home', e); } catch (x) {} return h; }
-    };
-    if (w.screenStock) {
-      var oSt = w.screenStock;
-      w.screenStock = function(id){
-        var h = oSt.apply(this, arguments);
-        try {
-          var code = String(id); if (!/^[0-9A-Z]{6}$/.test(code)) { try { code = (w.STOCKS && w.STOCKS[id] && w.STOCKS[id].code) || code; } catch (x) {} }
-          var pin = pinHTML(code);
-          // 이야기방 제목 바로 아래에 AI 한 줄 + 질문 버튼
-          var at = h.indexOf(' 이야기방 <span class="cnt">');
-          if (at > -1) {
-            var e = h.indexOf('</h2>', at);
-            if (e > -1) { h = h.slice(0, e + 5) + pin + qsHTML(w, code, String(id)) + h.slice(e + 5); return qTag(h); }
-          }
-          // 이야기방이 없는 종목 화면(재료 뉴스에서 연 종목 등): 첫 칸 아래에 AI 한 줄만
-          return pin ? insertAfterFirstSection(h, '<div style="padding:0 1rem">' + pin + '</div>') : h;
-        } catch (x) { try { console.warn('ln-edge stock', x); } catch (y) {} return h; }
-      };
-    }
+    // (11/22) 화면 자리에 등록해요 (예전: 다 그린 글자에서 '</section>'·' 이야기방 <span class="cnt">'을 찾아 끼움)
+    var LN = w.LN;
+    var codeOf = function(id){ var code = String(id); if (!/^[0-9A-Z]{6}$/.test(code)) { try { code = (w.STOCKS && w.STOCKS[id] && w.STOCKS[id].code) || code; } catch (x) {} } return code; };
+    // 홈: 방송 같이 보기 안내 + 질문 띠를 첫 칸 바로 아래에 (ln-home이 칸 순서를 정리한 뒤의 첫 칸)
+    LN.slot('home.afterFirstSection', function(){ var top = liveHTML(), band = bandHTML(w); return (top || band) ? '<div class="gx" style="padding:0 1rem">' + top + band + '</div>' : ''; }, { id: 'edge.home', order: 10 });
+    // 종목: 이야기방 제목 바로 아래에 AI 한 줄 + 질문 버튼 (ln-plus 이야기방 요약보다 앞)
+    LN.slot('stock.talk.top', function(id){ var code = codeOf(id); return pinHTML(code) + qsHTML(w, code, String(id)); }, { id: 'edge.pin', order: 10 });
+    // 종목: 이야기방 말풍선의 'Q. 질문 → 답'에 질문 꼬리표
+    LN.stage('stock', function(h){ return qTag(h); }, { id: 'edge.qtag', order: 90 });
+    // 이야기방이 없는 종목 화면(재료 뉴스에서 연 종목 등): 첫 칸 아래에 AI 한 줄만
+    LN.slot('stock.plain.afterFirst', function(id){ var pin = pinHTML(codeOf(id)); return pin ? '<div style="padding:0 1rem">' + pin + '</div>' : ''; }, { id: 'edge.pin', order: 10 });
     w.A.edQ = function(v){
       var p = String(v || '').split('|'), code = p[0], qs = questionsOf(code), qq = qs[+p[1]];
       if (!qq) return;

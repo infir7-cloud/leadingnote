@@ -422,19 +422,16 @@
       w.screenExperts = function(){ var v = w.view(); if (v && v.t === 'pbcwk') return screenWeek(); return oxs.apply(this, arguments); };
     }
     // MY: 마이페이지 맨 위 바로가기
-    if (typeof w.screenMore === 'function') {
-      var om = w.screenMore;
-      w.screenMore = function(){
-        var h = om.apply(this, arguments), i = h.indexOf('<main'), j = i > -1 ? h.indexOf('>', i) : -1;
-        var grid = '<div class="bn-my gx" role="group" aria-label="MY 바로가기">' +
+    // MY: 마이페이지 맨 위 바로가기 (11/22: 화면 자리 more.top 에 등록)
+    if (w.LN && w.LN.slot) w.LN.slot('more.top', function(){
+      var grid = '<div class="bn-my gx" role="group" aria-label="MY 바로가기">' +
           '<button type="button" data-bn-go="watch">' + svg('<path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z"/>') + '관심 종목</button>' +
           '<button type="button" data-bn-go="alerts">' + svg('<path d="M6 16V11a6 6 0 1 1 12 0v5l1.5 2h-15z"/><path d="M10 20.5a2 2 0 0 0 4 0"/>') + '알림</button>' +
           '<button type="button" data-bn-go="experts">' + IC.bc + '방송 전문가</button>' +
           '<button type="button" data-bn-go="theme">' + IC.moon + '화면 밝기</button></div>';
         grid += myBuyHTML(w);
-        return j > -1 ? h.slice(0, j + 1) + grid + h.slice(j + 1) : grid + h;
-      };
-    }
+      return grid;
+    }, { id: 'shell.my', order: 10 });
     w.document.addEventListener('input', function(e){
       var id = e.target && e.target.id;
       if (id === 'bn-mb-price' || id === 'bn-mb-qty') fmtNum(e.target);
@@ -794,11 +791,12 @@
   }
   paintTheme();
 
-  // ---- 다른 탭 미리 불러오기 (11/6): 첫 화면이 뜨고 쉬는 동안 '도구'를 미리 불러 두고,
-  //      '커뮤니티'는 실시간 연결을 쓰니 탭에 손가락·마우스를 올렸을 때 불러요 (모든 방문자가 실시간 연결을 열지 않게)
+  // ---- 탭 화면은 처음 누를 때 만들어요 (11/22)
+  //      첫 접속 때는 지금 보는 화면 하나만 불러와요(보통 홈). 예전처럼 3.5초 뒤 '도구'를 미리 만들거나
+  //      손가락·마우스를 올리기만 해도 만들지 않아요. 누르기 시작하는 순간(pointerdown·touchstart)에만 미리 만들어
+  //      손을 떼기 전 몇십 ms라도 먼저 불러오게 해요. 주소(#tools 등)로 바로 들어오면 그 화면만 만들어요.
   function pre(id){ try { if (SH.mk && !(SH.F || {})[id]) SH.mk(id); } catch (e) {} }
-  setTimeout(function(){ var go2 = function(){ pre('ln'); pre('tools'); }; if (window.requestIdleCallback) requestIdleCallback(go2, { timeout: 4000 }); else go2(); }, 3500);
-  ['pointerenter', 'touchstart', 'focusin'].forEach(function(ev){
+  ['pointerdown', 'touchstart'].forEach(function(ev){
     document.addEventListener(ev, function(e){ var b = e.target.closest && e.target.closest('[data-tab="cm"],[data-tab="tools"],[data-tab="home"],[data-tab="bc"],[data-tab="my"]'); if (!b) return; var t = b.getAttribute('data-tab'); pre(t === 'cm' ? 'cm' : t === 'tools' ? 'tools' : 'ln'); }, { passive: true, capture: true });
   });
 

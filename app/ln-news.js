@@ -164,19 +164,14 @@
 
   // ── 리딩 모음에 붙이기 (ln-plus.js가 먼저 붙은 뒤에 감싸요 · 8초 지나면 그냥 붙여요)
   function patch(w, d, force){
-    if (w.__mn || !w.A || !w.S || !w.screenHome || !w.screenExperts) return;
+    if (w.__mn || !w.LN || !w.A || !w.S || !w.screenHome || !w.screenExperts) return;
     if (!w.__p && !force) return;
     w.__mn = true;
     var st = d.createElement('style'); st.id = 'mn-css'; st.textContent = CSS; d.head.appendChild(st);
     try { w.VIEW_TITLE.mnews = '오늘의 재료 뉴스'; } catch (e) {}
-    var oHome = w.screenHome;
-    w.screenHome = function(){
-      var h = oHome.apply(this, arguments), sec = homeSec(); if (!sec) return h;
-      var b = h.indexOf('class="p-5l"'), e = b > -1 ? h.indexOf('</section>', b) : -1;
-      if (e > -1) return h.slice(0, e + 10) + sec + h.slice(e + 10);
-      var n = h.indexOf('</nav>'); if (n > -1) return h.slice(0, n + 6) + sec + h.slice(n + 6);
-      var m = h.indexOf('>', h.indexOf('<main')); return m > -1 ? h.slice(0, m + 1) + sec + h.slice(m + 1) : sec + h;
-    };
+    // (11/22) 화면 자리에 등록: 오늘의 5줄이 있으면 그 바로 아래, 없으면 바로가기 바로 아래 (예전과 같은 자리)
+    w.LN.slot('home.top', function(cx){ cx.news = homeSec() || ''; return cx.brief ? cx.news : ''; }, { id: 'news.home', order: 20 });
+    w.LN.slot('home.afterNav', function(cx){ return cx.brief ? '' : (cx.news || ''); }, { id: 'news.home', order: 5 });
     var oXs = w.screenExperts;
     w.screenExperts = function(){ var v = w.view(); if (v && v.t === 'mnews') return screen(); return oXs.apply(this, arguments); };
     var top0 = function(){ try { w.scrollTo(0, 0); } catch (e) {} };
