@@ -1,0 +1,6 @@
+# 맨 바깥 옛 앱 사본은 배포하지 않아요. 옛 주소로 오면 앱으로 보내요
+/ln.html          /app/            301
+/tools.html       /app/            301
+# 옛 주소 모양(/leadingnote/...)으로 새 도메인에 들어와도 같은 화면으로 보내요
+/leadingnote      /                301
+/leadingnote/*    /:splat          301
