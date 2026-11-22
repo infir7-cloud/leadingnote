@@ -7,7 +7,9 @@ import { mkdirSync, writeFileSync, readFileSync, existsSync } from "node:fs";
 
 const URL_ = "https://khbgiybvzagvbilbqnsn.supabase.co";
 const KEY = "sb_publishable_IHaBbRAESCgOJLi8jLPkVQ_X1AsUONe"; // 공개(publishable) 키
-const SITE = "https://infir7-cloud.github.io/leadingnote";
+// 사이트 주소: GitHub 저장소 Settings → Secrets and variables → Actions → Variables 의 LN_SITE (예: https://새도메인)
+// 비어 있으면 예전 주소를 써요 (이전 전 동작 그대로)
+const SITE = (process.env.LN_SITE || "https://infir7-cloud.github.io/leadingnote").replace(/\/+$/, "");
 
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
