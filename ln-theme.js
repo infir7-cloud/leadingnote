@@ -1,6 +1,6 @@
 /* 리딩노트 · 새 디자인 (바이올렛 · 밝은/어두운 화면)
    index.html(맨 바깥 셸) <head>에 ux-polish.js 다음, live-data.js 앞에 넣어요:
-   <script src="ln-theme.js?v=1"></script>  (ln-plus.js도 자동으로 불러와요)
+   <script src="ln-theme.js?v=2"></script>  (ln-plus.js도 자동으로 불러와요)
    - 색: 대표색 바이올렛 하나, 오름 빨강 · 내림 파랑. 테두리 대신 여백으로 구분해요.
    - 리딩 모음: 홈(삼전닉스 인사 · 바로가기 · 방송 중 · 새 추천 · 성적표), 전문가(사진 없이 이름 · 숫자 2개 · 지금 리딩 중 최상단),
      추천 줄 목록과 펼침, 떠 있는 캡슐 탭바. 투자 도구 · 커뮤니티 · 셸 머리에도 같은 색을 입혀요. */
@@ -516,12 +516,12 @@
     var w, d; try { w = f.contentWindow; d = f.contentDocument; } catch (e) { return; }
     if (!w || !d || !d.documentElement) return;
     var url = d.URL || '';
-    if (/ln\.html/.test(url)) {
+    if (/(^|\/)ln(\.html)?([?#]|$)/.test(url)) {
       css(d, 't2-ln-early', TOK_LN + BASE);   // 첫 그림부터 새 색으로
       if (!w.__t2) patchLn(w, d);
       wrapGo(w);
-    } else if (/tools\.html/.test(url)) { font(d); css(d, 't2-tools', TOOLS_CSS); }
-    else if (/community\.html/.test(url)) { font(d); css(d, 't2-cm', CM_CSS); patchCm(w, d); }
+    } else if (/(^|\/)tools(\.html)?([?#]|$)/.test(url)) { font(d); css(d, 't2-tools', TOOLS_CSS); }
+    else if (/(^|\/)community(\.html)?([?#]|$)/.test(url)) { font(d); css(d, 't2-cm', CM_CSS); patchCm(w, d); }
   }
   function scan(){
     Array.prototype.forEach.call(document.querySelectorAll('iframe'), function(f){
@@ -533,5 +533,5 @@
   new MutationObserver(scan).observe(document.documentElement, { childList: true, subtree: true });
   scan();
   // 더하기 기능 (공유 카드 · 오늘의 언급 종목 · 표로 보기 · AI 요약): 같은 폴더의 ln-plus.js
-  try { var me = document.currentScript && document.currentScript.src; var ps = document.createElement('script'); ps.src = (me ? new URL('ln-plus.js?v=1', me).href : 'ln-plus.js?v=1'); ps.defer = true; (document.head || document.documentElement).appendChild(ps); } catch (e) {}
+  try { var me = document.currentScript && document.currentScript.src; var ps = document.createElement('script'); ps.src = (me ? new URL('ln-plus.js?v=2', me).href : 'ln-plus.js?v=2'); ps.defer = true; (document.head || document.documentElement).appendChild(ps); } catch (e) {}
 })();
