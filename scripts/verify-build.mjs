@@ -74,5 +74,16 @@ for (const f of files(OUT)) { if (!/\.(js|html)$/.test(f)) continue; if (readFil
 const oldHost = files(OUT).filter((f) => f.endsWith(".html") && readFileSync(f, "utf8").includes("infir7-cloud.github.io")).length;
 if (oldHost) console.warn(`! 옛 주소(infir7-cloud.github.io)가 남은 파일 ${oldHost}개 · l/ 카드 파일이면 다음 카드 생성 때 새 주소로 바뀌어요`);
 
+// 5) 1년 저장(cf/_headers)과 짝: 우리 js·css 를 ?v= 없이 부르는 곳이 있으면 고친 내용이 1년 동안 안 보일 수 있어서 멈춰요
+//    새 파일을 붙일 때는 주소 끝에 ?v=1 처럼 붙여 주세요. 빌드가 내용 지문으로 바꿔 넣어요.
+for (const f of files(OUT)) {
+  if (!/\.(js|html|css)$/.test(f) || f.endsWith("supabase.js")) continue;
+  const t = readFileSync(f, "utf8");
+  for (const m of t.matchAll(/["']([^"'\s<>]+\.(?:js|css))["']/g)) {
+    const u = m[1]; if (u.includes("://") || u.startsWith("//")) continue;
+    const p = join(f, "..", u);
+    try { if (statSync(p).isFile()) bad(`?v= 없이 부르는 파일이 있어요 · ${relative(OUT, f)} → ${u}`); } catch {}
+  }
+}
 console.log(`점검: 바꿀 자리 ${checked}곳 확인 · 문제 ${fail}건`);
 if (fail) process.exit(1);
