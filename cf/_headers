@@ -1,13 +1,38 @@
 # Cloudflare Pages 응답 헤더 (빌드 때 dist/_headers 로 복사돼요)
+# 같은 헤더가 두 규칙에 걸리면 값이 쉼표로 이어 붙어요. 그래서 Cache-Control 은 겹치지 않게,
+# 다른 값을 줄 때는 '! Cache-Control' 로 앞 규칙 값을 떼고 다시 적어요. 순서도 넓은 규칙 → 좁은 규칙.
 /*
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
   X-Frame-Options: SAMEORIGIN
   Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()
 
+# 화면(html): 짧게. (Cloudflare가 .html 을 뺀 주소로 보낼 때는 기본값 'max-age=0, must-revalidate'가 붙어 역시 짧아요)
+# 1분 동안은 저장본을 쓰고, 그 뒤에는 바뀌었는지 서버에 물어봐요(안 바뀌었으면 다시 받지 않아요).
+/*.html
+  Cache-Control: public, max-age=60, must-revalidate
+/app/
+  Cache-Control: public, max-age=60, must-revalidate
+/
+  Cache-Control: public, max-age=60, must-revalidate
+
+# 코드·스타일(js·css): 1년, 바뀌지 않음(immutable).
+# 안전한 이유: 빌드(scripts/stamp.mjs)가 주소의 ?v= 를 파일 내용 지문으로 바꿔 넣어서, 내용이 바뀌면 주소도 바뀌어요.
+/app/*.js
+  Cache-Control: public, max-age=31536000, immutable
+/app/*.css
+  Cache-Control: public, max-age=31536000, immutable
+# 그림은 지금 ?v= 가 붙은 것이 없어서(og 그림 등은 주소가 고정) 기본값(매번 확인)으로 둬요.
+
+# 운영실: 저장하지 않아요 (Cloudflare는 ops.html 을 /app/ops 로 바꿔 보내기도 해서 두 주소 모두 적어요)
 /app/ops.html
+  X-Robots-Tag: noindex, nofollow
+  ! Cache-Control
+  Cache-Control: no-store
+/app/ops
   X-Robots-Tag: noindex, nofollow
   Cache-Control: no-store
 
 /l/*
+  ! Cache-Control
   Cache-Control: public, max-age=300
