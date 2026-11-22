@@ -346,7 +346,7 @@
   };
   function appOf(f){
     var s = (f.getAttribute('src') || '') + ' ' + (f.title || '');
-    return /tools|투자 도구|^도구/.test(s) ? 'tools' : /community|커뮤니티/.test(s) ? 'cm' : /ln\.html|리딩 모음|^정보/.test(s) ? 'ln' : null;
+    return /tools|투자 도구|^도구/.test(s) ? 'tools' : /community|커뮤니티/.test(s) ? 'cm' : /(^|\/)ln(\.html)?([?#]|$)|리딩 모음|^정보/.test(s) ? 'ln' : null;
   }
   function eachText(el, fn){ var w = el.ownerDocument.createTreeWalker(el, NodeFilter.SHOW_TEXT), n, list = []; while ((n = w.nextNode())) list.push(n); list.forEach(fn); }
   function swap(el, a, b){ eachText(el, function(n){ if (n.nodeValue.indexOf(a) > -1) n.nodeValue = n.nodeValue.split(a).join(b); }); }

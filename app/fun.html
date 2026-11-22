@@ -326,7 +326,7 @@ function vote(id,ch){var o=st().bal||{};o[id]=ch;put('bal',o);render();var c=sb(
   q(c.rpc('fun_vote',{p_topic:id,p_dev:devId(),p_choice:ch})).then(function(r){if(r.error||!r.data)return;S.tally=S.tally||{};S.tally[id]=r.data;if(ROUTE==='bal')render()})}
 
 /* ---------- 공유 (카톡 등) ---------- */
-function siteBase(){try{return (parent.location.origin+parent.location.pathname).replace(/index\.html$/,'')}catch(e){return location.href.replace(/fun\.html.*$/,'')}}
+function siteBase(){try{return (parent.location.origin+parent.location.pathname).replace(/index\.html$/,'')}catch(e){return location.href.replace(/fun(\.html)?([?#].*)?$/,'')}}
 function share(kind){
   var url=siteBase()+'#fun/'+(kind==='test'?'test-'+S.tcode:kind==='quiz'?'quiz':'home'),T=kind==='test'?TYPES[S.tcode]:null;
   var text=kind==='test'?'나는 '+T[0]+' "'+T[1]+'" 이래요! 당신은 어떤 주식쟁이?':kind==='quiz'?'두뇌 퀴즈 '+S.qok+'점 나왔어요. 저보다 잘할 수 있어요?':'오늘도 좋은 하루 되세요';

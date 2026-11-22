@@ -268,9 +268,9 @@
       X.loaded = true; redraw();
     });
   }
-  function lnFrame(){ var out = null; Array.prototype.forEach.call(document.querySelectorAll('iframe'), function(f){ try { if (/ln\.html/.test(f.contentDocument.URL)) out = f; } catch (e) {} }); return out; }
+  function lnFrame(){ var out = null; Array.prototype.forEach.call(document.querySelectorAll('iframe'), function(f){ try { if (/(^|\/)ln(\.html)?([?#]|$)/.test(f.contentDocument.URL)) out = f; } catch (e) {} }); return out; }
   function redraw(){ var f = lnFrame(); try { if (f && f.contentWindow.__p) f.contentWindow.render(); } catch (e) {} try { var c = cmWin(); if (c && c.__p) c.render(); } catch (e) {} }
-  function cmWin(){ var out = null; Array.prototype.forEach.call(document.querySelectorAll('iframe'), function(f){ try { if (/community\.html/.test(f.contentDocument.URL)) out = f.contentWindow; } catch (e) {} }); return out; }
+  function cmWin(){ var out = null; Array.prototype.forEach.call(document.querySelectorAll('iframe'), function(f){ try { if (/(^|\/)community(\.html)?([?#]|$)/.test(f.contentDocument.URL)) out = f.contentWindow; } catch (e) {} }); return out; }
 
   // ── AI 요약 블록
   function aiBlock(kind, key, title){
@@ -1104,8 +1104,8 @@
       if (!f.__pLoad) { f.__pLoad = true; f.addEventListener('load', function(){ var n = 0, iv = setInterval(function(){ n++; scan(); var done = n > 100; try { var w2 = f.contentWindow; done = done || !!(w2 && w2.__p); } catch (e) { done = true; } if (done) clearInterval(iv); }, 150); }); }
       var w, d; try { w = f.contentWindow; d = f.contentDocument; } catch (e) { return; }
       if (!w || !d || !d.head) return;
-      if (/ln\.html/.test(d.URL || '')) patchLn(w, d);
-      else if (/community\.html/.test(d.URL || '')) patchCm(w, d);
+      if (/(^|\/)ln(\.html)?([?#]|$)/.test(d.URL || '')) patchLn(w, d);
+      else if (/(^|\/)community(\.html)?([?#]|$)/.test(d.URL || '')) patchCm(w, d);
     });
   }
   var tick = setInterval(scan, 120); setTimeout(function(){ clearInterval(tick); }, 45000);

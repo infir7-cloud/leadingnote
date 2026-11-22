@@ -1,5 +1,5 @@
 /* 리딩노트 · 실데이터 연결 (리딩 모음)
-   index.html(맨 바깥 셸) <head>에 <script src="live-data.js?v=1"></script> 한 줄만 넣으면 동작해요.
+   index.html(맨 바깥 셸) <head>에 <script src="live-data.js?v=2"></script> 한 줄만 넣으면 동작해요.
    - 예시 전문가·예시 추천·예시 대화·예시 투표를 모두 끄고, 운영실(ops.html)에서 검수를 거쳐 공개된 기록만 보여줘요.
    - 추천마다 출처(채널·원문 주소)와 '늦은 입력'·'정정됨' 표시를 붙여요.
    - 시세 이용계약 전(운영실 설정 '시세 표시' 꺼짐)에는 가격 숫자·수익률을 보여주지 않고 네이버 증권 바로가기만 둬요.
@@ -120,7 +120,7 @@
 
   function earlyHide(f){
     var d; try { d = f.contentDocument; } catch (e) { return; }
-    if (!d || !d.documentElement || d.__lnw || !/ln\.html/.test(d.URL || '')) return;
+    if (!d || !d.documentElement || d.__lnw || !/(^|\/)ln(\.html)?([?#]|$)/.test(d.URL || '')) return;
     d.__lnw = true;
     var s = d.createElement('style'); s.id = 'ln-live-css'; s.textContent = CSS; d.documentElement.appendChild(s);
     d.documentElement.classList.add('ln-wait');
@@ -395,10 +395,10 @@
     log('연결 완료 · 전문가 ' + B.EX.length + '명 · 추천 ' + B.LD.length + '건 · 시세 표시 ' + (B.on ? '켜짐' : '꺼짐'));
   }
 
-  function appOf(f){ var s = ''; try { s = f.contentDocument && f.contentDocument.URL || f.src || ''; } catch (e) { s = f.src || ''; } return /ln\.html/.test(s); }
+  function appOf(f){ var s = ''; try { s = f.contentDocument && f.contentDocument.URL || f.src || ''; } catch (e) { s = f.src || ''; } return /(^|\/)ln(\.html)?([?#]|$)/.test(s); }
   function scan(){
     Array.prototype.forEach.call(document.querySelectorAll('iframe'), function(f){
-      if (!appOf(f) && !/ln\.html/.test(f.src || '')) return;
+      if (!appOf(f) && !/(^|\/)ln(\.html)?([?#]|$)/.test(f.src || '')) return;
       if (!f.__lnLoad) { f.__lnLoad = true; f.addEventListener('load', function(){ earlyHide(f); if (L.ready) apply(f); }); }
       earlyHide(f);
       if (L.ready) apply(f);

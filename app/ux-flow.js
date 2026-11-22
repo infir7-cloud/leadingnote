@@ -1,5 +1,5 @@
 /* 리딩노트 · 매끄러운 이동 (ux-flow.js)
-   index.html(맨 바깥 셸)의 </body> 바로 앞, shell-b.js 다음 줄에 <script src="ux-flow.js?v=1"></script> 한 줄로 동작해요.
+   index.html(맨 바깥 셸)의 </body> 바로 앞, shell-b.js 다음 줄에 <script src="ux-flow.js?v=2"></script> 한 줄로 동작해요.
    1) 종목·전문가 이름을 누르면 화면 아래에서 미리보기 창이 올라와요. 보던 화면은 그대로 두고, 창 안의 '전체 화면'으로 크게 볼 수 있어요.
       창 안에서 다른 종목·전문가를 누르면 창 내용만 바뀌고(위에 쌓이지 않아요), 왼쪽 위 '‹'로 앞의 내용으로 돌아가요.
    2) 글자만이 아니라 그 줄·카드의 빈 곳을 눌러도 같은 곳으로 가요 (누르는 순간 살짝 색이 바뀌어요).
@@ -228,7 +228,7 @@
 
   function scan(){
     Array.prototype.forEach.call(document.querySelectorAll('iframe'), function(f){
-      var w; try { w = f.contentWindow; if (!/ln\.html/.test(f.contentDocument.URL)) return; } catch (e) { return; }
+      var w; try { w = f.contentWindow; if (!/(^|\/)ln(\.html)?([?#]|$)/.test(f.contentDocument.URL)) return; } catch (e) { return; }
       if (!f.__fl) { f.__fl = true; f.addEventListener('load', function(){ var n = 0, iv = setInterval(function(){ n++; try { patch(f.contentWindow); } catch (e) {} var ok = false; try { ok = !!f.contentWindow.__fl; } catch (e) { ok = true; } if (ok || n > 150) clearInterval(iv); }, 200); }); }
       try { patch(w); } catch (e) { try { console.warn('ux-flow', e); } catch (x) {} }
     });

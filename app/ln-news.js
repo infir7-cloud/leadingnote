@@ -87,7 +87,7 @@
   }
 
   // ── 그리기
-  function W(){ var out = null; Array.prototype.forEach.call(document.querySelectorAll('iframe'), function(f){ try { if (/ln\.html/.test(f.contentDocument.URL)) out = f.contentWindow; } catch (e) {} }); return out; }
+  function W(){ var out = null; Array.prototype.forEach.call(document.querySelectorAll('iframe'), function(f){ try { if (/(^|\/)ln(\.html)?([?#]|$)/.test(f.contentDocument.URL)) out = f.contentWindow; } catch (e) {} }); return out; }
   function redraw(){ var w = W(); try { if (w && w.__mn) { var v = w.view(); if ((v && v.t === 'mnews') || (!v && w.S.tab === 'home')) w.render(); } } catch (e) {} }
 
   function item(r){
@@ -195,7 +195,7 @@
     Array.prototype.forEach.call(document.querySelectorAll('iframe'), function(f){
       if (!f.__mnLoad) { f.__mnLoad = true; f.addEventListener('load', function(){ var n = 0, iv = setInterval(function(){ n++; scan(); var ok = false; try { ok = !!(f.contentWindow && f.contentWindow.__mn); } catch (e) { ok = true; } if (n > 100 || ok) clearInterval(iv); }, 200); }); }
       var w, d; try { w = f.contentWindow; d = f.contentDocument; } catch (e) { return; }
-      if (w && d && d.head && /ln\.html/.test(d.URL || '')) patch(w, d, force);
+      if (w && d && d.head && /(^|\/)ln(\.html)?([?#]|$)/.test(d.URL || '')) patch(w, d, force);
     });
   }
   var tick = setInterval(function(){ scan(); var w = W(); if (w && w.__mn) clearInterval(tick); }, 200);

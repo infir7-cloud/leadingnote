@@ -16,7 +16,7 @@
   function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){ return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
   function client(){ try { return window.__lnAuth && window.__lnAuth.sb; } catch (e) { return null; } }
   function q(p){ return Promise.resolve(p).then(function(r){ return r || {}; }, function(e){ return { error: e }; }); }
-  function lnFrame(){ var out = null; Array.prototype.forEach.call(document.querySelectorAll('iframe'), function(f){ try { if (/ln\.html/.test(f.contentDocument.URL)) out = f; } catch (e) {} }); return out; }
+  function lnFrame(){ var out = null; Array.prototype.forEach.call(document.querySelectorAll('iframe'), function(f){ try { if (/(^|\/)ln(\.html)?([?#]|$)/.test(f.contentDocument.URL)) out = f; } catch (e) {} }); return out; }
   function lnWin(){ var f = lnFrame(); try { return f ? f.contentWindow : null; } catch (e) { return null; } }
   function redraw(){ var w = lnWin(); try { if (w && w.__ed && w.render) w.render(); } catch (e) {} }
   function hoursAgo(t){ var ms = Date.parse(t); return isNaN(ms) ? 1e9 : (Date.now() - ms) / 3600e3; }
@@ -220,7 +220,7 @@
   function scan(){
     Array.prototype.forEach.call(document.querySelectorAll('iframe'), function(f){
       var w, d; try { w = f.contentWindow; d = f.contentDocument; } catch (e) { return; }
-      if (w && d && d.head && /ln\.html/.test(d.URL || '')) patch(w, d);
+      if (w && d && d.head && /(^|\/)ln(\.html)?([?#]|$)/.test(d.URL || '')) patch(w, d);
     });
   }
   var tick = setInterval(function(){ scan(); var w = lnWin(); if (w && w.__ed) clearInterval(tick); }, 300);

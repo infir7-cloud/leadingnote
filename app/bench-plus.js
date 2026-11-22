@@ -1,5 +1,5 @@
 /* 리딩노트 · 쓰기 편한 기능 더하기 (bench-plus.js)
-   index.html(맨 바깥 셸)의 </body> 바로 앞, stock-sheet.js 다음 줄에 <script src="bench-plus.js?v=1"></script> 한 줄만 넣으면 동작해요.
+   index.html(맨 바깥 셸)의 </body> 바로 앞, stock-sheet.js 다음 줄에 <script src="bench-plus.js?v=2"></script> 한 줄만 넣으면 동작해요.
    세 서비스 화면 코드는 고치지 않고, 바깥에서 아래를 덧붙여요.
    1) 많이 리딩된 종목 띠: 최근 7일 전문가 추천이 많은 종목을 맨 위에서 돌아가며 보여줘요 (누르면 종목 창)
    2) 실시간 토론 창: PC는 떼어 내 옮기고 크기를 바꾸는 창(오른쪽에 붙이기 가능), 휴대폰은 아래에서 올라오는 창
@@ -62,8 +62,8 @@
   // ---- 서비스 화면 찾기
   function kindOf(f){
     var s = (f.getAttribute('src') || '') + ' ' + (f.title || '');
-    if (/tools\.html|투자 도구|^도구/.test(s)) return 'tools';
-    if (/(^|\/)ln\.html|리딩 모음|^정보/.test(s)) return 'ln';
+    if (/(^|\/)tools(\.html)?([?#]|$)|투자 도구|^도구/.test(s)) return 'tools';
+    if (/(^|\/)ln(\.html)?([?#]|$)|리딩 모음|^정보/.test(s)) return 'ln';
     if (/community|커뮤니티/.test(s)) return 'cm';
     return '';
   }

@@ -1,5 +1,5 @@
 /* 리딩노트 · B안 메뉴 (shell-b.js)
-   index.html(맨 바깥 셸)의 </body> 바로 앞, ui-unify.js 다음 줄에 <script src="shell-b.js?v=1"></script> 한 줄로 동작해요.
+   index.html(맨 바깥 셸)의 </body> 바로 앞, ui-unify.js 다음 줄에 <script src="shell-b.js?v=2"></script> 한 줄로 동작해요.
    - 휴대폰(1024px 미만): 맨 위 3탭을 없애고 화면 아래 5탭 [홈 · 방송종목 · 도구 · 커뮤니티 · MY]
    - PC(1024px 이상): 왼쪽 240px 메뉴(5개 + 카카오 가입 카드, 로그인하면 숨김)
    - PC(1280px 이상) 홈에서만: 오른쪽 320px 칸(이번 주 방송 많이 나온 종목 · 내 관심종목 소식 · 미니 계산기)
@@ -360,7 +360,7 @@
     /* 11/6: 뒤로 가기가 없는 첫 화면의 머리 줄 — 도구 · 커뮤니티는 위 세그먼트와 같은 제목이라 숨기고,
        리딩 모음(검색 · 알림 버튼이 있음)은 고정하지 않고 함께 올라가게 해요 */
     var TOP0 = 'header.top:not(:has(.back,[data-a="back"],[data-bn-go]))';
-    var extra = /ln\.html/.test(d.URL || '') ? TOP0 + '{position:static!important}' : TOP0 + '{display:none!important}';
+    var extra = /(^|\/)ln(\.html)?([?#]|$)/.test(d.URL || '') ? TOP0 + '{position:static!important}' : TOP0 + '{display:none!important}';
     var s = d.createElement('style'); s.id = 'bn-frame'; s.textContent = FRAME_CSS + extra; d.head.appendChild(s);
   }
 
@@ -631,9 +631,9 @@
 
   function scanFrames(){
     Array.prototype.forEach.call(document.querySelectorAll('#frames iframe'), function(f){
-      if (!f.__bn) { f.__bn = true; f.addEventListener('load', function(){ putCss(f); var w = f.contentWindow; setTimeout(function(){ try { if (/ln\.html/.test(f.contentDocument.URL)) patchLn(w); } catch (e) {} }, 0); }); }
+      if (!f.__bn) { f.__bn = true; f.addEventListener('load', function(){ putCss(f); var w = f.contentWindow; setTimeout(function(){ try { if (/(^|\/)ln(\.html)?([?#]|$)/.test(f.contentDocument.URL)) patchLn(w); } catch (e) {} }, 0); }); }
       putCss(f);
-      try { if (/ln\.html/.test(f.contentDocument.URL)) patchLn(f.contentWindow); } catch (e) {}
+      try { if (/(^|\/)ln(\.html)?([?#]|$)/.test(f.contentDocument.URL)) patchLn(f.contentWindow); } catch (e) {}
     });
   }
   scanFrames();

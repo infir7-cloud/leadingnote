@@ -408,7 +408,7 @@
   function pxNote(){ var a = H.px && H.px.days && H.px.days[0]; return priceOn() && a ? '<p class="hm-note">가격: 금융위원회(공공데이터포털) · ' + md(a) + ' 종가 기준 · 사거나 팔라는 권유가 아니에요</p>' : ''; }
 
   // ── 바깥(셸)과 연결: 투자 도구 계산기 열기
-  function lnWin(){ var out = null; Array.prototype.forEach.call(document.querySelectorAll('iframe'), function(f){ try { if (/ln\.html/.test(f.contentDocument.URL)) out = f.contentWindow; } catch (e) {} }); return out; }
+  function lnWin(){ var out = null; Array.prototype.forEach.call(document.querySelectorAll('iframe'), function(f){ try { if (/(^|\/)ln(\.html)?([?#]|$)/.test(f.contentDocument.URL)) out = f.contentWindow; } catch (e) {} }); return out; }
   function openCalc(buy, sell, mkt){
     var w = lnWin(), qty = buy ? Math.max(1, Math.floor(1000000 / buy)) : 0;
     var r = buy ? 'fee:' + Math.round(buy) + ',' + Math.round(sell || buy) + ',' + qty + ',' + (mkt === 'Q' || mkt === 'KOSDAQ' ? 'Q' : 'K') : 'calc';
@@ -881,7 +881,7 @@
     Array.prototype.forEach.call(document.querySelectorAll('iframe'), function(f){
       if (!f.__hmLoad) { f.__hmLoad = true; f.addEventListener('load', function(){ var n = 0, iv = setInterval(function(){ n++; scan(); var ok = false; try { ok = !!(f.contentWindow && f.contentWindow.__hm); } catch (e) { ok = true; } if (n > 150 || ok) clearInterval(iv); }, 200); }); }
       var w, d; try { w = f.contentWindow; d = f.contentDocument; } catch (e) { return; }
-      if (w && d && d.head && /ln\.html/.test(d.URL || '')) patch(w, d, force);
+      if (w && d && d.head && /(^|\/)ln(\.html)?([?#]|$)/.test(d.URL || '')) patch(w, d, force);
     });
   }
   var tick = setInterval(function(){ scan(); var w = lnWin(); if (w && w.__hm) clearInterval(tick); }, 200);

@@ -8,7 +8,7 @@
   var M = window.__lnMember = { me: null, uid: null, busy: false, act: null };
   function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){ return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
   function client(){ try { return window.__lnAuth && window.__lnAuth.sb; } catch (e) { return null; } }
-  function lnWin(){ var out = null; Array.prototype.forEach.call(document.querySelectorAll('iframe'), function(f){ try { if (/ln\.html/.test(f.contentDocument.URL)) out = f.contentWindow; } catch (e) {} }); return out; }
+  function lnWin(){ var out = null; Array.prototype.forEach.call(document.querySelectorAll('iframe'), function(f){ try { if (/(^|\/)ln(\.html)?([?#]|$)/.test(f.contentDocument.URL)) out = f.contentWindow; } catch (e) {} }); return out; }
   function kd(iso){ var d = new Date(iso); if (isNaN(d)) return ''; var k = new Date(d.getTime() + 9 * 3600e3); return k.getUTCFullYear() + '. ' + (k.getUTCMonth() + 1) + '. ' + k.getUTCDate() + '.'; }
   function md(iso){ var d = new Date(iso); if (isNaN(d)) return ''; var k = new Date(d.getTime() + 9 * 3600e3); return (k.getUTCMonth() + 1) + '/' + k.getUTCDate(); }
   function toast(t){ var w = lnWin(); try { if (w && w.toast) return w.toast(t); } catch (e) {} }
@@ -193,7 +193,7 @@
   function scan(){
     Array.prototype.forEach.call(document.querySelectorAll('iframe'), function(f){
       var w, d; try { w = f.contentWindow; d = f.contentDocument; } catch (e) { return; }
-      if (w && d && d.head && /ln\.html/.test(d.URL || '')) try { patch(w, d); } catch (e) {}
+      if (w && d && d.head && /(^|\/)ln(\.html)?([?#]|$)/.test(d.URL || '')) try { patch(w, d); } catch (e) {}
     });
   }
   var t = setInterval(function(){ scan(); var w = lnWin(); var ok = false; try { ok = !!(w && w.__mb); } catch (e) {} if (ok) clearInterval(t); }, 300);
