@@ -2381,7 +2381,7 @@ function authModal(){
       '<div class="auth-links"><button class="link-btn" data-a="authStep" data-v="forgot">비밀번호를 잊으셨나요?</button><button class="link-btn" data-a="authStep" data-v="resend">가입 인증메일을 못 받으셨나요?</button></div>';
   }else if(st==='signup'){
     b=head('회원가입')+'<form id="auth-signup" class="authform" novalidate>'+idField('s-id')+pwField('s-pw','비밀번호 (8자 이상)','new-password')+pwField('s-pw2','비밀번호 한 번 더','new-password')+
-      '<div class="fieldset"><label for="s-name">이름(닉네임)</label><input class="field" id="s-name" maxlength="10" autocomplete="nickname" placeholder="예: 영종도주식"></div>'+
+      '<div class="fieldset"><label for="s-name">이름(닉네임)</label><input class="field" id="s-name" maxlength="10" autocomplete="nickname" placeholder="예: 주식초보"></div>'+
       '<label class="agree"><input type="checkbox" id="s-req"><span><em>[필수]</em> 개인정보 수집·이용에 동의해요 (아이디·이름 · 로그인과 알림 발송 목적)</span></label>'+
       '<label class="agree"><input type="checkbox" id="s-mkt" checked><span>[선택] 새 추천과 혜택 소식을 메일로 받을게요</span></label>'+err+
       '<button class="btn btn-primary btn-block" type="submit">인증메일 받기</button></form>'+

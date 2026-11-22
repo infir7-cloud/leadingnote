@@ -5,6 +5,9 @@
    - 리딩 모음: 홈(삼전닉스 인사 · 바로가기 · 방송 중 · 새 추천 · 성적표), 전문가(사진 없이 이름 · 숫자 2개 · 지금 리딩 중 최상단),
      추천 줄 목록과 펼침, 떠 있는 캡슐 탭바. 투자 도구 · 커뮤니티 · 셸 머리에도 같은 색을 입혀요. */
 (function(){
+  // 압축된 배포본에서도 찾도록: 그대로 없으면 공백 차이를 무시하고 찾아요
+  function __lnFind(s,a){if(s.indexOf(a)>-1)return a;var m=s.match(new RegExp(a.replace(/[.*+?^${}()|[\]\\]/g,'\\$&').replace(/(\\s)+|\s+/g,'\\s*')));return m?m[0]:null}
+
   if (window.__lnTheme) return; window.__lnTheme = true;
   var FONT = 'https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css';
   var F = "'Pretendard Variable',Pretendard,-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Noto Sans KR','Malgun Gothic',sans-serif";
@@ -356,7 +359,7 @@
     try {
       var src = String(w[name]); if (src.indexOf('function') !== 0) return 0;
       var out = src, hit = 0;
-      pairs.forEach(function(p){ if (out.indexOf(p[0]) > -1) { out = out.split(p[0]).join(p[1]); hit++; } });
+      pairs.forEach(function(p){ var k = __lnFind(out, p[0]); if (k) { out = out.split(k).join(p[1]); hit++; } });
       if (hit) w.eval(name + ' = ' + out);
       return hit;
     } catch (e) { return 0; }
