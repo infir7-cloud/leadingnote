@@ -1409,6 +1409,10 @@ function vBcai(m){
   h+='<div class="card"><b>영상 주소로 직접 넣기</b><div class="row" style="margin-top:10px"><label class="f"><b>유튜브 주소</b><input type="url" id="bu" placeholder="https://youtu.be/…"></label></div>'+
     '<div class="row"><label class="f"><b>프로그램</b><select id="bp">'+progOpts('')+'</select></label><label class="f"><b>방송 날짜</b><input type="text" id="bd" value="'+today+'" placeholder="2026-10-28"></label></div>'+
     '<button class="btn p s" id="bgo2">분석하기</button><p class="hint" style="margin:8px 0 0">1시간짜리 방송은 1~2분 걸려요.</p></div>';
+  h+='<div class="card"><b>텍스트로 넣기</b><p class="hint" style="margin:6px 0 10px">방송 정리 글을 붙여 넣으면 전문가·종목·매수/목표/손절가를 읽어 회차에 바로 넣어요 (비공개 저장 · AI 사용 안 함). 첫 줄에 <b>11/23 고수외전</b>처럼 날짜와 프로그램이 있으면 아래 칸을 비워 둬도 돼요. 이 회차의 방송 AI 분석은 텍스트로 대신해서 더 돌리지 않아요.</p>'+
+    '<div class="row"><label class="f"><b>프로그램</b><select id="btp">'+progOpts('')+'</select></label><label class="f"><b>방송 날짜</b><input type="text" id="btd" placeholder="비우면 첫 줄에서 읽어요 (2026-11-23)"></label></div>'+
+    '<label class="f"><b>정리 글</b><textarea id="btx" rows="10" maxlength="20000" placeholder="11/23 고수외전&#10;&#10;1. 김호영 전문가 (데이터센터 &amp; 반도체)&#10;① NHN (데이터센터 클라우드)&#10;* 투자 포인트:&#10;   * 광주 국가 AI 데이터센터 …&#10;* 가격 전략:&#10;   * 매수가: 65,000원 전후&#10;   * 목표가: 단기 90,000원&#10;   * 손절가: 50,000원&#10;③ 오늘의 히든주 (제주반도체) …"></textarea></label>'+
+    '<button class="btn p s" id="btgo">분석해서 회차에 넣기</button><div id="btout"></div></div>';
   if(!jobs.length)h+='<div class="card empty">아직 찾은 영상이 없어요.</div>';
   jobs.forEach(function(j){
     var st=BCJ_ST[j.status]||[j.status,''],res=j.result||{},picks=res.picks||[];
@@ -1436,6 +1440,20 @@ function vBcai(m){
   $('#bgo2').onclick=function(){var b=$('#bgo2'),u=$('#bu').value.trim(),p=$('#bp').value,d=$('#bd').value.trim();
     if(!u||!p||!/^\d{4}-\d{2}-\d{2}$/.test(d)){flash('warn','주소, 프로그램, 방송 날짜(2026-10-28 모양)를 모두 넣어 주세요');return}
     busy(b,'분석 중… (1~2분)');fnCall('bc-video',{action:'add',url:u,program_id:p,air_date:d}).then(function(r){return reload('ok',r.partial?r.msg:'분석했어요. 종목 '+(r.picks||0)+'개를 찾았어요. 아래에서 확인해 주세요.')}).catch(function(e){b.disabled=false;b.textContent='분석하기';flash('bad','분석하지 못했어요: '+errText(e))})};
+  $('#btgo').onclick=function(){var b=$('#btgo'),out=$('#btout'),txt=$('#btx').value;
+    if(!txt.trim()){flash('warn','정리 글을 붙여 넣어 주세요');return}
+    var head=bctHead(txt),p=$('#btp').value||head.pid,d=($('#btd').value||'').trim()||head.date;
+    if(!p||!/^\d{4}-\d{2}-\d{2}$/.test(d||'')){flash('warn','프로그램과 방송 날짜를 읽지 못했어요. 위 칸에서 골라 주세요');return}
+    b.disabled=true;b.textContent='읽는 중…';out.innerHTML='';
+    bctParse(txt,p).then(function(res){
+      if(!res.picks.length)throw new Error('종목을 하나도 읽지 못했어요. ① ② ③ 처럼 번호가 붙은 줄이 종목이에요');
+      b.textContent='넣는 중…';
+      return bctApply(p,d,res).then(function(r){
+        var miss=res.picks.filter(function(x){return x.stock_name&&!x.stock_code}).map(function(x){return x.stock_name});
+        return reload('ok',progName(p)+' '+d+' 회차에 넣었어요 · 전문가 '+res.experts.length+'명 · 종목 '+r.added+'개 추가'+(r.updated?' · '+r.updated+'개 갱신':'')+(miss.length?' · 종목코드 확인 필요: '+miss.join(', '):'')+'. \'방송\' 탭에서 확인한 뒤 공개해 주세요.');
+      });
+    }).catch(function(e){b.disabled=false;b.textContent='분석해서 회차에 넣기';flash('bad','넣지 못했어요: '+errText(e))});
+  };
   $$('[data-j]',m).forEach(function(card){
     var id=+card.dataset.j,j=jobs.find(function(x){return x.id===id});
     var jr=card.querySelector('.jr'),jx=card.querySelector('.jx'),ja=card.querySelector('.ja');
@@ -1468,6 +1486,100 @@ function bcaiApply(j,res,btn){
   return sb.rpc('ops_bc_episode_save',{p:{program_id:j.program_id,air_date:j.air_date,experts:xs,picks:ps,video_url:ep.video_url||j.video_url,canceled:!!ep.canceled,published:!!ep.published,note:ep.note||''}}).then(function(r){
     if(r.error)throw r.error;return sb.from('bc_ai_jobs').update({status:'applied',updated_at:new Date().toISOString()}).eq('id',j.id);
   }).then(function(r){if(r&&r.error)throw r.error;return reload('ok','회차에 넣었어요 (종목 '+added+'개 추가). \'방송\' 탭에서 확인한 뒤 공개해 주세요.')}).catch(function(e){if(btn){btn.disabled=false;btn.textContent=t0}flash('bad','넣지 못했어요: '+errText(e))});
+}
+// ── 텍스트로 넣기: 방송 정리 글(유튜브 AI 요약 등)을 규칙으로 읽어 회차에 넣어요 (AI 호출 없음)
+// 첫 줄 '11/23 고수외전' → 날짜·프로그램 / '1. 김호영 전문가 (…)' → 전문가 / '① 종목 (설명)' → 종목 / '매수가: · 목표가: · 손절가: · 매도가:' → 가격
+function bctHead(txt){
+  var lines=String(txt||'').split(/\r?\n/).map(function(s){return s.trim()}).filter(Boolean).slice(0,3).join(' '),r={pid:'',date:''};
+  var m=lines.match(/(?:(20\d{2})[.\-\/년]\s*)?(\d{1,2})\s*[\/.월]\s*(\d{1,2})\s*일?/);
+  if(m){var now=kYmd(kNow()),y=m[1]?+m[1]:+now.slice(0,4),mo=+m[2],dd=+m[3];if(!m[1]&&mo>+now.slice(5,7)+1)y--;
+    if(mo>=1&&mo<=12&&dd>=1&&dd<=31)r.date=y+'-'+String(mo).padStart(2,'0')+'-'+String(dd).padStart(2,'0')}
+  var t=lines.replace(/\s+/g,'');
+  (S.bcP||[]).forEach(function(p){var n=String(p.name||'').replace(/\s+/g,'');if(n&&!r.pid&&t.indexOf(n)>-1)r.pid=p.id});
+  return r;
+}
+// 금액 읽기: 첫 번째 금액만 (65,000원 / 6만5천원 / 6.5만원) · '1차'·'2027년' 같은 숫자는 건너뛰어요
+function bctWon(s){
+  var re=/(\d{1,3}(?:,\d{3})+|\d+(?:\.\d+)?)\s*(만\s*(?:(\d+)\s*천)?\s*원?|천\s*원|원)?/g,m;
+  while((m=re.exec(String(s||'')))){
+    var raw=m[1],unit=(m[2]||'').replace(/\s+/g,''),after=String(s).slice(re.lastIndex,re.lastIndex+1);
+    if(!unit&&raw.indexOf(',')<0)continue;
+    if(!unit&&/[차년월일%]/.test(after))continue;
+    var n=parseFloat(raw.replace(/,/g,''));
+    if(unit.charAt(0)==='만')n=n*10000+(m[3]?+m[3]*1000:0);else if(unit.charAt(0)==='천')n=n*1000;
+    n=Math.round(n);if(n>0)return n;
+  }
+  return null;
+}
+// 영문 약칭 → 한글 읽기 (GNC에너지 → 지엔씨에너지, KMW → 케이엠더블유)
+var BCT_AB={A:'에이',B:'비',C:'씨',D:'디',E:'이',F:'에프',G:'지',H:'에이치',I:'아이',J:'제이',K:'케이',L:'엘',M:'엠',N:'엔',O:'오',P:'피',Q:'큐',R:'알',S:'에스',T:'티',U:'유',V:'브이',W:'더블유',X:'엑스',Y:'와이',Z:'지'};
+var BCT_ALIAS={'삼전':'삼성전자','하닉':'SK하이닉스','하이닉스':'SK하이닉스','엔솔':'LG에너지솔루션','네이버':'NAVER','현대자동차':'현대차','기아차':'기아','삼바':'삼성바이오로직스'};
+function bctVariants(n){
+  n=String(n||'').trim();if(!n)return [];
+  var v=[n,n.replace(/\s+/g,'')];if(BCT_ALIAS[v[1]])v.push(BCT_ALIAS[v[1]]);
+  if(/[A-Za-z]/.test(n)&&/[가-힣]/.test(n)||/^[A-Za-z]{2,5}$/.test(n))v.push(v[1].replace(/[A-Za-z]/g,function(c){return BCT_AB[c.toUpperCase()]||c}));
+  return v.filter(function(x,i){return x&&v.indexOf(x)===i});
+}
+function bctLookup(names){
+  var all=[];names.forEach(function(n){bctVariants(n).forEach(function(v){if(all.indexOf(v)<0)all.push(v)})});
+  if(!all.length)return Promise.resolve({});
+  return Promise.resolve(sb.from('stocks').select('code,name').in('name',all)).then(function(r){
+    if(r.error)throw r.error;var by={};(r.data||[]).forEach(function(s){by[s.name]=s});
+    var out={};names.forEach(function(n){var hit=bctVariants(n).map(function(v){return by[v]}).filter(Boolean)[0];if(hit)out[n]=hit});
+    return out;
+  });
+}
+function bctParse(txt,pid){
+  var LB=pgLabels(pid),lines=String(txt||'').split(/\r?\n/),experts=[],picks=[],cur='',pk=null,mode='';
+  function clean(s){return String(s||'').replace(/^[\s*•·\-–▶▷►✔✓]+/,'').trim()}
+  lines.forEach(function(raw){
+    var s=clean(raw);if(!s)return;
+    var xm=s.match(/^(\d{1,2})\s*[.)]\s*([가-힣]{2,4})(?:\s*(?:전문가|대표이사|대표|자문역|자문위원|위원|소장|원장|이사|본부장|팀장))?(?:\s*[\(（].*[\)）])?\s*$/);
+    if(xm){cur=xm[2];if(!experts.some(function(x){return x.name===cur}))experts.push({name:cur});pk=null;mode='';return}
+    var pm=s.match(/^(?:[①-⑳]|\(\d{1,2}\)|[❶-❿])\s*(.+)$/);
+    if(pm){var body=pm[1].trim(),pre=body,inside='',im=body.match(/^(.*?)\s*[\(（]([^\)）]*)[\)）]\s*$/);if(im){pre=im[1].trim();inside=im[2].trim()}
+      pk={expert_name:cur,pre:pre,inside:inside,points:[],buy:null,target:null,stop:null,sell:null};picks.push(pk);mode='';return}
+    if(!pk)return;
+    var price=s.match(/^(매수가|매수|목표가|목표|손절가|손절|매도가|매도)\s*[:：]\s*(.*)$/);
+    if(price){var k=price[1].charAt(0)+price[1].charAt(1),v=bctWon(price[2]);
+      if(k==='매수')pk.buy=v;else if(k==='목표')pk.target=v;else if(k==='손절')pk.stop=v;else if(k==='매도')pk.sell=v;mode='';return}
+    var sec=s.match(/^(투자\s*포인트|업종\s*\/?\s*특징|특징|포인트|추천\s*이유)\s*[:：]\s*(.*)$/);
+    if(sec){mode='pt';if(sec[2])pk.points.push(sec[2]);return}
+    if(/^가격\s*전략\s*[:：]?$/.test(s)){mode='';return}
+    if(mode==='pt')pk.points.push(s);
+  });
+  var names=[];picks.forEach(function(p){if(p.pre)names.push(p.pre);if(p.inside)names.push(p.inside)});
+  return bctLookup(names).then(function(hit){
+    var res=picks.map(function(p){
+      var a=hit[p.pre],b=p.inside?hit[p.inside]:null,kind='open',label='',st=a,nm=p.pre;
+      if(!a&&b){st=b;nm=p.inside;label=p.pre.slice(0,20);   // '오늘의 히든주 (제주반도체)' → 코너 이름 + 종목
+        kind=(/히든|비공개|시선고정|소중한|금메달|TOP\s*1|관심주/i.test(p.pre)||p.pre===LB.secret)?'secret':'open'}
+      else if(!a&&p.inside&&/히든|비공개|시선고정|소중한|금메달|관심주/.test(p.pre)){nm=p.inside;label=p.pre.slice(0,20);kind='secret'}
+      var buy=p.buy,target=p.target,stop=p.stop,sell=p.sell;
+      if(buy&&target&&target<=buy)target=null;if(buy&&stop&&stop>=buy)stop=null;if(sell&&!buy)sell=null;
+      var desc=p.points.map(function(x){return clean(x)}).filter(Boolean).join(' · ').slice(0,200);
+      return {expert_name:p.expert_name,kind:kind,opinion:'',revealed:true,label:label,stock_name:st?st.name:nm,stock_code:st?st.code:null,buy:buy,target:target,stop:stop,sell:sell,desc:desc,ts:''};
+    }).filter(function(p){return p.expert_name&&p.stock_name});
+    return {experts:experts,picks:res,note:'텍스트로 넣음'};
+  });
+}
+// 회차에 넣기: 같은 전문가·같은 종목이 이미 있으면 글 내용으로 갱신, 없으면 추가 · 이 회차의 방송 AI 작업은 '회차에 넣음'으로 정리
+function bctApply(pid,d,res){
+  var ep=(S.bcE||[]).find(function(e){return e.program_id===pid&&String(e.air_date)===String(d)})||{};
+  var job=(S.bcJobs||[]).find(function(j){return j.program_id===pid&&String(j.air_date)===String(d)});
+  var xs=(ep.experts||[]).slice(),xk={};xs.forEach(function(x){xk[nn(x.name)]=1});
+  res.experts.forEach(function(x){if(!xk[nn(x.name)]){xk[nn(x.name)]=1;var e=bcExpert(x.name);xs.push({id:e?e.id:null,name:e?e.name:x.name})}});
+  var ps=(ep.picks||[]).slice(),added=0,updated=0;
+  res.picks.forEach(function(p){
+    var e=bcExpert(p.expert_name),k=nn(p.expert_name)+'|'+nn(p.stock_name);
+    var o={expert_id:e?e.id:null,expert_name:e?e.name:p.expert_name,kind:p.kind,opinion:'',revealed:p.revealed,stock_code:p.stock_code||null,stock_name:p.stock_name,buy:p.buy,target:p.target,stop:p.stop,sell:p.buy?p.sell:null,pick_date:d,quote:p.desc,ts:'',label:p.label||''};
+    var i=ps.findIndex(function(q){return nn(q.expert_name)+'|'+nn(q.stock_name||'')===k});
+    if(i>-1){ps[i]=Object.assign({},ps[i],o,{ts:ps[i].ts||'',expert_id:ps[i].expert_id||o.expert_id});updated++}else{ps.push(o);added++}
+  });
+  return Promise.resolve(sb.rpc('ops_bc_episode_save',{p:{program_id:pid,air_date:d,experts:xs,picks:ps,video_url:ep.video_url||(job&&job.video_url)||null,canceled:!!ep.canceled,published:!!ep.published,note:ep.note||''}})).then(function(r){
+    if(r.error)throw r.error;
+    return Promise.resolve(sb.from('bc_ai_jobs').update({status:'applied',error:null,updated_at:new Date().toISOString()}).eq('program_id',pid).eq('air_date',d).in('status',['new','error','done','unmatched','running'])).then(function(){return {added:added,updated:updated}},function(){return {added:added,updated:updated}});
+  });
 }
 // 방송 AI 결과 고치기: 회차에 넣기 전에 전문가·종목·가격·장면 시각을 바로잡아요
 function bcaiEdit(box,j){
