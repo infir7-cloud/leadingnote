@@ -109,7 +109,8 @@ function send(type,app,route){try{parent.postMessage({site:1,type:type,app:app||
 function sb(){try{return parent.__lnAuth&&parent.__lnAuth.sb||null}catch(e){return null}}
 function toast(m){var t=$('#toast');if(!t){t=document.createElement('div');t.id='toast';t.setAttribute('role','status');t.style.cssText='position:fixed;left:50%;bottom:1.5rem;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:.7rem 1.1rem;border-radius:12px;font-weight:600;z-index:9;max-width:90%';document.body.appendChild(t)}t.textContent=m;t.hidden=false;clearTimeout(t._t);t._t=setTimeout(function(){t.hidden=true},2400)}
 var ROUTE='home',S={};
-function top(title,sub){return '<div class="top"><button class="back" data-go="home" aria-label="놀이터 처음으로">‹</button><div><h1>'+esc(title)+'</h1>'+(sub?'<p class="sub">'+esc(sub)+'</p>':'')+'</div></div>'}
+/* (11/24) 리딩노트 안에서는 놀이터 첫 화면 대신 '도구' 한 페이지로 돌아가요 (도구 페이지에 놀이터 목록이 있어요) */
+function top(title,sub){return '<div class="top"><button class="back" '+(window.parent!==window?'data-x="go:tools:home" aria-label="도구로 돌아가기"':'data-go="home" aria-label="놀이터 처음으로"')+'>‹</button><div><h1>'+esc(title)+'</h1>'+(sub?'<p class="sub">'+esc(sub)+'</p>':'')+'</div></div>'}
 var SAFE='재미로 즐기는 콘텐츠예요. 투자 권유나 투자 판단의 근거가 아니에요.';
 
 /* ---------- 오늘의 한 줄 ---------- */

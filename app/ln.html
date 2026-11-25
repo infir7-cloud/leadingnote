@@ -1497,7 +1497,11 @@ function analyze(L){
   });
   var st = STOCKS[L.stock];
   var status = sell?'done':hasBuy?'holding':'watch';
-  return {L:L, stock:st, steps:steps, status:status, cur:cur, lastLead:lastLead,
+  // (11/24) 보유 중 판정: 마지막 구매 추천 '다음 날 이후' 장 마감 가격이 있으면 구매 가격과 비교해요 (JUDGE_PX)
+  var jr=null,jAt=null;
+  if(status==='holding'&&cur.buy){var lb=null;steps.forEach(function(s){if(s.e.t==='buy')lb=s.e.at});
+    var jq=judgePx(L.stock);if(jq&&lb&&jq.asOf>lb.slice(0,10)){jr=(jq.close-cur.buy)/cur.buy*100;jAt=jq.asOf}}
+  return {L:L, stock:st, steps:steps, status:status, cur:cur, lastLead:lastLead, judgeRet:jr, judgeAt:jAt,
     ret: sell?sell.ret:null, hit: sell?sell.hit:null, sell: sell?sell.e.sell:null,
     endAt: sell?sell.e.at:null, startAt: ev[0].at, lastAt: ev[ev.length-1].at,
     unreal: status==='holding'?(st.price-cur.buy)/cur.buy*100:null};
@@ -1569,11 +1573,15 @@ function oneLiner(stockId){
 function expertStats(id){
   var list = LEADINGS.filter(function(l){return l.expert===id}).map(analyze);
   var done = list.filter(function(a){return a.status==='done'});
-  var hits = done.filter(function(a){return a.ret>0}).length;   // 적중: 구매 가격보다 비싸게 판매 완료
-  var sum = done.reduce(function(s,a){return s+a.ret},0);
+  // (11/24) 판정 = 판매 완료 + 보유 중(장 마감 가격으로 판정한 것). 적중: 판매 가격 또는 장 마감 가격이 구매 가격보다 높음
+  var hold = list.filter(function(a){return a.status==='holding'&&a.judgeRet!=null});
+  var hits = done.filter(function(a){return a.ret>0}).length + hold.filter(function(a){return a.judgeRet>0}).length;
+  var judged = done.length+hold.length;
+  var sum = done.reduce(function(s,a){return s+a.ret},0) + hold.reduce(function(s,a){return s+a.judgeRet},0);
   var lastAt = list.reduce(function(m,a){return a.lastAt>m?a.lastAt:m},'');
-  return {list:list,total:list.length,doneCount:done.length,hits:hits,
-    hitRate: done.length?hits/done.length*100:null, avg: done.length?sum/done.length:null, sum: done.length?sum:null,
+  return {list:list,total:list.length,doneCount:done.length,holdJudged:hold.length,judged:judged,hits:hits,
+    holdWait: list.filter(function(a){return a.status==='holding'&&a.judgeRet==null}).length,
+    hitRate: judged?hits/judged*100:null, avg: judged?sum/judged:null, sum: judged?sum:null,
     active: list.length-done.length, lastAt:lastAt};
 }
 function expertEvents(id){
@@ -1627,8 +1635,9 @@ function ymd(d){var z=function(n){return (n<10?'0':'')+n};return d.getFullYear()
 function addDays(day,n){var p=day.split('-');return ymd(new Date(+p[0],+p[1]-1,+p[2]+n))}
 function mondayOf(day){var p=day.split('-'),d=new Date(+p[0],+p[1]-1,+p[2]),w=(d.getDay()+6)%7;return addDays(day,-w)}
 function judgedOf(id){
-  return LEADINGS.filter(function(l){return l.expert===id}).map(analyze).filter(function(a){return a.status==='done'})
-    .map(function(a){return {ret:a.ret,hit:a.ret>0,day:a.endAt.slice(0,10),a:a}});
+  // (11/24) 통산 성적에는 보유 중 판정도 넣어요. 주간 성적(그 주에 판매 완료)에는 날짜가 없어서 안 들어가요
+  return LEADINGS.filter(function(l){return l.expert===id}).map(analyze).filter(function(a){return a.status==='done'||(a.status==='holding'&&a.judgeRet!=null)})
+    .map(function(a){return a.status==='done'?{ret:a.ret,hit:a.ret>0,day:a.endAt.slice(0,10),a:a}:{ret:a.judgeRet,hit:a.judgeRet>0,day:'',hold:true,a:a}});
 }
 function aggOf(list){
   var n=list.length,h=list.filter(function(x){return x.hit}).length,sum=list.reduce(function(s,x){return s+x.ret},0);
@@ -1826,6 +1835,13 @@ function stepOfAid(aid){var out=null;LEADINGS.forEach(function(L){analyze(L).ste
 // 실서비스: 매일 장 마감 뒤 자동으로 새로 만들어지는 prices.json 주소를 넣으면 그걸 먼저 읽어요
 var PRICE_URL='';
 var PX={asOf:'',days:[],rows:[],byCode:{},src:''};
+/* (11/24) 적중 판정용 장 마감 가격 — 화면에 가격을 보여 주는 PX 와 따로 둬요. 가격 자체는 화면에 보여 주지 않고, 보유 중 추천의 적중 판정에만 써요.
+   처음엔 ln-data.js 의 한국거래소 장 마감 가격, 서버가 더 최근 가격을 주면 live-data.js 가 바꿔 넣어요 (setJudgePrices) */
+var JUDGE_PX={asOf:'',src:'',byCode:{}};
+function setJudgePrices(asOf,src,map){if(asOf&&map&&Object.keys(map).length&&asOf>=JUDGE_PX.asOf){JUDGE_PX.asOf=asOf;JUDGE_PX.src=src||'';JUDGE_PX.byCode=map}}
+function judgePx(code){var c=JUDGE_PX.byCode[code];return c!=null&&JUDGE_PX.asOf?{close:c,asOf:JUDGE_PX.asOf}:null}
+function judgeNote(){return JUDGE_PX.asOf?'판매 완료 + 보유 중('+fmtDate(JUDGE_PX.asOf+'T00:00')+' 장 마감 가격 기준)':'판매 완료 기준'}
+(function(){try{var d=window.__LNPX,m={};if(d&&d.asOf&&d.rows){d.rows.forEach(function(r){if(r[3]!=null)m[r[0]]=+r[3]});setJudgePrices(d.asOf,d.src||'한국거래소',m)}}catch(e){}})();
 function setPrices(d){
   PX.asOf=d.asOf;PX.days=d.days||[];PX.src=d.src||'';PX.byCode={};
   PX.rows=(d.rows||[]).map(function(r){var q={c:r[0],n:r[1],m:r[2],close:r[3],chg:r[4],ratio:r[5],open:r[6],high:r[7],low:r[8],vol:r[9],cap:r[10],h:r[11]||[]};PX.byCode[q.c]=q;return q});
@@ -2425,7 +2441,7 @@ function screenCenter(){
   var st=expertStats(me),mine=P.adminEvents.filter(function(it){return it.expert===me});
   var h='<main class="screen gx">'+(serverOn()?'<p class="sync-line warn">체험용 화면이에요. 전문가 계정은 아직 서버와 연결되지 않아서, 여기서 올린 추천은 이 브라우저에만 남아요. 실제 추천은 관리자 페이지에서 올려 주세요.</p>':'');
   h+='<section class="card" style="padding:1rem;display:flex;align-items:center;gap:.8rem">'+avatar(x)+'<span style="flex-grow:1;min-width:0;display:flex;flex-direction:column"><b style="font-size:1.25rem;display:flex;align-items:center;gap:.2rem;flex-wrap:wrap">'+esc(x.name)+'<span class="role-chip expert">전문가</span></b><span class="small">내 추천만 올리고 고칠 수 있어요</span></span></section>';
-  h+='<div class="kpis">'+kpi('팔로워',fansOf(x).toLocaleString('ko-KR')+'명')+kpi('적중률',st.hitRate==null?'-':Math.round(st.hitRate)+'% ('+st.doneCount+'건)')+
+  h+='<div class="kpis">'+kpi('팔로워',fansOf(x).toLocaleString('ko-KR')+'명')+kpi('적중률',st.hitRate==null?'-':Math.round(st.hitRate)+'% ('+st.judged+'건)')+
     kpi('통산 따라수익',st.sum==null?'-':pct(st.sum))+kpi('가지고 있는 종목',st.list.filter(function(a){return a.status==='holding'}).length+'개')+'</div>';
   h+='<div class="card"><div class="trow"><span class="ft"><b>지금 방송 중</b><span>켜면 홈 맨 앞 "지금 방송 중"에 보여요</span></span><button class="toggle" data-a="toggleLive" data-v="'+me+'" aria-pressed="'+!!x.live+'" aria-label="방송 중 표시">'+(x.live?'켜짐':'꺼짐')+'</button></div></div>';
   h+='<section class="group"><h2 class="sech">내 추천 올리기</h2>'+postFormHTML(me)+'</section>';
@@ -2466,7 +2482,7 @@ function screenRank(){
       '<span class="rk-main"><b>'+xN(r.x)+(r.x.live?livePill():'')+'</b><span class="rk-wk">'+(isNow?'이번 주':'그 주')+' '+wk+'</span></span>'+
       '<span class="rk-all"><b>'+(r.all.rate==null?'-':Math.round(r.all.rate)+'%')+'</b><span>통산 적중 ('+r.all.n+'건)</span><span class="'+(r.all.sum==null?'flat':tone(r.all.sum))+'">'+(r.all.sum==null?'-':pct(r.all.sum))+'</span></span></button></li>';
   }).join('')+'</ol>';
-  h+='<p class="small">적중 = 구매 가격보다 높게 판매한 추천 · 따라수익 = 추천대로 했을 때 수익의 단순 합(복리 아님) · 투자 권유가 아니에요 <button class="link-btn" data-a="sheet" data-v="basis">계산 기준 자세히</button></p>';
+  h+='<p class="small">적중 = 판매 가격 또는 장 마감 가격이 구매 가격보다 높은 추천 · 따라수익 = 추천대로 했을 때 수익의 단순 합(복리 아님) · 투자 권유가 아니에요 <button class="link-btn" data-a="sheet" data-v="basis">계산 기준 자세히</button></p>';
   h+=shareBtn('w-'+ws.replace(/-/g,''),'이 성적표 카톡으로 공유','btn-block');
   return h+'</main>';
 }
@@ -2744,7 +2760,7 @@ function screenStock(id){
 function expertRanking(){
   return EXPERTS.map(function(x){return {x:x,st:expertStats(x.id)}}).sort(function(a,b){
     var ah=a.st.hitRate==null?-1:a.st.hitRate,bh=b.st.hitRate==null?-1:b.st.hitRate;
-    return bh-ah||b.st.doneCount-a.st.doneCount||(b.st.sum||0)-(a.st.sum||0)||a.x.name.localeCompare(b.x.name,'ko');
+    return bh-ah||b.st.judged-a.st.judged||(b.st.sum||0)-(a.st.sum||0)||a.x.name.localeCompare(b.x.name,'ko');
   }).map(function(o,i){o.rank=i+1;return o});
 }
 function filteredExperts(){
@@ -2764,13 +2780,13 @@ function xrow(o){
     '<span class="xr-t"><b>'+xN(x)+'</b>'+
       (x.live?'<span class="xr-live">'+esc(x.live.ch)+' 출연 중</span>':(LN.first('xrow.sub',o)||'<span class="xr-s">'+esc(x.tags.join(' · '))+' · 팔로워 '+fansOf(x).toLocaleString('ko-KR')+'명</span>'))+
       '<span class="xr-bar" aria-hidden="true"><i style="width:'+(hr==null?0:Math.round(hr))+'%"></i></span></span>'+
-    '<span class="xr-hit"><b>'+(hr==null?'-':Math.round(hr)+'%')+'</b><span>적중 '+st.hits+'/'+st.doneCount+'건</span><span class="'+(st.sum==null?'flat':tone(st.sum))+'">'+(st.sum==null?'-':pct(st.sum))+'</span></span></button>'+
+    '<span class="xr-hit"><b>'+(hr==null?'-':Math.round(hr)+'%')+'</b><span>적중 '+st.hits+'/'+st.judged+'건</span><span class="'+(st.sum==null?'flat':tone(st.sum))+'">'+(st.sum==null?'-':pct(st.sum))+'</span></span></button>'+
     '<button class="star-btn" data-a="follow" data-v="'+x.id+'" aria-pressed="'+f+'" aria-label="'+esc(x.name)+(f?' 관심 해제':' 관심 등록')+'">'+(f?IC.starOn:IC.star)+'</button></div>';
 }
 function xlistHTML(){
   var list=filteredExperts();
   if(!list.length)return '<p class="empty">찾는 전문가가 없어요. 다른 이름이나 분류로 찾아보세요.</p>';
-  return '<p class="small">'+list.length+'명 · 판매까지 끝난 추천 기준 · 최근 6개월</p><div class="card">'+list.map(xrow).join('')+'</div>';
+  return '<p class="small">'+list.length+'명 · '+judgeNote()+' · 최근 6개월</p><div class="card">'+list.map(xrow).join('')+'</div>';
 }
 function ringSVG(frac,cls){var r=40,c=2*Math.PI*r,v=Math.max(0,Math.min(1,frac||0));return '<svg viewBox="0 0 100 100" aria-hidden="true"><circle class="bg" cx="50" cy="50" r="'+r+'" fill="none" stroke-width="10"/><circle class="fg '+(cls||'')+'" cx="50" cy="50" r="'+r+'" fill="none" stroke-width="10" stroke-linecap="round" stroke-dasharray="'+(c*v).toFixed(1)+' '+c.toFixed(1)+'"/></svg>'}
 var STYLE_SHORT={swing:'스윙',day:'단타',long:'중장기'};
@@ -2801,7 +2817,7 @@ function screenExperts(){
 function statsHTML(st){
   return '<div class="stats">'+
     '<div class="stat"><b>'+st.total+'개</b><span>추천 종목</span></div>'+
-    '<div class="stat"><b>'+(st.hitRate==null?'-':Math.round(st.hitRate)+'%')+'</b><span>적중률<br>'+st.doneCount+'건 중 '+st.hits+'건</span></div>'+
+    '<div class="stat"><b>'+(st.hitRate==null?'-':Math.round(st.hitRate)+'%')+'</b><span>적중률<br>'+st.judged+'건 중 '+st.hits+'건</span></div>'+
     '<div class="stat"><b class="'+(st.sum==null?'flat':tone(st.sum))+'">'+(st.sum==null?'-':pct(st.sum))+'</b><span>통산 따라수익<br>단순 합</span></div>'+
   '</div>';
 }
@@ -2847,7 +2863,7 @@ function screenExpert(id){
     '<p class="xd-intro">'+esc(x.intro)+'</p>'+
     (x.live?'<button class="xd-live" data-a="channel" data-v="'+esc(x.live.ch)+'"><span class="ld" aria-hidden="true"></span><span class="lt"><b>지금 '+esc(x.live.ch)+' 출연 중</b><span>'+esc(x.live.title)+' · '+onAirText(x.live.since)+'</span></span>'+IC.right+'</button>':'')+
     '<div class="xd-stats"><div class="xd-ring">'+ringSVG(hr==null?0:hr/100)+'<span class="c"><b>'+(hr==null?'-':Math.round(hr)+'%')+'</b><span>적중률</span></span></div>'+
-      '<div class="xd-kv"><div><span>적중</span><b>'+st.doneCount+'건 중 '+st.hits+'건</b></div>'+
+      '<div class="xd-kv"><div><span>적중</span><b>'+st.judged+'건 중 '+st.hits+'건</b></div>'+
       '<div><span>통산 따라수익</span><b class="'+(st.sum==null?'flat':tone(st.sum))+'">'+(st.sum==null?'-':pct(st.sum))+'</b></div>'+
       '<div><span>적중률 순위</span><b>'+(me?me.rank:'-')+'위 / '+rk.length+'명</b></div>'+
       '<div><span>추천 종목</span><b>'+st.total+'개 · 보유 '+holding+'</b></div></div></div>'+
@@ -2980,11 +2996,11 @@ function sheetHTML(){
   }else if(S.sheet==='basis'){
     body='<h2>숫자 계산 기준</h2><dl class="defs">'+
       '<div><dt>추천 종목</dt><dd>최근 6개월 동안 공개한 종목 수예요.</dd></div>'+
-      '<div><dt>적중률</dt><dd>판매로 끝난 추천 중, 구매 가격보다 높게 판매한 비율이에요. 판매 추천이 나온 날 판정해요.</dd></div>'+
+      '<div><dt>적중률</dt><dd>판정한 추천 중 구매 가격보다 높았던 비율이에요. 판매로 끝난 추천은 판매 가격으로, 아직 가지고 있는 추천은 '+(JUDGE_PX.asOf?fmtDate(JUDGE_PX.asOf+'T00:00')+' ':'')+'장 마감 가격으로 판정해요. 낮으면 손실로 들어가요. 구매 추천이 장 마감 가격 날짜보다 늦게 나왔으면 다음 가격이 나올 때까지 판정 대기예요.</dd></div>'+
       '<div><dt>따라수익</dt><dd>추천대로 구매·판매했다면 얻었을 수익률을 단순히 더한 값이에요(복리 아님). 수익률은 (판매 가격 − 구매 가격) ÷ 구매 가격이고, 구매 가격이 바뀌었다면 바뀐 가격을 써요.</dd></div>'+
       '<div><dt>주간 성적</dt><dd>그 주(월~금)에 판매로 끝난 추천만 모아 계산해요. 한 주 성적은 운도 크게 작용하니 통산 성적을 함께 보세요.</dd></div>'+
       '<div><dt>통산 아쉬운 기록</dt><dd>지금까지 추천을 그대로 따랐을 때 수익이 가장 낮았던 전문가예요. 기록일 뿐 전문가를 평가하는 말이 아니에요.</dd></div>'+
-      '<div><dt>가지고 있는 종목</dt><dd>아직 판매하지 않은 종목은 구매 가격보다 지금 얼마나 올랐는지 따로 보여 주고, 평균에는 넣지 않아요.</dd></div>'+
+      '<div><dt>가지고 있는 종목</dt><dd>아직 판매하지 않은 종목도 장 마감 가격으로 적중률·따라수익에 넣어요. 판매하면 판매 가격으로 바뀌어요.</dd></div>'+
       '<div><dt>투자자 생각</dt><dd>이용자가 누른 "오를 것 같아요 / 내릴 것 같아요" 비율이에요.</dd></div>'+
       '</dl><button class="btn btn-ink btn-block" data-a="closeSheet">확인</button>';
   }else if(S.sheet==='reward'){

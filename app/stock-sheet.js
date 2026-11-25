@@ -129,7 +129,7 @@
       : '<p class="ss-hint">최근 공시가 없어요.</p>') + '</div>';
     root.innerHTML = '<div class="ss-scrim" data-ss-close><div class="ss-sheet" role="dialog" aria-modal="true" aria-labelledby="ss-title">' +
       '<div class="ss-h"><div><h2 id="ss-title">' + esc(s.name) + '</h2><p class="ss-code">' + s.code + '</p></div><button class="ss-x" data-ss-close aria-label="닫기">×</button></div>' +
-      link(nv + '/total', 'ss-main', '네이버 증권에서 지금 가격 보기 ↗') +
+      link(nv + '/total', 'ss-main', '네이버 증권에서 차트·지금 가격 보기 ↗') +
       quick(s.code, s.name, 0, 0, true) +
       whyHTML(s) +
       '<div class="ss-sec"><p class="ss-label">최근 뉴스</p>' + news + link(nv + '/news', 'ss-more', '이 종목 뉴스 더 보기 (네이버 증권) ↗') + '</div>' + dis +
@@ -164,6 +164,26 @@
   window.openStock = open;
   nvWire(document);
 
+  // ---- (11/24) 네이버 증권 종목 링크는 바로 나가지 않고 먼저 이 창을 열어요
+  //  창 안의 '네이버 증권에서 차트 보기'만 새 창으로 열려서, 다 보고 그 창을 닫으면 리딩노트 화면 그대로예요.
+  //  Ctrl·Cmd 를 누르고 누르면(PC 새 탭) 예전처럼 바로 열려요. 창 안 링크(.ss-sheet)는 건드리지 않아요.
+  var NV_RE = /^https?:\/\/(?:m\.stock\.naver\.com\/domestic\/stock\/(\d{6})|finance\.naver\.com\/item\/[a-z]+\.naver\?(?:[^#]*&)?code=(\d{6}))/i;
+  function nameOf(code){
+    var fs = document.querySelectorAll('iframe');
+    for (var i = 0; i < fs.length; i++) {
+      try { var w = fs[i].contentWindow, n = (w.STOCKS && w.STOCKS[code] && w.STOCKS[code].name) || (w.BYC && w.BYC[code] && w.BYC[code].n) || (w.PX && w.PX.byCode && w.PX.byCode[code] && w.PX.byCode[code].n); if (n && n !== code) return n; } catch (e) {}
+    }
+    return code;
+  }
+  function nvCatch(e){
+    if (e.defaultPrevented || e.button > 0 || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) return;
+    var a = e.target && e.target.closest && e.target.closest('a[href]'); if (!a || a.closest('.ss-sheet')) return;
+    var m = NV_RE.exec(a.href || ''); if (!m) return;
+    e.preventDefault(); e.stopPropagation();
+    var code = m[1] || m[2]; open(code, a.getAttribute('data-ss-name') || nameOf(code));
+  }
+  document.addEventListener('click', nvCatch, true);
+
   // ---- 각 서비스 화면의 종목명을 누를 수 있게 (화면 코드는 고치지 않고 바깥에서 붙여요)
   var CHILD_CSS = 'button.ss-link{all:unset;cursor:pointer;color:inherit;font:inherit;text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:5px;text-decoration-color:var(--accent,#C6F25E)}button.ss-link span{font-size:.8em;color:var(--accent,#C6F25E)}' +
     '.ss-go{display:flex;align-items:center;justify-content:center;gap:.35rem;width:100%;min-height:3.25rem;border-radius:.75rem;border:1px solid var(--accent,#C6F25E);background:transparent;color:var(--ink,#EEF2F5);font:inherit;font-weight:700;font-size:1rem;margin-top:.75rem;cursor:pointer}';
@@ -194,7 +214,7 @@
     try {
       var d = f.contentDocument; if (!d || !d.body || d.__ssHooked) return; d.__ssHooked = true;
       var st = d.createElement('style'); st.textContent = CHILD_CSS + NV_CSS; d.head.appendChild(st); nvWire(d);
-      d.addEventListener('click', function(e){ var b = e.target.closest && e.target.closest('[data-ss-code]'); if (!b) return; e.preventDefault(); e.stopPropagation(); open(b.getAttribute('data-ss-code'), b.getAttribute('data-ss-name')); }, true);
+      d.addEventListener('click', function(e){ var b = e.target.closest && e.target.closest('[data-ss-code]'); if (!b) { nvCatch(e); return; } e.preventDefault(); e.stopPropagation(); open(b.getAttribute('data-ss-code'), b.getAttribute('data-ss-name')); }, true);
       var t = null; new f.contentWindow.MutationObserver(function(){ if (t) return; t = setTimeout(function(){ t = null; decorate(f); }, 30); }).observe(d.body, { childList: true, subtree: true });
       decorate(f);
     } catch (e) {}

@@ -157,6 +157,8 @@
 
     // 예시 데이터 끄기
     w.STOCKS = B.ST;
+    // (11/24) 적중 판정용 장 마감 가격: 서버가 종목 가격을 보내 주면(화면 가격 표시 스위치와 따로) ln-data.js 가격보다 최근일 때만 바꿔 넣어요
+    try { var pm = {}, pf = F.price || {}; Object.keys(F.stocks || {}).forEach(function(c){ var p = F.stocks[c].price; if (p != null && !isNaN(p)) pm[c] = +p; }); if (pf.asOf && w.setJudgePrices) w.setJudgePrices(String(pf.asOf).slice(0, 10), pf.source || '', pm); } catch (e) {}
     w.SEED_MSGS.length = 0; w.SEED_POLL = {};
     w.HIST_CACHE = {};
     try { w.setPrices({ asOf: '', days: [], rows: [], src: '' }); } catch (e) {}   // 출처 확인 안 된 시세 파일은 쓰지 않아요

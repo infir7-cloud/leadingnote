@@ -303,7 +303,7 @@
       var rk = w.expertRanking().filter(function(o){ return o.st.hitRate != null; }).slice(0, 3);
       if (rk.length) {
         h += '<section class="t2-sec">' + head('전문가 성적표', null, 'view', 'rank') + rk.map(function(o, i){
-          return '<button class="t2-row" data-a="expert" data-v="' + esc(o.x.id) + '"><span class="t2-rk">' + (i + 1) + '</span><span class="t2-mid"><b>' + w.xN(o.x) + '</b><span>끝난 추천 ' + o.st.doneCount + '건</span></span><span class="t2-rt"><b>' + Math.round(o.st.hitRate) + '%</b><span>적중률</span></span></button>';
+          return '<button class="t2-row" data-a="expert" data-v="' + esc(o.x.id) + '"><span class="t2-rk">' + (i + 1) + '</span><span class="t2-mid"><b>' + w.xN(o.x) + '</b><span>판정 ' + o.st.judged + '건</span></span><span class="t2-rt"><b>' + Math.round(o.st.hitRate) + '%</b><span>적중률</span></span></button>';
         }).join('') + '</section>';
       }
       h += LN.fill('home.beforeBasis', cx);
@@ -346,7 +346,7 @@
         '<button class="t2-btn' + (f ? ' on' : '') + '" data-a="follow" data-v="' + esc(x.id) + '" aria-pressed="' + f + '">' + (f ? '관심 전문가 · 새 추천 알림 받는 중' : '관심 전문가로 받기') + '</button></div>' +
         (x.live ? '<button class="t2-live" data-a="channel" data-v="' + esc(x.live.ch) + '"><span class="t2-dot"></span><span><b>지금 ' + esc(x.live.ch) + ' 출연 중</b><br><span>' + esc(x.live.title || '') + '</span></span></button>' : '') +
         LN.fill('expert.beforeStats', id) + '<div class="t2-st"><div><span>평균 적중률</span><b>' + (st.hitRate == null ? '-' : Math.round(st.hitRate) + '%') + '</b></div><div><span>평균 수익률</span><b class="' + (st.avg == null ? 'flat' : tone(st.avg)) + '">' + (st.avg == null ? '-' : pct(st.avg)) + '</b></div></div>' +
-        '<p class="t2-basis2">' + (st.doneCount ? '판매까지 끝난 추천 ' + st.doneCount + '건 기준 · 전문가가 말한 가격으로 계산' : '아직 판매까지 끝난 추천이 없어요') + '</p></section>';
+        '<p class="t2-basis2">' + (st.judged ? '판정 ' + st.judged + '건 · ' + w.judgeNote() + (st.holdWait ? ' · 판정 대기 ' + st.holdWait + '건' : '') + ' · 전문가가 말한 가격으로 계산' : '아직 판정할 추천이 없어요' + (st.holdWait ? ' · 판정 대기 ' + st.holdWait + '건' : '')) + '</p></section>';
       var act = st.list.filter(function(a){ return a.status !== 'done'; }).sort(function(a, b){ return a.status === b.status ? (b.lastAt < a.lastAt ? -1 : 1) : (a.status === 'holding' ? -1 : 1); });
       var done = st.list.filter(function(a){ return a.status === 'done'; }).sort(function(a, b){ return b.endAt < a.endAt ? -1 : 1; });
       if (act.length) {
@@ -499,7 +499,11 @@
       // 토론 주제는 한 번에 하나만: 오늘의 예측 · 다음 달 주제 후보는 홈에서 빼요 (지난 결과는 그대로)
       var picks = null, cand = null; rest = rest.filter(function(e){ var t2 = txt(e); if (/뽑힌 의견/.test(t2)) { picks = e; return false; } if (/이야기할 주제|주제 후보/.test(t2)) { cand = e; return false; } return true; });
       void pred; void cand;
-      return heatHTML(w) + [cele, live, ban, last, picks].concat(rest).concat([foot]).filter(Boolean).map(function(e){ return e.outerHTML; }).join('');
+      // (11/24) 위 탭(이번 주 토론 · 실시간 · 내 활동)을 없애고, 내 활동도 이 페이지 맨 아래에 붙여요 (예시용 '처음 상태로 되돌리기'는 내 활동 화면에만)
+      var me = '';
+      try { if (w.viewMe) { var tm = d.createElement('template'); tm.innerHTML = w.viewMe(); Array.prototype.slice.call(tm.content.children).forEach(function(e){ if (e.querySelector && e.querySelector('[data-act="reset"]')) e.remove(); });
+        me = '<div class="cm-me" id="cm-me"><h2 class="cm-me-h">내 활동</h2>' + tm.innerHTML + '</div>'; } } catch (e) {}
+      return heatHTML(w) + [cele, live, ban, last, picks].concat(rest).filter(Boolean).map(function(e){ return e.outerHTML; }).join('') + me + (foot ? foot.outerHTML : '');
     };
     var oa = w.viewAgendas;
     if (oa) w.viewAgendas = function(){
@@ -507,7 +511,7 @@
       Array.prototype.slice.call(t.content.children).forEach(function(e){ var h = e.querySelector && e.querySelector('.sech'); if (h && /운영 일정|요일별 오늘의 예측/.test(h.textContent)) e.remove(); });
       return t.innerHTML;
     };
-    var hs = d.createElement('style'); hs.textContent = HEAT_CSS; d.head.appendChild(hs);
+    var hs = d.createElement('style'); hs.textContent = HEAT_CSS + '.cm-me{margin-top:1.5rem;padding-top:1.25rem;border-top:1px solid var(--line)}.cm-me-h{margin:0 0 .5rem;padding:0 1rem;font-size:1.375rem;font-weight:800;letter-spacing:-.02em}'; d.head.appendChild(hs);
     var heatRedraw = function(){ var el = d.getElementById('t2-heat'); if (el) el.outerHTML = heatHTML(w); };
     var hTry = 0, hIv = setInterval(function(){ hTry++; var D = window.__communityLive; if (D && D.ready) { clearInterval(hIv); heatLoad(w, heatRedraw); } else if (hTry > 40) clearInterval(hIv); }, 500);
     setInterval(function(){ heatLoad(w, heatRedraw); }, 60000);

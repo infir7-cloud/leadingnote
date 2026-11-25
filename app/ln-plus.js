@@ -299,7 +299,7 @@
     var st; try { st = w.expertStats(id); } catch (e) { return null; }
     var cnt = {}; st.list.forEach(function(a){ var nm = (a.stock && a.stock.name) || a.L.stock; cnt[nm] = (cnt[nm] || 0) + 1; });
     var tops = Object.keys(cnt).sort(function(a, b){ return cnt[b] - cnt[a]; }).slice(0, 2), tp = tops.length ? tops.join('·') + ' 위주' : '';
-    var t = st.doneCount ? fit([STK[x.style], '끝난 추천 ' + st.doneCount + '건 중 ' + st.hits + '건 수익', tp], 40)
+    var t = st.judged ? fit([STK[x.style], '판정 ' + st.judged + '건 중 ' + st.hits + '건 적중', tp], 40)
       : fit([STK[x.style], tp, st.active ? '리딩 중 ' + st.active + '건' : ''], 40);
     if (!st.list.length) { var o = X.notes.expert[id]; t = o && o.line ? o.line : ''; }
     return t ? { t: t, ai: false } : null;
@@ -496,7 +496,7 @@
       '<p class="p-disc">SBS Biz 본방송에서 전문가가 직접 한 말과 가격을 원본 영상과 함께 정리해요. 수익률은 방송에서 말한 매수가 기준이에요. 사거나 팔라는 권유가 아니에요.</p></section>';
   }
   // B안 메뉴(shell-b.js)의 '이번 주 방송' 화면과 PC 오른쪽 칸이 같이 써요
-  X.api = { progOn: progOn, pkLabel: pkLabel, bcSlots: bcSlots, bcTopCard: bcTopCard, bcRow: bcRow, nowK: nowK, ymdOf: ymdOf, kstMs: kstMs, wdOf: wdOf, pickRet: pickRet, bcNorm: bcNorm, pickRows: pickRows, secretFirst: secretFirst };
+  X.api = { bcAll: screenBcAll, progOn: progOn, pkLabel: pkLabel, bcSlots: bcSlots, bcTopCard: bcTopCard, bcRow: bcRow, nowK: nowK, ymdOf: ymdOf, kstMs: kstMs, wdOf: wdOf, pickRet: pickRet, bcNorm: bcNorm, pickRows: pickRows, secretFirst: secretFirst };
   function bcSig(r){ return (r.top ? r.top.key + r.top.state : '') + '/' + r.past.slice(0, 5).map(function(x){ return x.key; }).join(','); }
   function wonP(n){ return n ? wonS(n) + '원' : '-'; }
   function pickCard(k, ep, w, showWho){
@@ -787,13 +787,15 @@
 
   // ── 표로 보기
   function tableRows(w, f){
+    if (f.t === 'watch') f.t = 'all';
     var out = [], from = f.days ? new Date(Date.now() - f.days * 864e5 + 9 * 3600e3).toISOString().slice(0, 10) : '';
     w.LEADINGS.forEach(function(Lx){
       if (f.ex && Lx.expert !== f.ex) return;
       var a; try { a = w.analyze(Lx); } catch (e) { return; }
+      if (a.status === 'watch') return;   // (11/24) 지켜보기(관망)만 있는 종목은 빼요 — 구매·판매 기록이 있는 종목만
       var x = w.expertById(Lx.expert) || {}, st = w.STOCKS[Lx.stock] || {};
       a.steps.forEach(function(s){
-        var e = s.e; if (!TL[e.t] || e.t === 'news') return;
+        var e = s.e; if (!TL[e.t] || e.t === 'news' || e.t === 'watch') return;
         if (f.t && f.t !== 'all' && e.t !== f.t) return;
         if (from && String(e.at).slice(0, 10) < from) return;
         out.push({ lid: Lx.id, at: e.at, ex: x.name || Lx.expert, exId: Lx.expert, code: Lx.stock, name: st.name || Lx.stock, t: e.t, buy: e.buy, target: e.target, stop: e.stop, sell: e.sell, ret: e.t === 'sell' ? s.ret : null,
@@ -816,7 +818,7 @@
     var exs = w.EXPERTS.filter(function(x){ return w.LEADINGS.some(function(l){ return l.expert === x.id; }); });
     var exSel = '<select data-pt="ex" aria-label="전문가"><option value="">전체 전문가</option>' + exs.map(function(x){ return '<option value="' + esc(x.id) + '"' + (f.ex === x.id ? ' selected' : '') + '>' + esc(x.name) + ' ' + esc(w.xTitle ? w.xTitle(x) : '자문역') + '</option>'; }).join('') + '</select>';
     var daySel = '<select data-pt="days" aria-label="기간">' + [[30, '최근 30일'], [90, '최근 90일'], [0, '전체 기간']].map(function(d){ return '<option value="' + d[0] + '"' + (+f.days === d[0] ? ' selected' : '') + '>' + d[1] + '</option>'; }).join('') + '</select>';
-    var types = [['all', '전체'], ['buy', '구매'], ['sell', '판매'], ['watch', '지켜보기'], ['revise', '가격 변경'], ['strategy', '조언']];
+    var types = [['all', '전체'], ['buy', '구매'], ['sell', '판매'], ['revise', '가격 변경'], ['strategy', '조언']];
     var sells = R.filter(function(r){ return r.t === 'sell' && r.ret != null; }), avg = sells.length ? sells.reduce(function(s, r){ return s + r.ret; }, 0) / sells.length : null;
     if (!wide) {
       var h = '<main class="t2" style="padding-top:.25rem">' + (wideTop() ? '<button class="p-go" data-a="pSheet"><span>' + IC.grid + '넓은 화면 스프레드시트로 보기</span>' + IC.chev + '</button>' : '') + '<div class="p-tbar"><div class="p-tsel">' + exSel + daySel + '</div><div class="p-tchips" role="group" aria-label="구분">' +
@@ -839,7 +841,7 @@
     var exs = w.EXPERTS.filter(function(x){ return w.LEADINGS.some(function(l){ return l.expert === x.id; }); });
     var exSel = '<select data-pt="ex" aria-label="전문가"><option value="">전체 전문가</option>' + exs.map(function(x){ return '<option value="' + esc(x.id) + '"' + (f.ex === x.id ? ' selected' : '') + '>' + esc(x.name) + ' ' + esc(w.xTitle ? w.xTitle(x) : '자문역') + '</option>'; }).join('') + '</select>';
     var daySel = '<select data-pt="days" aria-label="기간">' + [[30, '최근 30일'], [90, '최근 90일'], [0, '전체 기간']].map(function(d){ return '<option value="' + d[0] + '"' + (+f.days === d[0] ? ' selected' : '') + '>' + d[1] + '</option>'; }).join('') + '</select>';
-    var types = [['all', '전체'], ['buy', '구매'], ['sell', '판매'], ['watch', '지켜보기'], ['revise', '가격 변경'], ['strategy', '조언']];
+    var types = [['all', '전체'], ['buy', '구매'], ['sell', '판매'], ['revise', '가격 변경'], ['strategy', '조언']];
     var sells = R.filter(function(r){ return r.t === 'sell' && r.ret != null; }), avg = sells.length ? sells.reduce(function(s2, r){ return s2 + r.ret; }, 0) / sells.length : null;
     var cols = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I'];
     var body = R.slice(0, 500).map(function(r, i){
@@ -892,7 +894,7 @@
     var last = done.slice(0, 10).reverse();
     var STY = { day: '단타', swing: '스윙', long: '중장기' };
     return { name: x.name, style: STY[x.style] || '', total: st.doneCount, active: st.active, full: st.doneCount >= 10,
-      wins: last.filter(function(a){ return a.ret > 0; }).length, dots: last.map(function(a){ return a.ret > 0; }), avg: st.avg, today: w.DATA_TODAY || '' };
+      wins: last.filter(function(a){ return a.ret > 0; }).length, dots: last.map(function(a){ return a.ret > 0; }), avg: done.length ? done.reduce(function(s, a){ return s + a.ret; }, 0) / done.length : null, today: w.DATA_TODAY || '' };
   }
   function drawCard(d, cv){
     var c = cv.getContext('2d'), W = 1080, F = '"Pretendard Variable",Pretendard,"Apple SD Gothic Neo","Noto Sans KR",sans-serif';

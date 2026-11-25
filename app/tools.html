@@ -169,6 +169,7 @@ details.tbl summary{cursor:pointer;color:var(--ink2);font-family:var(--f-mono);f
 .tiles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.5rem}
 .tile{display:flex;flex-direction:column;gap:.3rem;padding:1rem;border-radius:.75rem;border:1px solid var(--line);background:var(--surface);text-align:left;color:var(--ink);min-height:7rem;min-width:0}
 .tile svg{width:1.6rem;height:1.6rem;color:var(--accent)}
+.fun-ic{font-size:1.75rem;line-height:1}
 .tile b{font-size:1.0625rem;letter-spacing:-.02em;margin-top:auto}
 .tile span{font-size:.875rem;color:var(--ink2);line-height:1.45}
 .pick{display:flex;flex-direction:column;gap:.6rem;padding:1rem;border-radius:.75rem;border:1px solid var(--line);background:var(--surface)}
@@ -802,6 +803,7 @@ var IC={
   water:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.5c3 4 6 7.2 6 10.5a6 6 0 0 1-12 0c0-3.3 3-6.5 6-10.5z"/></svg>',
   back:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>'
 };
+var FUN_TILES=[['luck','🐯','오늘의 운세','띠별로 보는 하루'],['test','🧭','주식 성향 테스트','나는 어떤 주식쟁이?'],['quiz','📝','두뇌 퀴즈','사자성어·속담·넌센스'],['game','🃏','카드 짝 맞추기','기억력 쑥쑥'],['card','🌸','아침 인사 카드','카톡으로 보내기'],['bal','⚖️','밸런스 게임','둘 중 하나만!']];
 function viewHome(){
   var h=!PXON?'':'<section class="sec"><h2 class="sech">오늘 흐름이 좋은 큰 회사<span class="meta">'+dt(PXD.asOf)+' 종가</span></h2><p class="small" style="margin-top:-.4rem">시가총액 1조 원 이상 중에서 가격 흐름이 꾸준히 오르고(정배열·20일선 위), 오늘 크게 튀지 않았고(과열 아님), 거래도 평소만큼 있는 종목을 최근 한 달 상승률 순으로 골랐어요. 추천이 아니라 공개된 기준에 맞는 종목이에요.</p>'+
     PRESETS.filter(siteShowP).map(function(p){var sc={mkt:'all',size:p.size,on:{},sort:p.sort};p.on.forEach(function(k){sc.on[k]=true});var list=runScan(sc);
@@ -816,6 +818,8 @@ function viewHome(){
   var nx=0;while(P.done.indexOf(nx)>-1&&nx<LESSONS.length-1)nx++;var d=P.done.length;
   h+='<section class="sec"><h2 class="sech">아카데미<span class="meta">'+d+' / '+LESSONS.length+'편</span></h2><button class="lesson-cta" data-lesson="'+nx+'"><span class="lnum">'+(nx+1)+'</span><span style="flex:1;min-width:0;display:flex;flex-direction:column;gap:.35rem"><span class="small">'+(d?'이어서 읽기':'처음이라면 여기서 시작하세요')+'</span><b style="font-size:1.125rem">'+LESSONS[nx].t+'</b><span class="prog"><span style="width:'+(d/LESSONS.length*100)+'%"></span></span></span></button>'+
     '<button class="link" data-act="tab" data-v="learn">10편 전체 보기 ›</button></section>';
+  /* (11/24) 위 탭을 없애고 도구 한 페이지에 놀이터도 함께 보여 줘요. 누르면 놀이터 화면으로 가요 (fun.html 의 TILES 와 같은 목록) */
+  if(window.parent!==window)h+='<section class="sec"><h2 class="sech">놀이터<span class="meta">잠깐 쉬어 가기</span></h2><div class="tiles fun-tiles">'+FUN_TILES.map(function(t){return '<button class="tile" data-act="fun" data-v="'+t[0]+'"><span class="fun-ic" aria-hidden="true">'+t[1]+'</span><b>'+t[2]+'</b><span>'+t[3]+'</span></button>'}).join('')+'</div></section>';
   h+='<p class="foot">'+(PXON?'시세 자료: 한국거래소 일별 종가 ('+dt(PXD.asOf)+' 기준, 실시간 아님). ':'')+'모든 계산과 진단은 참고용이며 투자 권유가 아니에요. 투자 판단과 결과의 책임은 본인에게 있어요.</p>';
   return h;
 }
@@ -851,7 +855,7 @@ function render(){
   if(v==='stock'){var o=BYC[S.stock];top='<button class="back" data-act="back" aria-label="뒤로">'+IC.back+'</button><h1 class="top-title">'+esc(o?o.n:'종목')+'</h1>'+sizeBtn;main=viewStock()}
   else if(v==='lesson'){top='<button class="back" data-act="back" aria-label="뒤로">'+IC.back+'</button><h1 class="top-title">주식 기본기 '+(S.lesson+1)+'편</h1>'+sizeBtn;main=viewLesson()}
   else{
-    top=t==='home'?'<span class="hm"><span class="hm-logo" aria-hidden="true">'+IC.calc+'</span><span class="hm-t"><b>도구</b><small>종목 검색 · 계산기 · 아카데미</small></span></span>'+sizeBtn:'<h1 class="top-title">'+TITLES[t]+'</h1>'+sizeBtn;
+    top=t==='home'?'<span class="hm"><span class="hm-logo" aria-hidden="true">'+IC.calc+'</span><span class="hm-t"><b>도구</b><small>종목 검색 · 계산기 · 아카데미</small></span></span>'+sizeBtn:'<button class="back" data-act="tab" data-v="home" aria-label="도구 처음으로">'+IC.back+'</button><h1 class="top-title">'+TITLES[t]+'</h1>'+sizeBtn;
     if(t==='home')main=viewHome();
     else if(t==='calc')main=calcTabs(P.sub.calc)+({sim:viewSim,fee:viewFee,tp:viewTP,avg:viewAvg}[P.sub.calc]||viewSim)();
     else if(t==='search')main=viewSearch();
@@ -901,6 +905,7 @@ document.addEventListener('click',function(ev){
   else if(a==='tab'){go(v)}
   else if(a==='size'){P.size=P.size==='l'?'m':'l';save();render()}
   else if(a==='back'){S.view=null;render();window.scrollTo(0,0)}
+  else if(a==='fun'){try{parent.postMessage({site:1,type:'go',app:'fun',route:v},'*')}catch(e){}}
 });
 function selectFormula(){var el=document.getElementById('formula');if(!el)return;var r=document.createRange();r.selectNodeContents(el);var s=window.getSelection();s.removeAllRanges();s.addRange(r);toast('조건식을 길게 눌러 복사하세요')}
 document.addEventListener('input',function(ev){

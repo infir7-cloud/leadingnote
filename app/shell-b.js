@@ -49,6 +49,8 @@
     cm: [['이번 주 토론', 'cm', 'home'], ['실시간', 'cm', 'chat'], ['내 활동', 'cm', 'me']],
     fun: [['운세', 'fun', 'luck'], ['테스트', 'fun', 'test'], ['퀴즈', 'fun', 'quiz'], ['게임', 'fun', 'game'], ['카드', 'fun', 'card'], ['밸런스', 'fun', 'bal']]
   };
+  // (11/24) 방송종목·도구·커뮤니티는 위 탭(세그먼트)을 없애고 한 페이지로 보여 줘요. SEG 는 주소 판별(segOf)에만 남겨 둬요
+  var SEG_OFF = { bc: 1, tools: 1, cm: 1 };
   // 시세 계약 전(config.js LN_PX=false)에는 도구의 '종목 검색'을 메뉴에서도 빼요
   if (!pxOK()) SEG.tools = SEG.tools.filter(function(x){ return x[2] !== 'search'; });
   function hashState(){
@@ -138,7 +140,7 @@
     'html[data-theme="dark"] .bn-track button[aria-current="page"]{background:var(--raise);box-shadow:none}',
     '.bn-track button:focus-visible{outline:3px solid var(--accent);outline-offset:-3px}',
     /* 아래 5탭 */
-    '#bn-tab{flex:none;position:relative;z-index:5;display:grid;grid-template-columns:repeat(6,minmax(0,1fr));background:var(--surface);box-shadow:0 -1px 0 var(--line);padding:0 max(4px,env(safe-area-inset-right,0px)) env(safe-area-inset-bottom,0px) max(4px,env(safe-area-inset-left,0px))}',
+    '#bn-tab{flex:none;position:relative;z-index:5;display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);background:var(--surface);box-shadow:0 -1px 0 var(--line);padding:0 max(4px,env(safe-area-inset-right,0px)) env(safe-area-inset-bottom,0px) max(4px,env(safe-area-inset-left,0px))}',
     '#bn-tab button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-height:64px;padding:6px 2px;border:0;background:transparent;color:var(--ink2);font:inherit;font-size:14px;font-weight:600;line-height:1.15;letter-spacing:-.02em;white-space:nowrap;cursor:pointer}',
     '#bn-tab button svg{width:26px;height:26px;flex:none}@media (max-width:400px){#bn-tab button{font-size:13px;letter-spacing:-.04em}#bn-tab button svg{width:24px;height:24px}}',
     '#bn-tab button[aria-current="page"]{color:var(--t2-acc-ink,var(--accent));font-weight:800}',
@@ -289,13 +291,13 @@
   function update(){
     var c = cur(), sig = c.tab + '|' + c.seg + '|' + c.app + '|' + c.route;
     root.classList.toggle('bn-home', c.tab === 'home');
-    root.classList.toggle('bn-hasseg', !!SEG[c.tab]);
+    root.classList.toggle('bn-hasseg', !!SEG[c.tab] && !SEG_OFF[c.tab]);
     root.classList.toggle('bn-deep', isDeep(c.app));
     placeStrip(c);
     root.classList.toggle('bn-bcwide', c.tab === 'bc' && MQ_PC.matches && wideBc());
     if (sig === last) return; last = sig;
     [side, tab].forEach(function(n){ Array.prototype.forEach.call(n.querySelectorAll('[data-tab]'), function(b){ if (b.classList.contains('bn-kk') || b.classList.contains('bn-logo')) return; if (b.getAttribute('data-tab') === c.tab) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current'); }); });
-    var S2 = SEG[c.tab];
+    var S2 = SEG_OFF[c.tab] ? null : SEG[c.tab];
     if (S2) {
       seg.hidden = false;
       seg.innerHTML = (c.tab === 'bc' ? '<button type="button" class="bn-all" data-bn-all="1"' + (c.route === 'tbl' ? ' aria-current="page"' : '') + '>' + svg('<rect x="3.5" y="4.5" width="17" height="15" rx="2.5"/><path d="M3.5 9.5h17M9 9.5v10"/>') + '<span><b>전체 추천 기록</b><small>방송·전문가 추천을 표로 한눈에</small></span>' + IC.chev + '</button>' : '') + '<div class="bn-track" role="group" aria-label="' + esc(TABS.filter(function(x){ return x[0] === c.tab; })[0][1]) + ' 화면 고르기">' + S2.map(function(s, i){ return '<button type="button" data-seg="' + i + '"' + (i === c.seg ? ' aria-current="page"' : '') + '>' + esc(s[0]) + '</button>'; }).join('') + '</div>';
@@ -339,6 +341,14 @@
     '.bn-my button{display:flex;align-items:center;gap:10px;min-height:56px;padding:0 14px;border:0;border-radius:16px;background:var(--surface);color:var(--ink);font:inherit;font-size:16px;font-weight:700;text-align:left;cursor:pointer}' +
     '.bn-my button svg{width:22px;height:22px;flex:none;color:var(--t2-acc-ink,var(--accent))}' +
     '.bn-wk-sub{margin:-.35rem 0 .6rem;font-size:.875rem;color:var(--ink2)}' +
+    /* (11/24) 방송종목 한 페이지: 접기·펴기 머리, 출연 전문가 옆으로 밀기 */
+    '.bn-fold-h{display:flex;align-items:center;gap:8px;width:100%;min-height:56px;padding:0;border:0;background:none;color:var(--ink);font:inherit;text-align:left;cursor:pointer}' +
+    '.bn-fold-h b{font-size:1.25rem;font-weight:800;letter-spacing:-.02em}.bn-fold-h .n{font-size:1rem;font-weight:700;color:var(--ink2)}' +
+    '.bn-fold-h .bn-fold-t{margin-left:auto;font-size:1rem;font-weight:700;color:var(--t2-acc-ink,var(--accent))}.bn-fold-h svg{width:22px;height:22px;flex:none;color:var(--t2-acc-ink,var(--accent))}' +
+    '.bn-fold-h:focus-visible,.bn-x:focus-visible{outline:3px solid var(--accent);outline-offset:2px;border-radius:12px}' +
+    '.bn-xs{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;padding:2px 2px 10px;margin:0 -2px;-webkit-overflow-scrolling:touch}' +
+    '.bn-x{flex:none;width:9.5rem;scroll-snap-align:start;display:flex;flex-direction:column;align-items:flex-start;gap:4px;min-height:9rem;padding:14px;border:0;border-radius:16px;background:var(--raise,var(--surface));box-shadow:inset 0 0 0 1px var(--line);color:var(--ink);font:inherit;text-align:left;cursor:pointer}' +
+    '.bn-x b{font-size:1.0625rem;font-weight:800;margin-top:4px}.bn-x .bn-x-h{font-size:1rem;font-weight:700;color:var(--t2-acc-ink,var(--accent))}.bn-x .bn-x-n{font-size:.875rem;color:var(--ink2)}' +
     '.bn-soon{display:flex;flex-direction:column;align-items:flex-start;gap:2px;width:100%;min-height:56px;padding:.85rem 0;border:0;border-top:1px solid var(--line);background:none;color:var(--ink);font:inherit;text-align:left;cursor:pointer}.bn-soon:first-of-type{border-top:0}' +
     '.bn-soon em{font-style:normal;font-size:.8125rem;font-weight:800;color:var(--t2-acc-ink);background:var(--accent-soft);border-radius:6px;padding:.1rem .45rem;margin-top:.2rem}' +
     '.bn-soon b{font-size:1.0625rem;font-weight:800}.bn-soon span{font-size:.875rem;color:var(--ink2)}' +
@@ -390,17 +400,18 @@
     if (typeof w.topBar === 'function') {
       var otb = w.topBar;
       w.topBar = function(){
-        try { var st2 = S.stack; if (st2.length === 1 && (st2[0].t === 'pbcwk' || st2[0].t === 'pbcall')) return '<div class="bn-ltop"></div>'; } catch (e) {}
+        try { var st2 = S.stack; if (st2.length === 1 && st2[0].t === 'pbcwk') return '<div class="bn-ltop"></div>'; } catch (e) {}
         var h = otb.apply(this, arguments);
         try {
           if (!S.stack.length) {
             var BK = /<button class="icon-btn" data-a="back"[^>]*>[\s\S]*?<\/button>/;
             // 아래 5탭의 첫 화면(전문가 · MY)엔 뒤로 가기가 필요 없어요
-            if (S.tab === 'experts' || S.tab === 'more') h = h.replace(BK, '');
+            if (S.tab === 'more') h = h.replace(BK, '');
+            else if (S.tab === 'experts') h = h.replace('data-a="back"', 'data-bn-go="bc"');
             if (S.tab === 'more') h = h.replace(/(<h1 class="top-title">)[^<]*(<\/h1>)/, '$1MY$2');
             // MY 안의 관심 종목 · 알림은 뒤로 가면 MY로
             if (S.tab === 'watch' || S.tab === 'alerts') h = h.replace('data-a="back"', 'data-bn-go="more"');
-          } else if (S.stack.length === 1 && S.stack[0].t === 'ptable') h = h.replace('data-a="back"', 'data-bn-go="bc"');
+          } else if (S.stack.length === 1 && (S.stack[0].t === 'ptable' || S.stack[0].t === 'pbcall')) h = h.replace('data-a="back"', 'data-bn-go="bc"');
         } catch (e) {}
         return h;
       };
@@ -451,6 +462,8 @@
       var pk = e.target.closest && e.target.closest('[data-bn-pk]');
       if (pk) { e.preventDefault(); e.stopPropagation(); BCSEL = +pk.getAttribute('data-bn-pk') || 0; var sy = w.scrollY; try { w.render(); w.scrollTo(0, sy); } catch (er) {} return; }
       if (e.target.closest && e.target.closest('[data-bn-calc]')) { e.preventDefault(); e.stopPropagation(); go('tools', 'home'); return; }
+      var fo = e.target.closest && e.target.closest('[data-bn-fold]');
+      if (fo) { e.preventDefault(); e.stopPropagation(); var fk = fo.getAttribute('data-bn-fold'); FOLD[fk] = !FOLD[fk]; var sy2 = w.scrollY; try { w.render(); w.scrollTo(0, sy2); } catch (er) {} return; }
       var b = e.target.closest && e.target.closest('[data-bn-go]'); if (!b) return;
       e.preventDefault(); e.stopPropagation();
       var r = b.getAttribute('data-bn-go'); if (r === 'size' || r === 'theme') toggleTheme(); else go('ln', r);
@@ -601,12 +614,36 @@
         var ep = sl.ep, xs = ep && ep.experts && ep.experts.length ? ep.experts.map(function(x){ return x.name; }).join(', ') : (sl.p.lineup_note || '');
         return '<button type="button" class="bn-soon" data-a="pBc" data-v="' + esc(sl.key) + '"><b>' + esc(sl.p.name) + '</b><span>' + WDN[A.wdOf(sl.date)] + ' ' + (+sl.date.slice(5, 7)) + '.' + (+sl.date.slice(8, 10)) + ' ' + esc(String(sl.p.air_time || '20:30').slice(0, 5)) + (xs ? ' · ' + esc(xs) : '') + '</span></button>';
       }).join('') + '</section>' : '');
-    return '<main class="t2 bn-bc2" style="padding-top:.25rem"><div class="bn-bc2-l">' + left + foot.replace('</main>', '') + '</div><aside class="bn-bc2-r" aria-label="고른 종목 미리보기">' + bcPreview(A, rows[BCSEL]) + '</aside></main>';
+    return '<main class="t2 bn-bc2" style="padding-top:.25rem"><div class="bn-bc2-l"><button class="p-go" data-bn-go="tbl"><span>전체 추천 기록 · 표로 보기</span>' + svg('<path d="M9 6l6 6-6 6"/>') + '</button>' + left + foot.replace('</main>', '') + '</div><aside class="bn-bc2-r" aria-label="고른 종목 미리보기">' + bcPreview(A, rows[BCSEL]) + '</aside></main>';
+  }
+  // ---- (11/24) 방송종목 한 페이지: 이번 주 방송 → 지난 방송(접기·펴기) → 출연 전문가(옆으로 밀기)
+  var FOLD = { bcall: false };
+  function bcPastSec(K){
+    var w = window.__pW, A = K && K.A; if (!w || !A || !A.bcAll) return '';
+    var inner = ''; try { inner = A.bcAll(w); } catch (e) { return ''; }
+    var m = /<div class="p-kv"><div><span>방송<\/span><b>(\d+)회/.exec(inner), n = m ? m[1] : '';
+    var open = !!FOLD.bcall;
+    var h = '<section class="t2-sec bn-fold"><button type="button" class="bn-fold-h" data-bn-fold="bcall" aria-expanded="' + open + '"><b>지난 방송</b>' + (n ? '<span class="n">' + n + '회</span>' : '') + '<span class="bn-fold-t">' + (open ? '접기' : '펼치기') + '</span>' + svg(open ? '<path d="M6 15l6-6 6 6"/>' : '<path d="M6 9l6 6 6-6"/>') + '</button>' +
+      (open ? '' : '<p class="bn-wk-sub">최근 4개월 방송을 주별로 모아 봐요. 프로그램·전문가로 골라 볼 수 있어요.</p>') + '</section>';
+    if (open) h += inner.replace(/^<main[^>]*>/, '').replace(/<p class="t2-basis">[^<]*<\/p><\/main>$/, '').replace(/<\/main>$/, '');
+    return h;
+  }
+  function bcExpertSec(){
+    var w = window.__pW; if (!w || !w.expertRanking) return '';
+    var rk = []; try { rk = w.expertRanking(); } catch (e) { return ''; }
+    if (!rk.length) return '';
+    return '<section class="t2-sec"><div class="t2-h" style="cursor:default">출연 전문가<span class="n">' + rk.length + '</span></div><p class="bn-wk-sub">적중률 순 · 옆으로 밀어서 더 보기</p>' +
+      '<div class="bn-xs" role="list">' + rk.map(function(o){ var x = o.x, st = o.st;
+        return '<button type="button" class="bn-x" role="listitem" data-a="expert" data-v="' + esc(x.id) + '">' + (w.avatar ? w.avatar(x) : '') + '<b>' + esc(x.name) + '</b>' +
+          '<span class="bn-x-h">' + (st.hitRate == null ? '판정 전' : '적중률 ' + Math.round(st.hitRate) + '%') + '</span><span class="bn-x-n">' + (st.judged ? '판정 ' + st.judged + '건' : '추천 ' + st.total + '건') + '</span></button>';
+      }).join('') + '</div>' +
+      '<button class="p-go" data-bn-go="experts" style="margin-top:.75rem"><span>전문가 찾기 · 적중률 순위 전체</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></button></section>';
   }
   function screenWeek(){
     var K = wk(), CH = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>';
-    var foot = '<button class="p-go" data-a="pBcAll"><span>지난 방송 모두 보기</span>' + CH + '</button><p class="t2-basis">SBS Biz 본방송에서 전문가가 직접 한 말과 가격을 정리해요. 사거나 팔라는 권유가 아니에요.</p></main>';
-    if (!K || !K.lp.bc) return '<main class="t2" style="padding-top:.25rem"><section class="t2-sec"><p class="t2-empty">방송 정보를 불러오는 중이에요.</p></section>' + foot;
+    var foot = bcPastSec(K) + bcExpertSec() + '<p class="t2-basis">SBS Biz 본방송에서 전문가가 직접 한 말과 가격을 정리해요. 사거나 팔라는 권유가 아니에요.</p></main>';
+    var allBtn = '<button class="p-go" data-bn-go="tbl"><span>전체 추천 기록 · 표로 보기</span>' + CH + '</button>';
+    if (!K || !K.lp.bc) return '<main class="t2" style="padding-top:.25rem">' + allBtn + '<section class="t2-sec"><p class="t2-empty">방송 정보를 불러오는 중이에요.</p></section>' + foot;
     var A = K.A, F = K.lp.bc, r = A.bcSlots(F, K.now);
     var done = r.past.filter(function(x){ return x.date >= K.mon && x.date <= K.sun; });
     var soon = r.all.filter(function(x){ return x.date > K.today && x.date <= K.sun; }).sort(function(a, b){ return a.start - b.start; });
@@ -614,7 +651,7 @@
     if (wideBc()) return screenWeekWide(K, A, r, done, soon, foot);
     var items = [];
     done.forEach(function(sl){ var ep = sl.ep; if (!ep || !ep.published) return; (A.secretFirst ? A.secretFirst(ep.picks || []) : (ep.picks || [])).forEach(function(k){ items.push({ k: k, sl: sl, opt: { prog: true } }); }); });
-    var h = '<main class="t2" style="padding-top:.25rem">' + (r.top ? '<section class="t2-sec">' + A.bcTopCard(r.top, K.now) + '</section>' : '') +
+    var h = '<main class="t2" style="padding-top:.25rem">' + allBtn + (r.top ? '<section class="t2-sec">' + A.bcTopCard(r.top, K.now) + '</section>' : '') +
       (items.length && A.pickRows ? '<section class="t2-sec"><div class="t2-h" style="cursor:default">이번 주 방송 종목<span class="n">' + items.length + '</span></div><p class="bn-wk-sub">' + md(K.mon) + ' ~ ' + md(K.sun) + ' · 줄을 누르면 종목을 자세히 보여 드려요</p>' + A.pickRows(items, 8) + '</section>' : '') +
       '<section class="t2-sec"><div class="t2-h" style="cursor:default">방송별로 보기<span class="n">' + done.length + '</span></div>' +
       '<p class="bn-wk-sub">' + md(K.mon) + ' ~ ' + md(K.sun) + ' · SBS Biz 본방송</p>' +
