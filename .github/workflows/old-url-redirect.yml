@@ -1,0 +1,35 @@
+# 옛 주소(infir7-cloud.github.io/leadingnote) → 새 도메인 이동 페이지 배포
+# main 에 올라올 때마다 이동 페이지를 새로 만들어요 (새 미리보기 카드 l/ 도 자동 포함)
+name: 옛 주소 이동 페이지
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: pages
+  cancel-in-progress: true
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: 이동 페이지 만들기
+        env:
+          LN_SITE: ${{ vars.LN_SITE }}
+        run: node scripts/make-redirect-repo.mjs "${LN_SITE:-https://leadingnote.co.kr}"
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: redirect-repo
+      - id: deploy
+        uses: actions/deploy-pages@v4
