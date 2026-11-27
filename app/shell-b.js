@@ -15,11 +15,9 @@
   function $(id){ return document.getElementById(id); }
   function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){ return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
   function W(id){ try { return SH.READY[id] && SH.F[id] ? SH.F[id].contentWindow : null; } catch (e) { return null; } }
-  // ---- 회차 바로가기 주소 (카톡방 공유용 짧은 주소 · land.html): 공개된 회차만 있어요
-  var LNK = window.__lnLinks = { ep: {} };
-  try { var CF = window.SB_CFG || (window.__SB && { url: 'https://' + window.__SB.projectId + '.supabase.co', key: window.__SB.anonKey }); if (CF && window.fetch) fetch(CF.url + '/rest/v1/ln_links?select=code,k&kind=eq.ep&limit=5000', { headers: { apikey: CF.key, Authorization: 'Bearer ' + CF.key } })
-    .then(function(r){ return r.ok ? r.json() : []; }).then(function(a){ (a || []).forEach(function(l){ LNK.ep[l.k] = l.code; }); }).catch(function(){}); } catch (e) {}
-  function epLand(key){ var c = LNK.ep[key]; if (!c) return false; try { window.location.href = new URL('land.html?c=' + encodeURIComponent(c), window.location.href).href; return true; } catch (e) { return false; } }
+  // 회차 짧은 주소(land.html)는 카톡에서 링크로 들어온 사람용이에요. 앱 안에서 누른 회차는 앱 안에서 열어요 (11/27).
+  // 그래서 앱이 짧은 주소 목록(ln_links)을 받아 둘 필요가 없어요. 아래 CF는 노트 설정 확인에 써요.
+  try { var CF = window.SB_CFG || (window.__SB && { url: 'https://' + window.__SB.projectId + '.supabase.co', key: window.__SB.anonKey }); } catch (e) {}
   var MQ_PC = window.matchMedia('(min-width:1024px)'), MQ_WIDE3 = window.matchMedia('(min-width:1280px)'), MQ_APPWIDE = window.matchMedia('(min-width:960px)');
 
   // ---- 아이콘 (선 아이콘 24px)
@@ -383,7 +381,8 @@
   function putCss(f){
     var d; try { d = f.contentDocument; } catch (e) { return; }
     if (!d || !d.head || d.getElementById('bn-frame')) return;
-    if (!/(ln|tools|community)\.html/.test(d.URL || '')) return;
+    // Cloudflare Pages는 주소에서 .html을 떼요 (/app/ln.html → /app/ln). 둘 다 받아요 (11/27)
+    if (!/(^|\/)(ln|tools|community)(\.html)?([?#]|$)/.test(d.URL || '')) return;
     /* 11/6: 뒤로 가기가 없는 첫 화면의 머리 줄 — 도구 · 커뮤니티는 위 세그먼트와 같은 제목이라 숨기고,
        리딩 모음(검색 · 알림 버튼이 있음)은 고정하지 않고 함께 올라가게 해요 */
     var TOP0 = 'header.top:not(:has(.back,[data-a="back"],[data-bn-go]))';
@@ -473,9 +472,9 @@
     w.document.addEventListener('click', function(e){
       var m = e.target.closest && e.target.closest('[data-bn-mb]');
       if (m) { e.preventDefault(); e.stopPropagation(); myBuyAct(w, m); return; }
-      // 방송(회차) 줄 → 회차 페이지 (공개된 회차에 한해요. 아직 없으면 예전 방송 상세가 열려요)
-      var bep = e.target.closest && (e.target.closest('[data-bn-ep]') || e.target.closest('[data-a="pBc"]'));
-      if (bep && epLand(bep.getAttribute('data-bn-ep') || bep.getAttribute('data-v'))) { e.preventDefault(); e.stopPropagation(); return; }
+      // 방송(회차) 이름 → 앱 안 방송 상세 (data-a="pBc"는 원래 처리대로 앱 안에서 열려요)
+      var bep = e.target.closest && e.target.closest('[data-bn-ep]');
+      if (bep && w.A && typeof w.A.pBc === 'function') { e.preventDefault(); e.stopPropagation(); w.A.pBc(bep.getAttribute('data-bn-ep'), bep); return; }
       var pk = e.target.closest && e.target.closest('[data-bn-pk]');
       if (pk) { e.preventDefault(); e.stopPropagation(); BCSEL = +pk.getAttribute('data-bn-pk') || 0; var sy = w.scrollY; try { w.render(); w.scrollTo(0, sy); } catch (er) {} return; }
       if (e.target.closest && e.target.closest('[data-bn-calc]')) { e.preventDefault(); e.stopPropagation(); go('tools', 'home'); return; }
