@@ -1,6 +1,8 @@
 /* 리딩노트 · B안 메뉴 (shell-b.js)
    index.html(맨 바깥 셸)의 </body> 바로 앞, ui-unify.js 다음 줄에 <script src="shell-b.js?v=2"></script> 한 줄로 동작해요.
-   - 휴대폰(1024px 미만): 맨 위 3탭을 없애고 화면 아래 5탭 [홈 · 방송종목 · 도구 · 커뮤니티 · MY]
+   - 휴대폰(1024px 미만): 맨 위 3탭을 없애고 화면 아래 5탭 [홈 · 방송종목 · 도구 · 노트 · MY]
+   - (11/26) 커뮤니티 자리는 '노트'(note.html · 참여형 3코너)로 바뀌었어요. 예전 커뮤니티는 지우지 않고,
+     운영실 노트 설정의 '예전 커뮤니티 켜기'(site_config note_cfg.cm_on)를 켜면 전체 메뉴에 다시 보여요.
    - PC(1024px 이상): 왼쪽 240px 메뉴(5개 + 카카오 가입 카드, 로그인하면 숨김)
    - PC(1280px 이상) 홈에서만: 오른쪽 320px 칸(이번 주 방송 많이 나온 종목 · 내 관심종목 소식 · 미니 계산기)
    - 방송종목 · 도구 · 커뮤니티는 화면 위 세그먼트로 세부 화면을 오가요. 각 서비스 화면 안의 아래 메뉴는 숨겨요.
@@ -28,6 +30,7 @@
     tools: svg('<rect x="5" y="3" width="14" height="18" rx="2.5"/><path d="M8.5 7h7M8.5 11h.01M12 11h.01M15.5 11h.01M8.5 14.5h.01M12 14.5h.01M15.5 14.5h.01M8.5 18h.01M12 18h3.5"/>'),
     fun: svg('<circle cx="12" cy="12" r="8.5"/><path d="M8.5 14.2c.8 1.3 2 2 3.5 2s2.7-.7 3.5-2"/><path d="M9 9.6h.01M15 9.6h.01"/>'),
     cm: svg('<path d="M4 6.5C4 5.1 5.1 4 6.5 4h11C18.9 4 20 5.1 20 6.5v7c0 1.4-1.1 2.5-2.5 2.5H10l-4.5 4v-4C4.7 16 4 15.3 4 14.5z"/><path d="M8.5 9h7M8.5 12h4"/>'),
+    note: svg('<path d="M5 4h14v12l-4 4H5z"/><path d="M15 20v-4h4M8.5 9h7M8.5 12.5h4.5"/>'),
     my: svg('<circle cx="12" cy="8.5" r="3.75"/><path d="M4.5 20c.9-3.6 3.9-5.5 7.5-5.5s6.6 1.9 7.5 5.5"/>'),
     chev: svg('<path d="M9 6l6 6-6 6"/>'),
     moon: svg('<path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/>'),
@@ -40,7 +43,7 @@
     ['home', '홈', 'ln', 'home'],
     ['bc', '방송종목', 'ln', 'bc'],
     ['tools', '도구', 'tools', 'home'],
-    ['cm', '커뮤니티', 'cm', 'home'],
+    ['note', '노트', 'note', 'home'],
     ['my', 'MY', 'ln', 'more']
   ];
   var SEG = {
@@ -50,18 +53,30 @@
     fun: [['운세', 'fun', 'luck'], ['테스트', 'fun', 'test'], ['퀴즈', 'fun', 'quiz'], ['게임', 'fun', 'game'], ['카드', 'fun', 'card'], ['밸런스', 'fun', 'bal']]
   };
   // (11/24) 방송종목·도구·커뮤니티는 위 탭(세그먼트)을 없애고 한 페이지로 보여 줘요. SEG 는 주소 판별(segOf)에만 남겨 둬요
-  var SEG_OFF = { bc: 1, tools: 1, cm: 1 };
+  var SEG_OFF = { bc: 1, tools: 1, cm: 1, note: 1 };
+  // 예전 커뮤니티를 다시 켤지 (운영실 노트 설정 · 기본은 끔)
+  // 이 기기에 10분 동안 기억해 두고 그동안은 서버에 다시 묻지 않아요 (11/26 · 방문마다 요청 1번 줄임). 바뀌면 'ln:notecfg' 신호.
+  var NC_KEY = 'ln.notecfg', nc = {};
+  try { nc = JSON.parse(localStorage.getItem(NC_KEY) || '{}') || {}; } catch (e) {}
+  var NOTE_CFG = window.__lnNoteCfg = { cm_on: !!nc.cm_on };
+  function cmOn(){ return !!NOTE_CFG.cm_on; }
+  if (!(Date.now() - (nc.at || 0) < 6e5)) try { if (CF && window.fetch) fetch(CF.url + '/rest/v1/rpc/note_cfg', { method: 'POST', headers: { apikey: CF.key, Authorization: 'Bearer ' + CF.key, 'Content-Type': 'application/json' }, body: '{}' })
+    .then(function(r){ return r.ok ? r.json() : null; }).then(function(v){
+      if (!v || typeof v !== 'object') return;
+      try { localStorage.setItem(NC_KEY, JSON.stringify({ cm_on: !!v.cm_on, at: Date.now() })); } catch (e) {}
+      if (!!v.cm_on !== NOTE_CFG.cm_on) { NOTE_CFG.cm_on = !!v.cm_on; try { window.dispatchEvent(new Event('ln:notecfg')); } catch (e) {} }
+    }).catch(function(){}); } catch (e) {}
   // 시세 계약 전(config.js LN_PX=false)에는 도구의 '종목 검색'을 메뉴에서도 빼요
   if (!pxOK()) SEG.tools = SEG.tools.filter(function(x){ return x[2] !== 'search'; });
   function hashState(){
     var p = (location.hash || '').replace(/^#\/?/, '').split('/');
     var app = p[0] || '', route = p.slice(1).join('/') || 'home';
-    if (app !== 'ln' && app !== 'tools' && app !== 'cm' && app !== 'fun') { app = C.tab || 'ln'; route = 'home'; }
+    if (app !== 'ln' && app !== 'tools' && app !== 'note' && app !== 'cm' && app !== 'fun') { app = C.tab || 'ln'; route = 'home'; }
     return { app: app, route: route };
   }
   function tabOf(app, route){
     if (app === 'tools') return 'tools';
-    if (app === 'cm') return 'cm';
+    if (app === 'note' || app === 'cm') return 'note';
     if (app === 'fun') return 'tools';
     if (route === 'bc' || route === 'bcall' || route === 'tbl' || route === 'experts' || /^x-/.test(route)) return 'bc';
     if (route === 'more' || route === 'watch' || route === 'alerts' || route === 'install') return 'my';
@@ -73,6 +88,7 @@
       if (app === 'fun') { for (var k = 0; k < SEG.tools.length; k++) if (SEG.tools[k][1] === 'fun') return k; return -1; }
       var ti = route === 'search' || /^s-/.test(route) ? 1 : route === 'learn' ? 2 : 0; return pxOK() ? ti : ti === 2 ? 1 : ti === 1 ? -1 : 0; }
     if (tab === 'cm') return route === 'chat' ? 1 : route === 'me' ? 2 : 0;
+    if (tab === 'note') return -1;
     return -1;
   }
   function cur(){ var h = hashState(), t = tabOf(h.app, h.route); return { app: h.app, route: h.route, tab: t, seg: segOf(t, h.route, h.app) }; }
@@ -256,6 +272,7 @@
     ['home', '홈', [['홈', 'ln', 'home'], ['오늘의 재료 뉴스', 'ln', 'news'], ['시세 조회', 'ln', 'quotes'], ['전문가 성적표', 'ln', 'rank']]],
     ['bc', '방송종목', [['전체 추천 기록', 'ln', 'tbl'], ['이번 주 방송', 'ln', 'bc'], ['지난 방송', 'ln', 'bcall'], ['전문가 찾기', 'ln', 'experts']]],
     ['tools', '도구', [['계산기', 'tools', 'home'], ['종목 검색', 'tools', 'search'], ['목표·손절가', 'tools', 'tp'], ['주식 기본기', 'tools', 'learn'], ['놀이터 · 운세·퀴즈·게임', 'fun', 'home']].filter(function(x){ return pxOK() || x[2] !== 'search'; })],
+    ['note', '노트', [['오늘의 노트', 'note', 'home'], ['왜 올랐게?', 'note', 'why'], ['오늘의 테마', 'note', 'theme'], ['이번 주 일정', 'note', 'week']]],
     ['cm', '커뮤니티', [['이번 주 토론', 'cm', 'home'], ['실시간 토론', 'cm', 'chat'], ['토론 목록', 'cm', 'agendas'], ['내 활동', 'cm', 'me']]],
     ['my', 'MY', [['MY 홈', 'ln', 'more'], ['관심 종목', 'ln', 'watch'], ['알림', 'ln', 'alerts'], ['화면 밝기 바꾸기', '', 'theme']]]
   ];
@@ -265,7 +282,7 @@
     dr = document.createElement('div'); dr.id = 'bn-dr'; dr.setAttribute('role', 'dialog'); dr.setAttribute('aria-modal', 'true'); dr.setAttribute('aria-label', '전체 메뉴');
     dr.innerHTML = '<div class="sc" data-dr="x"></div><div class="pn">' +
       '<div class="dr-h"><span class="bn-mb" aria-hidden="true" style="cursor:default">' + MARK + '</span><span class="bn-wm"><b>리딩노트</b><small>전체 메뉴</small></span><button type="button" class="dr-x" data-dr="x" aria-label="메뉴 닫기">×</button></div>' +
-      DR.map(function(sec){ return '<section class="dr-sec"><h2 class="dr-sh">' + IC[sec[0]] + esc(sec[1]) + (sec[0] === c.tab ? '<em>지금 보는 곳</em>' : '') + '</h2><div class="dr-g">' +
+      DR.filter(function(sec){ return sec[0] !== 'cm' || cmOn(); }).map(function(sec){ return '<section class="dr-sec"><h2 class="dr-sh">' + IC[sec[0]] + esc(sec[1]) + (sec[0] === c.tab ? '<em>지금 보는 곳</em>' : '') + '</h2><div class="dr-g">' +
         sec[2].map(function(it){ return '<button type="button" class="dr-it" data-dr="go" data-app="' + it[1] + '" data-r="' + it[2] + '">' + esc(it[0]) + '</button>'; }).join('') + '</div></section>'; }).join('') +
       (member() ? '' : '<div class="dr-join"><b>무료 가입하고 알림 받기</b><span>관심 전문가의 새 방송 종목과 추천을 알려 드려요</span><button type="button" data-dr="go" data-app="ln" data-r="more">카카오로 3초 만에 시작</button></div>') +
       '<div class="dr-ft"><button type="button" data-dr="go" data-app="ln" data-r="install">앱 설치하기</button><button type="button" data-dr="go" data-app="ln" data-r="more">서비스 안내</button></div></div>';
@@ -834,7 +851,7 @@
   //      손을 떼기 전 몇십 ms라도 먼저 불러오게 해요. 주소(#tools 등)로 바로 들어오면 그 화면만 만들어요.
   function pre(id){ try { if (SH.mk && !(SH.F || {})[id]) SH.mk(id); } catch (e) {} }
   ['pointerdown', 'touchstart'].forEach(function(ev){
-    document.addEventListener(ev, function(e){ var b = e.target.closest && e.target.closest('[data-tab="cm"],[data-tab="tools"],[data-tab="home"],[data-tab="bc"],[data-tab="my"]'); if (!b) return; var t = b.getAttribute('data-tab'); pre(t === 'cm' ? 'cm' : t === 'tools' ? 'tools' : 'ln'); }, { passive: true, capture: true });
+    document.addEventListener(ev, function(e){ var b = e.target.closest && e.target.closest('[data-tab="note"],[data-tab="tools"],[data-tab="home"],[data-tab="bc"],[data-tab="my"]'); if (!b) return; var t = b.getAttribute('data-tab'); pre(t === 'note' ? 'note' : t === 'tools' ? 'tools' : 'ln'); }, { passive: true, capture: true });
   });
 
   // ---- PC 휠 넘기기 (11/6): 왼쪽 메뉴 · 오른쪽 칸 위에서 굴려도, 그 칸이 더 내려갈 데가 없으면 가운데 화면이 움직여요

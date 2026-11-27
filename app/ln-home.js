@@ -49,6 +49,7 @@
     '.hm-hero{position:relative;overflow:hidden;border-radius:1.5rem;margin:0 0 .5rem;padding:1.05rem 1.15rem 1rem;color:#fff}',
     '.hm-hero .bl{position:absolute;border-radius:50%;background:#fff;opacity:.14;pointer-events:none}',
     '.hm-hero .in{position:relative}',
+    '.hm-hero.tap{cursor:pointer}',
     '.hm-k{display:flex;flex-wrap:wrap;align-items:center;gap:.4rem;font-size:.875rem;font-weight:700;opacity:.9}',
     '.hm-k svg{width:1rem;height:1rem;fill:none;stroke:#FFD43B;stroke-width:2.4;stroke-linecap:round}',
     '.hm-tag{font-size:.75rem;font-weight:800;border-radius:.4rem;padding:.12rem .45rem;background:#F04452;color:#fff}',
@@ -200,10 +201,13 @@
   function q(p){ return Promise.resolve(p).then(function(r){ return r; }, function(e){ return { error: e }; }); }
   function load(){
     var c = client(); if (!c) return Promise.resolve();
+    // 이야기방 미리보기(talk)는 지금 홈 순서에 없어서 불러오지 않아요 (11/26 · 요청 2번 줄임).
+    // 순서에 'talk'를 다시 넣으면 불러와요. 커뮤니티 글은 운영실에서 커뮤니티를 켰을 때만 섞어요.
+    var wantTalk = Object.keys(ORDER).some(function(k){ return ORDER[k].indexOf('talk') >= 0; }), cmOn = !!(window.__lnNoteCfg && window.__lnNoteCfg.cm_on);
     return Promise.all([
       q(c.rpc('bc_feed')),
-      q(c.from('ln_talk').select('stock_id,nickname,body,created_at').order('created_at', { ascending: false }).limit(3)),
-      q(c.from('cm_chat').select('agenda_id,nickname,body,created_at').neq('agenda_id', 'zz-test').order('created_at', { ascending: false }).limit(3))
+      wantTalk ? q(c.from('ln_talk').select('stock_id,nickname,body,created_at').order('created_at', { ascending: false }).limit(3)) : null,
+      wantTalk && cmOn ? q(c.from('cm_chat').select('agenda_id,nickname,body,created_at').neq('agenda_id', 'zz-test').order('created_at', { ascending: false }).limit(3)) : null
     ]).then(function(rs){
       if (rs[0] && !rs[0].error && rs[0].data) { H.bc = rs[0].data; var sv = kms(H.bc.now); if (sv) H.off = sv - (Date.now() + 9 * 3600e3); }
       var t = [];
@@ -290,6 +294,8 @@
   function epOf(pid, date){ return eps().filter(function(e){ return e.program_id === pid && e.air_date === date; })[0] || null; }
   function lastEp(pid, before){ return pubEps().filter(function(e){ return e.program_id === pid && e.air_date < before; })[0] || null; }
   function openPicks(e){ return ((e && e.picks) || []).filter(function(k){ return k.stock_code && !(k.kind === 'secret' && !k.revealed); }); }
+  // 같은 종목은 한 번만 (11/26) · 몇 번 나왔는지는 n에 세요
+  function uniqBy(list, key){ var seen = {}, out = []; list.forEach(function(x){ var k = key(x); if (!k) return; if (seen[k]) { seen[k].n++; return; } seen[k] = { v: x, n: 1 }; out.push(seen[k]); }); return out; }
   function wdNum(date){ var d = new Date(kms(date)).getUTCDay(); return d === 0 ? 7 : d; }
   function progOnDate(date){
     var A = window.__lnPlus && window.__lnPlus.api, L = progs();
@@ -417,8 +423,8 @@
   }
 
   // ── 카드 만들기
-  function hero(bg, kick, h1, p, inner){
-    return '<section class="hm-hero" style="background:' + bg + '"><span class="bl" style="width:11rem;height:11rem;right:-3rem;top:-3.75rem"></span><span class="bl" style="width:5.5rem;height:5.5rem;right:2.5rem;top:4.5rem;opacity:.08"></span>' +
+  function hero(bg, kick, h1, p, inner, act){
+    return '<section class="hm-hero' + (act ? ' tap' : '') + '" style="background:' + bg + '"' + (act ? ' data-a="' + act + '"' : '') + '><span class="bl" style="width:11rem;height:11rem;right:-3rem;top:-3.75rem"></span><span class="bl" style="width:5.5rem;height:5.5rem;right:2.5rem;top:4.5rem;opacity:.08"></span>' +
       '<div class="in"><div class="hm-k">' + kick + '</div><h2 class="hm-h1">' + h1 + '</h2>' + (p ? '<p class="hm-p">' + p + '</p>' : '') + (inner || '') + '</div></section>';
   }
   function avs(names, ring, label){
@@ -434,9 +440,14 @@
       return hero(G('#1E2A44', '#3B4A6B'), IC.sun + '장 시작까지 ' + left(open - n), '좋은 아침이에요', '어제 방송 종목부터 오늘의 5줄까지 아래에 정리했어요' + (S.p ? ' · 오늘 밤 ' + esc(S.p.air_time) + ' ' + esc(S.p.name) : ''));
     }
     if (S.k === 'market') {
-      var NW = window.__lnNews || {}, rows = NW.rows || [], top = (NW.top ? NW.top(6) : rows.filter(function(r){ return r.kind !== '시황'; })).filter(function(r){ return Array.isArray(r.stocks) && r.stocks[0]; }).slice(0, 3);
-      var chips = top.map(function(r){ var s = r.stocks.filter(function(z){ return z && z.c && !z.idx; })[0] || r.stocks[0]; return '<button class="hm-chip" data-a="mnOpen">' + esc(s.n) + (r.chg != null && r.chg !== '' ? ' <b>' + pct(Number(r.chg), 2) + '</b>' : '') + '</button>'; }).join('');
-      return hero(G('#5B4CF0', '#7B6CFF'), '<span class="hm-dot"></span>장 열림 · 지금 ' + hm(n), top.length ? '지금 시장을 움직이는<br>재료 ' + top.length + '가지' : '오늘 장, 무엇이<br>움직였을까요?', top.length ? '등락률은 기사 작성 때 기준이에요' : '재료 뉴스와 데이터로 본 종목을 모았어요', chips ? '<div class="hm-chips">' + chips + '</div>' : '');
+      // 카드를 누르면 재료 뉴스 목록, 칩을 누르면 그 종목 (11/26) · 같은 종목 기사가 여러 건이면 다음 종목으로 3개를 채워요
+      var NW = window.__lnNews || {}, rows = NW.top ? NW.top(12) : (NW.rows || []).filter(function(r){ return r.kind !== '시황'; });
+      // 기사마다 아직 안 나온 첫 종목을 골라요 (삼성전자 기사 두 건이면 두 번째 기사는 SK하이닉스처럼 다른 종목으로)
+      var used = {}, top = [];
+      // 기사 등락률은 그 기사의 첫 종목 것이라, 다른 종목을 골랐을 때는 숫자를 붙이지 않아요
+      rows.some(function(r){ var L = (r.stocks || []).filter(function(z){ return z && z.c && !z.idx && /^[0-9A-Z]{6}$/.test(String(z.c)); }), s = L.filter(function(z){ return !used[z.c]; })[0]; if (s) { used[s.c] = 1; top.push({ s: s, chg: s === L[0] ? r.chg : null }); } return top.length >= 3; });
+      var chips = top.map(function(t){ var s = t.s; return '<button class="hm-chip" data-a="stock" data-v="' + esc(s.c) + '" data-name="' + esc(s.n) + '">' + esc(s.n) + (t.chg != null && t.chg !== '' ? ' <b>' + pct(Number(t.chg), 2) + '</b>' : '') + '</button>'; }).join('');
+      return hero(G('#5B4CF0', '#7B6CFF'), '<span class="hm-dot"></span>장 열림 · 지금 ' + hm(n), top.length ? '지금 시장을 움직이는<br>재료 ' + top.length + '가지' : '오늘 장, 무엇이<br>움직였을까요?', top.length ? '등락률은 기사 작성 때 기준이에요 · 눌러서 전체 보기 ›' : '재료 뉴스와 데이터로 본 종목을 모았어요', chips ? '<div class="hm-chips">' + chips + '</div>' : '', 'mnOpen');
     }
     if (S.k === 'pre') {
       var e = S.ep, names = lineupOf(e, S.p), from = kms(S.today + 'T15:30'), pr = Math.max(4, Math.min(100, (n - from) / (S.st - from) * 100));
@@ -451,8 +462,8 @@
         avs(nm, '#E0283A', nm.length ? '지금 출연 중' : '') + '<a class="hm-btn" style="color:#E0283A" href="' + esc(lu) + '" target="_blank" rel="noopener noreferrer">' + IC.play + '본방송 보러 가기</a>');
     }
     if (S.k === 'after') {
-      var ep = S.ep, pub = ep && ep.published, op = openPicks(pub ? ep : null), lk = pub ? (ep.picks || []).filter(function(k){ return k.kind === 'secret' && !k.revealed; }).length : 0;
-      var chips2 = op.slice(0, 6).map(function(k){ return '<button class="hm-chip" data-a="stock" data-v="' + esc(k.stock_code) + '">' + esc(k.stock_name) + '</button>'; }).join('');
+      var ep = S.ep, pub = ep && ep.published, op = uniqBy(openPicks(pub ? ep : null), function(k){ return k.stock_code; }), lk = pub ? (ep.picks || []).filter(function(k){ return k.kind === 'secret' && !k.revealed; }).length : 0;
+      var chips2 = op.slice(0, 6).map(function(u){ var k = u.v; return '<button class="hm-chip" data-a="stock" data-v="' + esc(k.stock_code) + '" data-name="' + esc(k.stock_name) + '">' + esc(k.stock_name) + (u.n > 1 ? ' · ' + u.n + '명' : '') + '</button>'; }).join('');
       var vu = pub && ep.video_url ? '<a class="hm-btn" style="color:#5B4CF0" href="' + esc(ep.video_url) + '" target="_blank" rel="noopener noreferrer">' + IC.play + '다시보기</a>' : '';
       return hero(G('#5B4CF0', '#3B2DB8'), '방송 끝 · ' + esc(S.p.name) + ' ' + md(S.date),
         pub && (op.length + lk) ? '방금 방송에서 나온<br>종목 ' + (op.length + lk) + '개' : '방송 종목을<br>정리하고 있어요',
@@ -461,7 +472,8 @@
     }
     // 주말
     var wk = weekEps(), np = 0, ups = 0, rs = [];
-    wk.forEach(function(e){ openPicks(e).forEach(function(k){ np++; var o = info(k, e.air_date); if (o.ret != null) { rs.push(o.ret); if (o.ret > 0) ups++; } }); });
+    var seen = {};   // 이번 주 여러 번 나온 종목은 처음 나온 방송 기준으로 한 번만 세요
+    wk.slice().sort(function(a, b){ return a.air_date < b.air_date ? -1 : 1; }).forEach(function(e){ openPicks(e).forEach(function(k){ if (seen[k.stock_code]) return; seen[k.stock_code] = 1; np++; var o = info(k, e.air_date); if (o.ret != null) { rs.push(o.ret); if (o.ret > 0) ups++; } }); });
     var avg = rs.length ? rs.reduce(function(a, b){ return a + b; }, 0) / rs.length : null, rng = weekRange();
     var stats = priceOn() && rs.length
       ? [['방송 종목', np + '개', '#fff'], ['평균', pct(avg), avg >= 0 ? '#FF8A95' : '#7DB3FF'], ['오른 종목', ups + '개', '#fff']]

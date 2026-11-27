@@ -74,8 +74,8 @@ button{cursor:pointer;-webkit-tap-highlight-color:transparent}
 .menubtn{width:2.75rem;padding:0;justify-content:center;border-radius:.75rem;color:var(--ink);border-color:var(--line);background:var(--surface)}
 .menubtn svg{width:1.35rem;height:1.35rem}
 /* 서비스별 톤: 정보=라임(신호·성과) · 도구=틸(정밀·계산) · 커뮤니티=앰버(대화·온기) */
-:root{--t-ln:#C6F25E;--t-tools:#4FD1C5;--t-cm:#FFB547;--t-fun:#FF8FA3}
-:root[data-theme="light"]{--t-ln:#3F6F00;--t-tools:#00756B;--t-cm:#A85B00;--t-fun:#C2185B}
+:root{--t-ln:#C6F25E;--t-tools:#4FD1C5;--t-note:#9D93FF;--t-cm:#FFB547;--t-fun:#FF8FA3}
+:root[data-theme="light"]{--t-ln:#3F6F00;--t-tools:#00756B;--t-note:#5B4CF0;--t-cm:#A85B00;--t-fun:#C2185B}
 html[data-app="tools"]{--bg:#08121A;--surface:#0D1A24;--raise:#12222E;--line:#1D3140;--ink2:#8DA2AE;--accent:#4FD1C5;--on-accent:#032420;--acc-soft:rgba(79,209,197,.12)}
 html[data-app="tools"][data-theme="light"]{--bg:#EEF5F7;--surface:#FFFFFF;--raise:#F3F8FA;--line:#D2E0E6;--ink2:#4E636D;--accent:#00756B;--on-accent:#FFFFFF;--acc-soft:rgba(0,117,107,.08)}
 html[data-app="cm"]{--bg:#120F0B;--surface:#1A1611;--raise:#221D16;--line:#342C22;--ink2:#A99C8B;--accent:#FFB547;--on-accent:#221400;--acc-soft:rgba(255,181,71,.12)}
@@ -305,13 +305,13 @@ td.c,th.c{text-align:center}
 window.LN_ADS={client:'',slots:{top_m:'',top_t:'',rail1:'',rail2:''},placeholder:true,test:false};
 </script>
 <script src="sb.js?v=2"></script>
-<script>window.APP_URL={ln:"ln.html?v=202611202300",tools:"tools.html?v=202611202300",cm:"community.html?v=202611081800",fun:"fun.html?v=202611222100"};</script>
+<script>window.APP_URL={ln:"ln.html?v=202611202300",tools:"tools.html?v=202611202300",cm:"community.html?v=202611081800",fun:"fun.html?v=202611222100",note:"note.html?v=202611261200"};</script>
 <script>
 (function(){
 /* ===== 설정 (세 서비스 공통) ===== */
 var KEY='site.v1';
-var APPS=[['ln','정보'],['tools','도구'],['cm','커뮤니티'],['fun','놀이터']];
-var NAME={ln:'정보',tools:'도구',cm:'커뮤니티',fun:'놀이터'};
+var APPS=[['ln','정보'],['tools','도구'],['note','노트'],['cm','커뮤니티'],['fun','놀이터']];
+var NAME={ln:'정보',tools:'도구',note:'노트',cm:'커뮤니티',fun:'놀이터'};
 var DEF={size:'m',theme:'light',tab:'ln',
   notice:{on:true,text:'홈 · 방송종목 · 도구 · 커뮤니티 · MY 메뉴로 원하는 곳에 바로 갈 수 있어요.',where:'all',to:'',v:1},
   noticeClosed:0,hideP:{},picks:[],hiddenChat:{}};
@@ -319,6 +319,8 @@ function load(){try{return JSON.parse(localStorage.getItem(KEY))}catch(e){return
 var C=(function(){var l=load()||{},o=JSON.parse(JSON.stringify(DEF));Object.keys(l).forEach(function(k){o[k]=l[k]});o.notice=Object.assign({},DEF.notice,l.notice||{});o.hideP=o.hideP||{};o.picks=o.picks||[];o.hiddenChat=o.hiddenChat||{};return o})();
 /* 11/6: 기본 화면을 밝은 화면으로 바꾸고 글자 크기 조절을 없앴어요. 예전에 저장된 설정도 한 번만 맞춰요 (어두운 화면은 계속 고를 수 있어요). */
 if(C.v!==2){C.theme='light';C.size='m';C.v=2}
+/* 11/26: 커뮤니티 자리가 '노트'로 바뀌었어요. 마지막으로 커뮤니티를 보던 분도 노트로 열어요 (예전 #cm 주소도 같아요). */
+if(C.tab==='cm')C.tab='note';
 function save(){window.__siteCfg=C;try{localStorage.setItem(KEY,JSON.stringify(C))}catch(e){}if(SITESYNC)SITESYNC.touch()}
 var SITESYNC=null;
 save();
@@ -346,9 +348,10 @@ function applyShell(){var r=document.documentElement;r.setAttribute('data-theme'
 function applyAll(){applyShell();Object.keys(F).forEach(applyTo)}
 function goTo(id,r){if(!READY[id]){Q[id]=r;return}var w=W(id);try{if(w&&w.__site)w.__site.go(r)}catch(e){}}
 /* ===== 웹 주소: #서비스/화면 (예: #ln/experts, #tools/calc, #cm/agendas) ===== */
-var CUR={ln:'home',tools:'home',cm:'home',fun:'home'},SKIP={},POP=false,popT=null;
+var CUR={ln:'home',tools:'home',note:'home',cm:'home',fun:'home'},SKIP={},POP=false,popT=null;
 var NAV={ln:[['home','홈'],['experts','전문가 찾기'],['watch','관심종목'],['academy','7일 첫걸음'],['alerts','알림'],['more','전체 메뉴']],
   tools:[['home','홈'],['search','종목 검색'],['calc','계산기'],['learn','아카데미']],
+  note:[['home','오늘의 노트'],['why','왜 올랐게?'],['theme','오늘의 테마'],['week','이번 주 일정']],
   cm:[['home','홈'],['agendas','토론 목록'],['chat','실시간 토론'],['me','내 활동']],
   fun:[['home','놀이터 홈'],['luck','오늘의 운세'],['test','주식 성향 테스트'],['quiz','두뇌 퀴즈'],['game','카드 짝 맞추기'],['card','아침 인사 카드'],['bal','밸런스 게임']]};
 function hashOf(id,r){return '#'+id+(r&&r!=='home'?'/'+r:'')}
@@ -357,10 +360,14 @@ function setUrl(id,r,push){var h=hashOf(id,r);if(location.hash===h)return;try{hi
 function navBase(id,r){if(id==='ln'&&/^x-/.test(r))return 'experts';if(id==='tools'&&/^s-/.test(r))return 'search';if(id==='cm'&&(r==='detail'||r==='report'))return 'home';if(id==='fun'&&/^test-/.test(r))return 'test';return r}
 function routeLabel(id,r){var b=navBase(id,r),it=NAV[id].filter(function(n){return n[0]===b})[0];return it?it[1]:''}
 function updateTitle(){var l=routeLabel(C.tab,CUR[C.tab]);document.title=(l&&l!=='홈'?l+' · ':'')+NAME[C.tab]+' | 리딩노트'}
+// 예전 커뮤니티는 운영실 '노트 → 설정'에서 켰을 때만 메뉴에 보여요 (주소로 들어오면 그 화면은 그대로 열려요)
+function navApps(){var on=window.__lnNoteCfg&&window.__lnNoteCfg.cm_on;return APPS.filter(function(a){return a[0]!=='fun'&&(a[0]!=='cm'||on||C.tab==='cm')})}
+function cmCached(){try{return !!(JSON.parse(localStorage.getItem('ln.notecfg')||'{}')||{}).cm_on}catch(e){return false}}
+addEventListener('ln:notecfg',function(){try{renderTabs();renderSide()}catch(e){}var w=window.__lnWantCm;window.__lnWantCm=null;if(w&&window.__lnNoteCfg&&window.__lnNoteCfg.cm_on&&C.tab==='note')show('cm',w)});
 function renderSide(){
   var el=$('side');if(!el)return;
   // 놀이터는 따로 메뉴를 두지 않고 '도구' 안에 넣어요
-  el.innerHTML=APPS.filter(function(a){return a[0]!=='fun'}).map(function(a){var id=a[0],on=id===C.tab||(id==='tools'&&C.tab==='fun'),b=navBase(id,CUR[id]);
+  el.innerHTML=navApps().map(function(a){var id=a[0],on=id===C.tab||(id==='tools'&&C.tab==='fun'),b=navBase(id,CUR[id]);
     var funLi=id==='tools'?'<li><a class="it" href="'+hashOf('fun')+'" data-side="fun" data-r="home"'+(C.tab==='fun'?' aria-current="page"':'')+'>놀이터</a></li>':'';
     return '<section class="sd-sec'+(on?' on':'')+'"><a class="sd-h" href="'+hashOf(id)+'" data-side="'+id+'" data-r="home"'+(on?' aria-current="true"':'')+'><i class="tdot" data-t="'+id+'" aria-hidden="true"></i>'+a[1]+'</a>'+
       '<ul>'+NAV[id].map(function(n){return '<li><a class="it" href="'+hashOf(id,n[0])+'" data-side="'+id+'" data-r="'+n[0]+'"'+(on&&C.tab===id&&b===n[0]?' aria-current="page"':'')+'>'+n[1]+'</a></li>'}).join('')+funLi+'</ul></section>';
@@ -379,7 +386,7 @@ function show(id,route,opt){
   renderSide();updateTitle();fillAds();
 }
 function renderTabs(){
-  $('tabs').innerHTML=APPS.filter(function(a){return a[0]!=='fun'}).map(function(a){return '<button class="tab" role="tab" id="tab-'+a[0]+'" data-tab="'+a[0]+'" aria-selected="'+(C.tab===a[0]||(a[0]==='tools'&&C.tab==='fun'))+'" aria-controls="frames"><i class="tdot" aria-hidden="true"></i>'+a[1]+'</button>'}).join('');
+  $('tabs').innerHTML=navApps().map(function(a){return '<button class="tab" role="tab" id="tab-'+a[0]+'" data-tab="'+a[0]+'" aria-selected="'+(C.tab===a[0]||(a[0]==='tools'&&C.tab==='fun'))+'" aria-controls="frames"><i class="tdot" aria-hidden="true"></i>'+a[1]+'</button>'}).join('');
 }
 function noticeInner(n,preview){
   return '<div class="notice-in"><span class="nl">공지</span><'+(preview?'span':'button')+' class="nt"'+(preview?'':' data-n="go"')+'>'+esc(n.text||'공지 내용을 적어 주세요')+(n.to?' <b>'+esc(NAME[n.to])+' ›</b>':'')+'</'+(preview?'span':'button')+'>'+(preview?'':'<button class="nx" data-n="x" aria-label="공지 닫기">×</button>')+'</div>';
@@ -389,7 +396,7 @@ function renderNotice(){
   el.hidden=!on;el.innerHTML=on?noticeInner(n):'';
 }
 $('tabs').addEventListener('click',function(e){var b=e.target.closest('[data-tab]');if(!b)return;var id=b.getAttribute('data-tab');if(id===C.tab)goTo(id,'home');else show(id)});
-$('tabs').addEventListener('keydown',function(e){if(e.key!=='ArrowRight'&&e.key!=='ArrowLeft')return;var i=APPS.map(function(a){return a[0]}).indexOf(C.tab),n=(i+(e.key==='ArrowRight'?1:APPS.length-1))%APPS.length;show(APPS[n][0]);$('tab-'+APPS[n][0]).focus()});
+$('tabs').addEventListener('keydown',function(e){if(e.key!=='ArrowRight'&&e.key!=='ArrowLeft')return;var L=navApps(),i=L.map(function(a){return a[0]}).indexOf(C.tab),n=(i+(e.key==='ArrowRight'?1:L.length-1))%L.length;show(L[n][0]);$('tab-'+L[n][0]).focus()});
 $('notice').addEventListener('click',function(e){var b=e.target.closest('[data-n]');if(!b)return;
   if(b.getAttribute('data-n')==='x'){C.noticeClosed=C.notice.v;save();renderNotice()}
   else if(C.notice.to)show(C.notice.to,'home');
@@ -733,7 +740,7 @@ if(SB.on)SITESYNC=SB.bind('site',{
 applyShell();
 var h0=(location.hash||'').replace('#','');
 if(h0==='admin'){show(C.tab,null,{init:true});openAdmin('dash')}
-else{var p0=parseHash();if(NAME[p0.app])show(p0.app,p0.route||'home',{init:true});/* 11/6: 주소에 #tools처럼 서비스만 있으면 마지막 세부 화면이 아니라 그 서비스 첫 화면을 열어요 */else show(C.tab,null,{init:true})}
+else{var p0=parseHash();if(p0.app==='cm'&&!cmCached()){window.__lnWantCm=p0.route||'home';p0={app:'note',route:'home'}}/* 예전 커뮤니티 주소: 커뮤니티가 꺼져 있으면 노트로. 켜져 있으면 그대로 열어요 (기억해 둔 값이 틀렸으면 설정을 받은 뒤 다시 커뮤니티로) */if(NAME[p0.app])show(p0.app,p0.route||'home',{init:true});/* 11/6: 주소에 #tools처럼 서비스만 있으면 마지막 세부 화면이 아니라 그 서비스 첫 화면을 열어요 */else show(C.tab,null,{init:true})}
 /* 브라우저 뒤로·앞으로 */
 window.addEventListener('popstate',function(){
   var p=parseHash();if(p.app==='admin')return;

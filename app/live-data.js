@@ -39,6 +39,7 @@
       });
     }
     window.__lnAuth = { sb: sb, ready: p.then(function(){ return q(sb.auth.getSession()); }).then(function(r){ return r.data && r.data.session || null; }) };
+    try { window.dispatchEvent(new Event('ln:auth')); } catch (e) {}   // 노트처럼 늦게 붙는 화면이 기다리지 않고 받게 (11/26)
     return window.__lnAuth;
   }
   function withLib(fn){

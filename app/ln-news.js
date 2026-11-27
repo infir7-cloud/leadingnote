@@ -30,6 +30,7 @@
     '.mn-it{display:flex;flex-direction:column;gap:.45rem;padding:.95rem 0;border-top:1px solid var(--line);min-width:0}',
     '.mn-list>.mn-it:first-child{border-top:0}',
     '.mn-hd{font-size:1.0625rem;font-weight:800;line-height:1.45;letter-spacing:-.02em;margin:0;color:var(--ink);word-break:keep-all}',
+    '.mn-hd a{color:inherit;text-decoration:none}.mn-hd a svg{width:.85rem;height:.85rem;margin-left:.25rem;vertical-align:-.05em;fill:none;stroke:var(--ink2);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}',
     '.mn-k{display:inline-block;vertical-align:.12em;font-size:.6875rem;font-weight:800;letter-spacing:.02em;color:var(--t2-acc-ink,var(--accent));background:var(--accent-soft,var(--sunk));border-radius:.3rem;padding:.12rem .4rem;margin-right:.35rem}',
     '.mn-st{display:flex;flex-wrap:wrap;align-items:center;gap:.25rem .5rem;font-size:.9375rem}',
     '.mn-st a,.mn-st span.nm{font-weight:700;color:var(--ink);text-decoration:underline;text-decoration-color:var(--line);text-decoration-thickness:2px;text-underline-offset:.25em}',
@@ -43,14 +44,6 @@
     '.mn-src{font-size:.75rem;color:var(--sn);margin-right:.1rem}',
     '.mn-th{font-size:.75rem;font-weight:700;color:var(--ink2);text-decoration:none;border:1px dashed var(--line);border-radius:999px;padding:.15rem .55rem}',
     '.mn-th::before{content:"# ";color:var(--t2-acc-ink,var(--accent))}',
-    '.mn-cta{display:flex;justify-content:flex-end;gap:.4rem}',
-    '.mn-cta a{display:inline-flex;align-items:center;gap:.2rem;font-size:.8125rem;font-weight:700;text-decoration:none;border-radius:.45rem;padding:.3rem .65rem;white-space:nowrap}',
-    '.mn-cta button{display:inline-flex;align-items:center;font:inherit;font-size:.8125rem;font-weight:700;border-radius:.45rem;padding:.3rem .65rem;white-space:nowrap;background:none;cursor:pointer}',
-    '.mn-cta a svg{width:.85rem;height:.85rem;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}',
-    '.mn-cta .s{color:var(--t2-acc-ink,#5B4CF0);border:1px solid currentColor}',
-    'html.lite .mn-cta .s{color:var(--t2-acc-ink,#5B4CF0);border-color:currentColor}',
-    '.mn-cta button.s,html.lite .mn-cta button.s{color:var(--t2-acc-ink,#5B4CF0);border:1px solid currentColor}',
-    '.mn-cta .o{color:var(--ink2);border:1px solid var(--line)}',
     '.mn-all{display:flex;align-items:center;justify-content:space-between;width:100%;padding:.85rem 0 1rem;border:0;border-top:1px solid var(--line);background:none;color:var(--ink);font:inherit;font-weight:700;font-size:.9375rem;cursor:pointer}',
     '.mn-all svg{width:1.15rem;height:1.15rem;fill:none;stroke:var(--sn);stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}',
     '.mn-chips{display:flex;gap:.4rem;overflow-x:auto;scrollbar-width:none;padding:.25rem 0 .75rem}',
@@ -95,16 +88,13 @@
     var names = st.map(function(s){ if (s.c && !s.idx && /^[0-9A-Z]{6}$/.test(String(s.c))) return '<button type="button" class="nm" data-a="mnStock" data-v="' + esc(s.c) + '|' + esc(s.n || '') + '">' + esc(s.n) + '</button>'; var u = stockUrl(s); return '<a href="' + esc(u) + '" target="_blank" rel="noopener noreferrer">' + esc(s.n) + '</a>'; }).join('<span class="mn-dot">·</span>');
     var chg = r.chg != null && r.chg !== '' ? '<span class="mn-c ' + (Number(r.chg) >= 0 ? 'up' : 'down') + '">' + fmt(r.chg) + '</span>' : '';
     var th = (r.themes || []).map(function(t){ return '<a class="mn-th" href="' + esc(search(t + ' 관련주')) + '" target="_blank" rel="noopener noreferrer">' + esc(t) + '</a>'; }).join('');
-    var main = st[0];
-    var cta = (main ? (main.c && !main.idx ? '<button type="button" class="s" data-a="mnStock" data-v="' + esc(main.c) + '|' + esc(main.n || '') + '">종목 보기</button>'
-        : '<a class="s" href="' + esc(stockUrl(main)) + '" target="_blank" rel="noopener noreferrer">' + (main.idx ? '지수 보기' : '종목 보기') + '</a>') : '') +
-      '<a class="o" href="' + esc(r.url) + '" target="_blank" rel="noopener noreferrer">기사 원문' + IC.out + '</a>';
     return '<article class="mn-it">' +
-      '<h3 class="mn-hd"><span class="mn-k">' + esc(r.kind) + '</span>' + esc(r.headline) + (bcTag ? '<span class="mn-bc">' + esc(bcTag) + '</span>' : '') + '</h3>' +
+      // 제목을 누르면 기사 원문 (11/26) · 종목은 이름을 눌러요 ('종목 보기' 버튼은 이름과 같은 일이라 뺐어요)
+      '<h3 class="mn-hd"><span class="mn-k">' + esc(r.kind) + '</span>' + (/^https?:\/\//.test(r.url || '') ? '<a href="' + esc(r.url) + '" target="_blank" rel="noopener noreferrer">' + esc(r.headline) + IC.out + '</a>' : esc(r.headline)) + (bcTag ? '<span class="mn-bc">' + esc(bcTag) + '</span>' : '') + '</h3>' +
       (names || chg ? '<div class="mn-st">' + names + chg + '</div>' : '') +
       // 부연 설명(요약)은 빼고 제목만 보여요
       '<div class="mn-ft"><span class="mn-src">' + esc(r.press) + '</span>' + th + '</div>' +
-      '<div class="mn-cta">' + cta + '</div></article>';
+      '</article>';
   }
   var DISC = '<p class="mn-disc">개인투자자가 눈여겨볼 기사를 골라 짧게 옮겼어요. 등락률은 기사 작성 시점 기준이라 지금 시세와 다를 수 있어요. 사거나 팔라는 권유가 아니에요.</p>';
 
@@ -157,7 +147,7 @@
     var chips = KINDS.map(function(k){ var n = k === '전체' ? N.rows.length : N.rows.filter(function(r){ return r.kind === k; }).length; if (!n) return '';
       return '<button class="mn-chip" data-a="mnKind" data-v="' + k + '" aria-pressed="' + (k === N.kind) + '">' + k + ' ' + n + '</button>'; }).join('');
     return '<main class="t2"><section class="t2-sec"><div class="t2-h" style="cursor:default">' + esc(dayLbl(N.day)) + ' 재료 뉴스</div>' +
-      '<p class="mn-sub">종목 이름을 누르면 네이버증권, # 테마를 누르면 관련주 검색으로 가요</p>' + staleNote() +
+      '<p class="mn-sub">제목을 누르면 기사 원문, 종목 이름을 누르면 종목으로 가요</p>' + staleNote() +
       '<div class="mn-chips" role="group" aria-label="분류">' + chips + '</div>' +
       '<div class="mn-list">' + (list.length ? list.map(item).join('') : '<p class="mn-empty">이 분류의 기사가 없어요.</p>') + '</div>' + DISC + '</section></main>';
   }
@@ -179,6 +169,14 @@
     w.A.mnStock = function(v){ var p = String(v || '').split('|'), c = p[0]; if (!/^[0-9A-Z]{6}$/.test(c)) return;
       try { var H = window.__lnHome; if (H) { H.names = H.names || {}; H.names[c] = p.slice(1).join('|'); } } catch (e) {}
       w.A.stock(c); };
+    // 종목 누르기 규칙 (11/26 · 앱 전체): 리딩노트 기록이 있는 종목은 종목 화면, 없는 종목은 종목 창(모달)
+    var oStock = w.A.stock;
+    w.A.stock = function(v, el){
+      var c = String(v || ''), H = window.__lnHome || {};
+      // 종목 창은 숫자 6자리 코드만 받아요 (0126Z0 같은 새 코드는 종목 화면으로)
+      if (!/^\d{6}$/.test(c) || (w.STOCKS && w.STOCKS[c]) || typeof window.openStock !== 'function') return oStock.apply(this, arguments);
+      window.openStock(c, (el && el.getAttribute && el.getAttribute('data-name')) || (H.names && H.names[c]) || '');
+    };
     w.A.mnKind = function(v){ N.kind = v || '전체'; w.render(); };
     var ogo = w.__site && w.__site.go;
     if (ogo) w.__site.go = function(r){ if (r === 'news') { w.S.stack = [{ t: 'mnews', id: '' }]; w.S.sheet = null; w.S.tab = 'home'; w.render(); top0(); return; } return ogo.apply(this, arguments); };

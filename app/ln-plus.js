@@ -50,6 +50,7 @@
     '.p-ai .p-foot{font-size:.75rem;color:var(--sn);margin-top:.45rem}',
     '.p-chips{display:flex;flex-wrap:wrap;gap:.35rem;margin-top:.55rem}',
     '.p-chips span{font-size:.8125rem;background:var(--surface);border-radius:.6rem;padding:.25rem .55rem;color:var(--ink2)}.p-chips b{color:var(--ink)}',
+    '.p-chips .p-split{background:var(--warn-soft,#fff4e0);color:var(--warn,#b26a00);font-weight:700}',
     // 한 줄 요약
     '.p-one{display:block!important;width:auto;background:var(--raise);border-radius:1.125rem;padding:.8rem 1rem;margin:0 0 .875rem;text-align:left}',
     '.p-one-h{display:flex;flex-wrap:wrap;align-items:center;gap:.25rem .4rem;margin-bottom:.3rem}.p-one-h small{font-size:.75rem;color:var(--sn)}.p-one .p-badge{white-space:nowrap;flex:none}',
@@ -281,6 +282,7 @@
       if (f.n7 != null) c.push('<span>최근 1주 언급 <b>' + f.n7 + '</b> · 그 전 3주 <b>' + (f.n_prev || 0) + '</b></span>');
       var mx = [['구매', f.buy7], ['지켜보기', f.watch7], ['판매', f.sell7]].filter(function(x){ return x[1]; });
       if (mx.length) c.push('<span>최근 1주 의견 ' + mx.map(function(x){ return x[0] + ' <b>' + x[1] + '</b>'; }).join(' · ') + '</span>');
+      if (f.buy7 && f.sell7) c.push('<span class="p-split">전문가 의견이 갈렸어요</span>');
       if (f.tn >= 1 && f.tmin) c.push('<span>말한 목표 가격 <b>' + (f.tmin === f.tmax ? wonS(f.tmin) : wonS(f.tmin) + '~' + wonS(f.tmax)) + '원</b></span>');
       if (c.length) chips = '<div class="p-chips">' + c.join('') + '</div>';
     }
